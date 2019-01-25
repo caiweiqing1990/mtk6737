@@ -1,0 +1,7 @@
+pcm_master_gpio.c:332:13:pcm_stop	32	static
+pcm_master_gpio.c:395:12:pcm_master_release	16	static
+pcm_master_gpio.c:115:13:gpio_set_out.part.0	0	static
+pcm_master_gpio.c:363:13:pcm_master_ioctl	112	static
+pcm_master_gpio.c:191:12:pcm_master_kthread	112	static
+pcm_master_gpio.c:414:12:pcm_master_init	32	static
+pcm_master_gpio.c:439:13:pcm_master_exit	32	static
