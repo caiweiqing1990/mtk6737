@@ -12,12 +12,10 @@
 
 #include "gpio_cfg.h"
 
-#define GPIO_DEVICE "mt-gpio"
-
-#define GPIOTAG                "[GPIO] "
+#define GPIOTAG                "[PCM_MASTER] "
 #define GPIOLOG(fmt, arg...)   pr_debug(GPIOTAG fmt, ##arg)
 #define GPIOMSG(fmt, arg...)   pr_warn(fmt, ##arg)
-#define GPIOERR(fmt, arg...)   pr_err(GPIOTAG "======================%5d: "fmt, __LINE__, ##arg)
+#define GPIOERR(fmt, arg...)   pr_err(GPIOTAG "===================================%5d: "fmt, __LINE__, ##arg)
 
 #define DATA_LOW			0
 #define DATA_HIGH			1
@@ -284,7 +282,7 @@ static void gpio_init(void)
 	gpio_set_out(PCM1_DO0, DATA_LOW);
 }
 
-static int pcm_start_init(void)
+static int pcm_master_start_init(void)
 {
 	gpio_init();
 	pcm_kthread = kthread_create(pcm_master_kthread, NULL, "pcm_master_kthread");
@@ -293,11 +291,11 @@ static int pcm_start_init(void)
 	wake_up_process(pcm_kthread);
 	setplayback();
 	setrecord();
-	GPIOERR("pcm_start_init\n");
+	GPIOERR("pcm_master_start_init\n");
 	return 0;
 }
 
-static int pcm_read(void *arg)
+static int pcm_master_read(void *arg)
 {
 	int ret;
 	isrecordStart = 1;
@@ -313,7 +311,7 @@ static int pcm_read(void *arg)
 	return ret;
 }
 
-static int pcm_write(void *arg)
+static int pcm_master_write(void *arg)
 {
 	int ret;
 	if(is_playbackbuf_full())
@@ -329,7 +327,7 @@ static int pcm_write(void *arg)
 	return ret;
 }
 
-static void pcm_stop(void)
+static void pcm_master_stop(void)
 {
 	if(pcm_kthread)
 	{
@@ -345,19 +343,19 @@ static void pcm_stop(void)
 	
 	if(ev_t == 0)
 	{
-		GPIOERR("pcm_stop wake_up_interruptible ev_t\n");
+		GPIOERR("pcm_master_stop wake_up_interruptible ev_t\n");
 		ev_t = 1;
 		wake_up_interruptible(&waitq_t);
 	}
 	
 	if(ev_r == 0)
 	{
-		GPIOERR("pcm_stop wake_up_interruptible ev_r\n");
+		GPIOERR("pcm_master_stop wake_up_interruptible ev_r\n");
 		ev_r = 1;
 		wake_up_interruptible(&waitq_r);
 	}
 	
-	GPIOERR("pcm_stop\n");
+	GPIOERR("pcm_master_stop\n");
 }
 
 static long pcm_master_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
@@ -366,25 +364,25 @@ static long pcm_master_ioctl(struct file *file, unsigned int cmd, unsigned long 
 	{
 		case PCM_START:
 		{
-			return pcm_start_init();
+			return pcm_master_start_init();
 		}
 
 		case PCM_STOP:
 		{
-			pcm_stop();
+			pcm_master_stop();
 			break;
 		}
 		
 		case PCM_READ_PCM:
 		{
 			//GPIOERR("PCM_READ_PCM\n");
-			return pcm_read((void *)arg);
+			return pcm_master_read((void *)arg);
 		}
 		
 		case PCM_WRITE_PCM:
 		{
 			//GPIOERR("PCM_WRITE_PCM\n");
-			return pcm_write((void *)arg);
+			return pcm_master_write((void *)arg);
 		}
 
 		default:break;
@@ -395,7 +393,7 @@ static long pcm_master_ioctl(struct file *file, unsigned int cmd, unsigned long 
 static int pcm_master_release(struct inode *inode, struct file *file)
 {
 	GPIOERR("pcm_master_release\n");
-	pcm_stop();
+	pcm_master_stop();
 	return 0;
 }
 
