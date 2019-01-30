@@ -1,0 +1,338 @@
+kernel配置文件
+kernel-3.18/arch/arm64/configs/len6737t_66_sh_n_defconfig
+
+DrvGen.exe路径
+kernel-3.18/tools/dct/old_dct/DrvGen.exe
+
+codegen.dws
+./kernel-3.18/drivers/misc/mediatek/mach/mt6735/len6737t_66_sh_n/dct/dct/codegen.dws
+Z:\XY3701_N0\kernel-3.18\drivers\misc\mediatek\mach\mt6735\len6737t_66_sh_n\dct\dct
+
+
+X:\XY3701_N0\kernel-3.18\drivers\misc\mediatek\mach\mt6735\len6737t_66_sh_n\dct\dct
+
+MT6737T_LTE_Smartphone_Application_Processor_Software_Register_Table_V1.0-0073718527	753页
+
+PIN73 PCM_CLK 	DIO GPIO61 & PCM_CLK DVDD18
+PIN74 PCM_TX 	DO 	GPIO64 & PCM_TX DVDD18
+PIN75 PCM_RX 	DIO GPIO63 & PCM_RX DVDD18
+PIN76 PCM_SYNC DIO GPIO62 & PCM_SYNC DVDD18
+
+GPIO64	PCM1_DO0
+		PCM1_DI
+GPIO63	PCM1_DO0
+		PCM1_DI
+GPIO62	PCM1_SYNC
+GPIO61	PCM1_CLK
+
+PIN93 	UTXD0 DO UART0    TX DVDD18
+PIN94 	URXD0 DI UART0    RX DVDD18
+PIN95 	URXD1 DO UART1    RX DVDD18
+PIN96 	UTXD1 DI UART1    TX DVDD18
+PIN97 	UTXD2 DO UART2    TX DVDD18
+PIN98 	URXD2 DI UART2    RX DVDD18
+PIN99 	URXD3 DI UART3    RX DVDD18
+PIN100 	UTXD3 DO UART3    TX DVDD18
+
+GPIO80	PCM1_CLK
+GPIO79	PCM1_SYNC
+GPIO78	PCM1_DI
+	
+GPIO64	PCM1_DO0
+		PCM1_DI
+GPIO63	PCM1_DO0
+		PCM1_DI
+GPIO62	PCM1_SYNC
+GPIO61	PCM1_CLK
+	
+GPIO12	PCM1_DO1
+GPIO9	PCM1_DO0
+GPIO8	PCM1_DO1
+
+
+GPIO188	PCM0_SYNC
+GPIO187	PCM0_DO0
+GPIO185	PCM0_DI
+GPIO184	PCM0_CLK
+
+adb root
+adb remount
+adb shell restorecon system/bin/satfi
+
+
+/system分区配置可读可写
+adb root
+adb disable-verity 
+adb reboot
+以上3步骤不刷机，只需执行一次
+adb root
+adb remount
+adb push Y:\mytest\bin\mytest /system/bin/
+adb push Y:\power_mode\bin\power_mode /system/bin/
+adb push Y:\power_mode\bin\mtkgpio /system/bin/
+adb push Y:\power_mode\bin\httpdown /system/bin/
+adb push Y:\satfi\bin\satfi /system/bin/
+adb push Y:\satfi\bin\config.ini /storage/self/primary/
+adb push Y:\satfi\bin\configSat.ini /storage/self/primary/
+
+
+adb push Y:\gpio_test\bin\pcm_test /mnt
+adb push Y:\gpio_test\bin\in.raw /mnt
+adb push Y:\pcm_module\pcm_master_gpio.ko /mnt
+adb push Y:\pcm_module\pcm_slave_gpio.ko /mnt
+
+rmmod pcm_master_gpio.ko;insmod pcm_master_gpio.ko
+chmod +x pcm_test
+./pcm_test in.raw out.raw
+
+adb pull /mnt/out.raw Y:\gpio_test\bin\
+adb pull /mnt/in.raw Y:\gpio_test\bin\
+
+
+adb push Y:\gpsinf\bin\gps_test /system/bin/
+
+/home/book/work/XY3701_N0/out/target/product/len6737t_66_sh_n/obj/KERNEL_OBJ/drivers/misc/mediatek/gpio
+
+PIN73	GPIO61
+PIN76	GPIO62
+PIN75	GPIO63
+PIN74	GPIO64
+
+mtkgpio	61 0
+mtkgpio	62 0
+mtkgpio	63 0
+mtkgpio	64 0
+
+mtkgpio	61
+mtkgpio	62
+mtkgpio	63
+mtkgpio	64
+
+
+更新系统Settings.apk，开机自动WIFI热点AP模式 SSID：SatFi 密码：12345678
+adb push Z:\satfi\bin\Settings.apk /system/priv-app/Settings
+
+
+MTK6737串口设备节点
+/dev/ttyMT0
+/dev/ttyMT1
+/dev/ttyMT2
+/dev/ttyMT3
+
+LOCAL_PATH := $(call my-dir)
+include $(CLEAR_VARS)
+LOCAL_C_INCLUDES += system/core/include/cutils/
+LOCAL_SRC_FILES:= $(call all-c-files-under)
+LOCAL_MODULE := test
+LOCAL_SHARED_LIBRARIES += -liblog
+LOCAL_SHARED_LIBRARIES += libc
+LOCAL_LDFLAGS := -L/path -ltest
+LOCAL_LDFLAGS += $(LOCAL_PATH)/libiconv.a $(LOCAL_PATH)/libspeex.a
+LOCAL_MODULE_TAGS := debug
+LOCAL_MODULE_PATH := $(LOCAL_PATH)/bin
+include $(BUILD_EXECUTABLE)
+
+test.c
+#include <stdio.h>
+int main()
+{
+    printf("Hello Android\n");
+    return 0;
+}
+
+开机启动c程序
+1、device/mediatek/mt6735/init.mt6735.rc
+
+//add my
+service satfi /system/bin/satfi
+    user root
+    group root
+    class main
+	disabled
+    oneshot
+
+on property:dev.bootcomplete=1
+	start satfi
+	
+2、system/sepolicy/file_contexts
+#add my	
+/system/bin/satfi	u:object_r:satfi_exec:s0
+
+3、system/sepolicy/satfi.te
+#add my
+type satfi, domain;
+type satfi_exec, exec_type, file_type;
+init_daemon_domain(satfi)
+domain_trans(init, shell_exec, satfi)
+net_domain(satfi)
+
+allow satfi toolbox_exec:file { getattr execute read open execute_no_trans };
+allow satfi storage_file:lnk_file { read open };
+allow satfi tmpfs:dir { write read open search };
+allow satfi mnt_user_file:dir { write read open search };
+allow satfi fuse:dir { write read open search };
+allow satfi fuse:file { write read open getattr };
+allow satfi self:tcp_socket { create setopt bind listen connect };
+allow satfi self:capability { net_raw };
+allow satfi self:udp_socket { create bind };
+allow satfi port:tcp_socket { name_bind };
+allow satfi node:tcp_socket { node_bind };
+allow satfi port:udp_socket { name_bind };
+allow satfi node:udp_socket { node_bind };
+
+allow satfi sysfs:dir { read open };
+allow satfi debuggerd_exec:file { read open };
+allow satfi ttyMT_device:chr_file { read write open ioctl };
+allow satfi shell_exec:file { execute_no_trans };
+allow satfi mnt_user_file:lnk_file { write read open };
+allow satfi self:capability { dac_override };
+allow satfi mtgpio_device:chr_file { read write open ioctl };
+
+
+make bootimage
+make bootimage-nodeps
+
+adb root
+adb remount
+adb shell restorecon system/bin/satfi
+
+cp out/target/product/len6737t_66_sh_n/system/priv-app/Settings/Settings.apk external/test/satfi/bin/
+
+misc/mediatek/gpio/mt_gpio_core.c:612:  .name = "mtgpio",
+
+=======================================================================================
+
+typedef enum {
+    HW_GPIO0=0,   HW_GPIO1,    HW_GPIO2,     HW_GPIO3, 
+    HW_GPIO4,     HW_GPIO5,    HW_GPIO6,     HW_GPIO7, 
+    HW_GPIO8,     HW_GPIO9,    HW_GPIO10,    HW_GPIO11, 
+    HW_GPIO12,    HW_GPIO13,   HW_GPIO14,    HW_GPIO15,
+    HW_GPIO16,    HW_GPIO17,   HW_GPIO18,    HW_GPIO19,
+    HW_GPIO20,    HW_GPIO21,   HW_GPIO22,    HW_GPIO23,
+    HW_GPIO24,    HW_GPIO25,   HW_GPIO26,    HW_GPIO27,
+    HW_GPIO28,    HW_GPIO29,   HW_GPIO30,    HW_GPIO31,
+    HW_GPIO32,    HW_GPIO33,   HW_GPIO34,    HW_GPIO35,
+    HW_GPIO36,    HW_GPIO37,   HW_GPIO38,    HW_GPIO39,
+    HW_GPIO40,    HW_GPIO41,   HW_GPIO42,    HW_GPIO43,
+    HW_GPIO44,    HW_GPIO45,   HW_GPIO46,    HW_GPIO47,
+    HW_GPIO48,    HW_GPIO49,   HW_GPIO50,    HW_GPIO51,
+    HW_GPIO52,    HW_GPIO53,   HW_GPIO54,    HW_GPIO55,
+    HW_GPIO56,    HW_GPIO57,   HW_GPIO58,    HW_GPIO59,
+    HW_GPIO60,    HW_GPIO61,   HW_GPIO62,    HW_GPIO63,
+    HW_GPIO64,    HW_GPIO65,   HW_GPIO66,    HW_GPIO67,
+    HW_GPIO68,    HW_GPIO69,   HW_GPIO70,    HW_GPIO71,
+    HW_GPIO72,    HW_GPIO73,   HW_GPIO74,    HW_GPIO75,
+    HW_GPIO76,    HW_GPIO77,   HW_GPIO78,    HW_GPIO79,
+    HW_GPIO80,    HW_GPIO81,   HW_GPIO82,    HW_GPIO83,
+    HW_GPIO84,    HW_GPIO85,   HW_GPIO86,    HW_GPIO87,
+    HW_GPIO88,    HW_GPIO89,   HW_GPIO90,    HW_GPIO91,
+    HW_GPIO92,    HW_GPIO93,   HW_GPIO94,    HW_GPIO95,
+    HW_GPIO96,    HW_GPIO97,   HW_GPIO98,    HW_GPIO99,
+    HW_GPIO100,   HW_GPIO101,  HW_GPIO102,   HW_GPIO103,
+    HW_GPIO104,   HW_GPIO105,  HW_GPIO106,   HW_GPIO107,
+    HW_GPIO108,   HW_GPIO109,  HW_GPIO110,   HW_GPIO111,    
+    HW_GPIO112,   HW_GPIO113,  HW_GPIO114,   HW_GPIO115,
+    HW_GPIO116,   HW_GPIO117,  HW_GPIO118,   HW_GPIO119,
+    HW_GPIO120,   HW_GPIO121,  HW_GPIO122,   HW_GPIO123,
+    HW_GPIO124,   HW_GPIO125,  HW_GPIO126,   HW_GPIO127,
+    HW_GPIO128,   HW_GPIO129,  HW_GPIO130,   HW_GPIO131,
+    HW_GPIO132,   HW_GPIO133,  HW_GPIO134,   HW_GPIO135,
+    HW_GPIO136,   HW_GPIO137,  HW_GPIO138,   HW_GPIO139,
+    HW_GPIO140,   HW_GPIO141,  HW_GPIO142,   HW_GPIO143,
+    HW_GPIO144,   HW_GPIO145,  HW_GPIO146,   
+    HW_GPIO_MAX
+} HW_GPIO;
+
+#define PWREN			HW_GPIO127
+#define RESET_IN		HW_GPIO122
+#define USB_BOOT		HW_GPIO120
+
+#define AP_WAKEUP_BB	HW_GPIO123
+#define BB_WAKEUPAP		HW_GPIO124
+#define AP_SLEEP_BB		HW_GPIO121
+#define BB_SLEEP_AP		HW_GPIO98
+
+CONFIG_MODULES=y
+CONFIG_MODULE_UNLOAD=y
+#Enable loadable module support
+CONFIG_IPV6=y
+CONFIG_INET6_AH=y
+CONFIG_INET6_ESP=y
+CONFIG_INET6_IPCOMP=y
+CONFIG_IPV6_MIP6=y
+CONFIG_INET6_XFRM_TUNNEL=y
+CONFIG_INET6_TUNNEL=y
+CONFIG_INET6_XFRM_MODE_TRANSPORT=y
+CONFIG_INET6_XFRM_MODE_TUNNEL=y
+CONFIG_INET6_XFRM_MODE_BEET=y
+CONFIG_INET6_XFRM_MODE_ROUTEOPTIMIZATION=y
+CONFIG_IPV6_SIT=y
+CONFIG_IPV6_TUNNEL=y
+CONFIG_BRIDGE_NETFILTER=y
+CONFIG_NETFILTER_XT_TARGET_HL=y
+CONFIG_NETFILTER_XT_TARGET_TCPMSS=y
+CONFIG_NETFILTER_XT_MATCH_PHYSDEV=y
+CONFIG_NETFILTER_XT_MATCH_SOCKET=y
+CONFIG_NF_DEFRAG_IPV6=y
+CONFIG_NF_CONNTRACK_IPV6=y
+CONFIG_NF_REJECT_IPV6=y
+CONFIG_IP6_NF_IPTABLES=y
+CONFIG_IP6_NF_MATCH_FRAG=y
+CONFIG_IP6_NF_MATCH_IPV6HEADER=y
+CONFIG_IP6_NF_TARGET_HL=y
+CONFIG_IP6_NF_FILTER=y
+CONFIG_IP6_NF_TARGET_REJECT=y
+CONFIG_IP6_NF_MANGLE=y
+CONFIG_IP6_NF_RAW=y
+CONFIG_STP=y
+CONFIG_BRIDGE=y
+CONFIG_LLC=y
+
+kernel模块:
+mmm kernel-3.18:clean-kernel 					(clean操作)
+make kernel bootimage 							(在修改内核配置 arch/arm64/configs/len6737t_66_sh_n_defconfig 情况下必须使用该命令才生效)
+
+在无修改配置文件的情况下，可用如下命令模块编译:
+mmm kernel-3.18:kernel 							(编译)
+make bootimage-nodeps 							(打包成bootimage)
+
+make ARCH=arm64 CROSS_COMPILE=/home/book/work/XY3701_N0/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/bin/aarch64-linux-android- len6737t_66_sh_n_defconfig
+make ARCH=arm64 CROSS_COMPILE=/home/book/work/XY3701_N0/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/bin/aarch64-linux-android- menuconfig
+make ARCH=arm64 CROSS_COMPILE=/home/book/work/XY3701_N0/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/bin/aarch64-linux-android- modules
+
+KERNELDIR = /home/book/work/XY3701_N0/out/target/product/len6737t_66_sh_n/obj/KERNEL_OBJ
+ARCH = arm64
+CROSS_COMPILE = /home/book/work/XY3701_N0/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/bin/aarch64-linux-android-
+
+一、处理消息进程日志
+logcat | grep MNLD
+
+二、发送消息接口日志
+logcat | grep hal2mnl
+
+三、抓取定位数据日志
+logcat | grep pseudo
+
+01-21 14:38:31.019   429  4780 D pseudo  : mtk_gps_sys_nmea_output_to_mnld: received 526 bytes:
+01-21 14:38:31.021   429  4780 D pseudo  : mtk_gps_sys_nmea_output_to_app: len:526, $GNGGA,063833.422,2309.6643,N,11324.7021,E,0,0,,156.2,M,-6.2,M,,*43
+01-21 14:38:31.021   429  4780 D pseudo  : $GPGSA,A,1,,,,,,,,,,,,,99.99,99.99,99.99*30
+01-21 14:38:31.021   429  4780 D pseudo  : $BDGSA,A,1,,,,,,,,,,,,,99.99,99.99,99.99*21
+01-21 14:38:31.021   429  4780 D pseudo  : $PMTKGEPH,30,2,2,2,0,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,0,2*37
+01-21 14:38:31.021   429  4780 D pseudo  : $PMTKGALM,31,1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1*2A
+01-21 14:38:31.021   429  4780 D pseudo  : $GPGSV,1,1,0*49
+01-21 14:38:31.021   429  4780 D pseudo  : $BDGSV,1,1,0*58
+01-21 14:38:31.021   429  4780 D pseudo  : $GNRMC,063833.422,V,2309.6643,N,11324.7021,E,0.000,0.00,210119,,,N*55
+01-21 14:38:31.021   429  4780 D pseudo  : $GNVTG,0.00,T,,M,0.000,N,0.000,K,N*2C
+01-21 14:38:31.021   429  4780 D pseudo  : $GNACCURACY,3162.1*21
+01-21 14:38:31.021   429  4780 D pseudo  : $PMTKAGC,063833.422,2476,2339,0,0*70
+01-21 14:38:31.027   429  4780 D pseudo  : mtk_gps_sys_nmea_output_to_app: len:46, [vAGPS_Auto_Req]:g_FirstDbtt:0,u2BitMap:0x128
+
+cust.dtsi  				XY3701_N0\out\target\product\len6737t_66_sh_n\obj\KERNEL_OBJ\arch\arm64\boot\dts
+mt6735.dtsi				XY3701_N0\kernel-3.18\arch\arm64\boot\dts
+len6737t_66_sh_n.dts	XY3701_N0\kernel-3.18\arch\arm64\boot\dts
+codegen.dws				XY3701_N0\kernel-3.18\drivers\misc\mediatek\mach\mt6735\len6737t_66_sh_n\dct\dct
+DrvGen.exe				XY3701_N0\kernel-3.18\tools\dct\old_dct
+
+dtc -I dtb -O dts /home/book/work/XY3701_N0/out/target/product/len6737t_66_sh_n/obj/KERNEL_OBJ/arch/arm64/boot/dts/len6737t_66_sh_n.dtb -o tmp.dts
+
+
