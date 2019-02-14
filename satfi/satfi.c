@@ -26,12 +26,14 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <sys/un.h>
 #include <strings.h>
 #include <stdio.h>
 #include "msg.h"
 #include "server.h"
 #include "config.h"
 #include "gpio_exp.h"
+#include "data_coder.h"
 
 int appsocket_init(int port);
 int uart_send(int fd, char *data, int datalen);
@@ -369,7 +371,8 @@ void Data_Transmit(char *MsID, void *data);
 
 #define __DEBUG__  
 #ifdef __DEBUG__  
-#define satfi_log(x...) LOGE(x)
+#define satfi_log(x...) printf(x)
+//#define satfi_log(x...) LOGE(x)
 #else
 #define satfi_log(x...)
 #endif
@@ -5282,7 +5285,7 @@ static void *select_app(void *p)
 	while(1)
 	{
 		timeout.tv_sec = 3;
-		timeout.tv_usec = 100000;
+		timeout.tv_usec = 0;
 		max_fd = sock_app_tcp;
 		App_Fd_Set(&fdread, base->app.app_timeout, &max_fd);
 		fds = fdread;
@@ -6663,7 +6666,8 @@ static void *select_tsc_udp(void *p)
 		maxfd = sock_udp;
 		FD_SET(sock_udp, &fds);
 		tv.tv_sec = 10;
-				
+		tv.tv_usec = 0;
+		
 	    switch(select(maxfd+1,&fds,NULL,NULL,&tv))
 	    {
 	    case -1: break;
@@ -7036,7 +7040,8 @@ static void *select_tsc(void *p)
 		
 		FD_ZERO(&fds);/* 每次循环都需要清空 */
 		FD_SET(sock_tsc, &fds); /* 添加描述符 */
-		timeout.tv_sec = 1;		
+		timeout.tv_sec = 1;
+		timeout.tv_usec = 0;
 	    switch(select(sock_tsc+1, &fds, NULL, NULL, &timeout))
 		{
 			case -1: break;
@@ -7425,6 +7430,50 @@ void CreateMessage(char *Msid, char *toPhone, int ID, char *messagedata)
 	CreateMsgData(toPhone, messagedata, outdata);
 	MessageADD(Msid, toPhone, ID, outdata, strlen(outdata));		
 }
+
+
+
+// -1 means failure
+int safe_sendto(const char* path, const char* buff, int len) {
+    int ret = 0;
+    struct sockaddr_un addr;
+    int retry = 10;
+    int fd = socket(PF_LOCAL, SOCK_DGRAM, 0);
+    if (fd < 0) {
+        LOGE("safe_sendto() socket() failed reason=[%s]%d",
+            strerror(errno), errno);
+        return -1;
+    }
+
+    int flags = fcntl(fd, F_GETFL, 0);
+    fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+    memset(&addr, 0, sizeof(addr));
+    addr.sun_path[0] = 0;
+    memcpy(addr.sun_path + 1, path, strlen(path));
+    addr.sun_family = AF_UNIX;
+
+    while ((ret = sendto(fd, buff, len, 0,
+        (const struct sockaddr *)&addr, sizeof(addr))) == -1) {
+        if (errno == EINTR) {
+            LOGE("errno==EINTR\n");
+            continue;
+        }
+        if (errno == EAGAIN) {
+            if (retry-- > 0) {
+                usleep(100 * 1000);
+                LOGE("errno==EAGAIN\n");
+                continue;
+            }
+        }
+        LOGE("safe_sendto() sendto() failed path=[%s] ret=%d reason=[%s]%d, buff[%s]",
+            path, ret, strerror(errno), errno, buff);
+        break;
+    }
+
+    close(fd);
+    return ret;
+}
+
 
 void *SystemServer(void *p)
 {
@@ -8763,6 +8812,130 @@ static void *sendto_app_voice_udp(void *p)
 	}
 }
 
+
+/*************************************************
+* Local UDP Socket
+**************************************************/
+// -1 means failure
+int socket_bind_udp(const char* path) 
+{
+    int fd;
+    struct sockaddr_un addr;
+
+    fd = socket(PF_LOCAL, SOCK_DGRAM, 0);
+    if (fd < 0) {
+        satfi_log("socket_bind_udp() socket() failed reason=[%s]%d",
+            strerror(errno), errno);
+        return -1;
+    }
+    satfi_log("fd=%d\n", fd);
+
+    memset(&addr, 0, sizeof(addr));
+    addr.sun_path[0] = 0;
+    memcpy(addr.sun_path + 1, path, strlen(path));
+    addr.sun_family = AF_UNIX;
+    unlink(addr.sun_path);
+    if (bind(fd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
+        satfi_log("socket_bind_udp() bind() failed path=[%s] reason=[%s]%d",
+            path, strerror(errno), errno);
+        close(fd);
+        return -1;
+    }
+    satfi_log("path=%s\n", path);
+    if (chmod(path, 0660) < 0) {
+        satfi_log("chmod err = [%s]\n", strerror(errno));
+    }
+    return fd;
+}
+
+
+// -1 means failure
+int socket_set_blocking(int fd, int blocking) 
+{
+    if (fd < 0) {
+        satfi_log("socket_set_blocking() invalid fd=%d", fd);
+        return -1;
+    }
+
+    int flags = fcntl(fd, F_GETFL, 0);
+    if (flags == -1) {
+        satfi_log("socket_set_blocking() fcntl() failed invalid flags=%d reason=[%s]%d",
+            flags, strerror(errno), errno);
+        return -1;
+    }
+
+    flags = blocking ? (flags&~O_NONBLOCK) : (flags|O_NONBLOCK);
+    return (fcntl(fd, F_SETFL, flags) == 0) ? 0 : -1;
+}
+
+int create_satfi_udp_fd() {
+    int fd = socket_bind_udp("satfi");
+    socket_set_blocking(fd, 0);
+    return fd;
+}
+
+// -1 means failure
+int safe_recvfrom(int fd, char* buff, int len) {
+    int ret = 0;
+    int retry = 10;
+
+    while ((ret = recvfrom(fd, buff, len, 0,
+         NULL, NULL)) == -1) {
+        satfi_log("safe_recvfrom() ret=%d len=%d", ret, len);
+        if (errno == EINTR) continue;
+        if (errno == EAGAIN) {
+            if (retry-- > 0) {
+                usleep(100 * 1000);
+                continue;
+            }
+        }
+        satfi_log("safe_recvfrom() recvfrom() failed reason=[%s]%d",
+            strerror(errno), errno);
+        break;
+    }
+    return ret;
+}
+
+int gps_start() 
+{
+    satfi_log("gps_start\n");
+#define MTK_HAL2MNL "mtk_hal2mnl"
+#define HAL_MNL_BUFF_SIZE           (16 * 1024)
+#define HAL_MNL_INTERFACE_VERSION   1
+
+	typedef enum {
+		HAL2MNL_HAL_REBOOT						= 0,
+		HAL2MNL_GPS_INIT						= 101,
+		HAL2MNL_GPS_START						= 102,
+		HAL2MNL_GPS_STOP						= 103,
+		HAL2MNL_GPS_CLEANUP 					= 104,
+		HAL2MNL_GPS_INJECT_TIME 				= 105,
+		HAL2MNL_GPS_INJECT_LOCATION 			= 106,
+		HAL2MNL_GPS_DELETE_AIDING_DATA			= 107,
+		HAL2MNL_GPS_SET_POSITION_MODE			= 108,
+		HAL2MNL_DATA_CONN_OPEN					= 201,
+		HAL2MNL_DATA_CONN_OPEN_WITH_APN_IP_TYPE = 202,
+		HAL2MNL_DATA_CONN_CLOSED				= 203,
+		HAL2MNL_DATA_CONN_FAILED				= 204,
+		HAL2MNL_SET_SERVER						= 301,
+		HAL2MNL_SET_REF_LOCATION				= 302,
+		HAL2MNL_SET_ID							= 303,
+		HAL2MNL_NI_MESSAGE						= 401,
+		HAL2MNL_NI_RESPOND						= 402,
+		HAL2MNL_UPDATE_NETWORK_STATE			= 501,
+		HAL2MNL_UPDATE_NETWORK_AVAILABILITY 	= 502,
+		HAL2MNL_GPS_MEASUREMENT 				= 601,
+		HAL2MNL_GPS_NAVIGATION					= 602,
+	} hal2mnl_cmd;
+
+
+    char buff[HAL_MNL_BUFF_SIZE] = {0};
+    int offset = 0;
+    put_int(buff, &offset, HAL_MNL_INTERFACE_VERSION);
+    put_int(buff, &offset, HAL2MNL_GPS_START);
+    return safe_sendto(MTK_HAL2MNL, buff, offset);
+}
+
 void main_thread_loop(void)
 {
 	fd_set fds;
@@ -8771,21 +8944,22 @@ void main_thread_loop(void)
 
 	int SatDataOfs[2]={0};
 	char SatDataBuf[2][1024];
+
+	char gpsDataBuf[1024];
+	int gpsSocketfd = create_satfi_udp_fd();
+	satfi_log("gpsSocketfd=%d\n", gpsSocketfd);
+	gps_start();
 	
 	while(1)
 	{
 		FD_ZERO(&fds);
 		maxfd=0;
 
-		if(base.gps.gps_fd > 0) {
-			FD_SET(base.gps.gps_fd, &fds);
-			if(base.gps.gps_fd > maxfd) {
-				maxfd = base.gps.gps_fd;
+		if(gpsSocketfd > 0) {
+			FD_SET(gpsSocketfd, &fds);
+			if(gpsSocketfd > maxfd) {
+				maxfd = gpsSocketfd;
 			}
-		} else {
-			//if (isFileExists(base.gps.gps_dev_name)) {
-			//	init_serial(&base.gps.gps_fd, base.gps.gps_dev_name, base.gps.gps_baud_rate);
-			//}
 		}
 
 		if(base.sat.sat_fd > 0) {
@@ -8801,14 +8975,24 @@ void main_thread_loop(void)
 		}
 
 		timeout.tv_sec = 3;
+		timeout.tv_usec = 0;
 		switch(select(maxfd+1,&fds,NULL,NULL,&timeout))
 		{
-			case -1: break;
-			case  0: break;
+			case -1: satfi_log("select error %s\n", strerror(errno));break;
+			case  0: satfi_log("select timeout");break;
 			default:
 				if(base.sat.sat_fd > 0 && FD_ISSET(base.sat.sat_fd, &fds)) {
 					handle_sat_data(&base.sat.sat_fd, SatDataBuf[0], &SatDataOfs[0]);//卫星模块数据
 				}
+
+				if(gpsSocketfd > 0 && FD_ISSET(gpsSocketfd, &fds))
+				{
+					int n = safe_recvfrom(gpsSocketfd, gpsDataBuf, 1024);
+					gpsDataBuf[n] = 0;
+					strncpy(base.gps.gps_bd, gpsDataBuf, n);
+					//satfi_log("gpsDataBuf=%s\n", gpsDataBuf);
+				}
+				
 				break;
 		}
 	}

@@ -340,3 +340,38 @@ DrvGen.exe				XY3701_N0\kernel-3.18\tools\dct\old_dct
 
 dtc -I dtb -O dts /home/book/work/XY3701_N0/out/target/product/len6737t_66_sh_n/obj/KERNEL_OBJ/arch/arm64/boot/dts/len6737t_66_sh_n.dtb -o tmp.dts
 
+
+
+INT32 mtk_gps_sys_nmea_output_to_app(const char * buffer, UINT32 length) {
+    if (enable_dbg_log == MTK_GPS_TRUE) {  // Need to use prop to control debug on/of
+        LOGD("len:%d,%s", length, buffer);
+    }
+
+	char buftmp[1024];
+	int len = (length > 1024 ? 1024 : length);
+	buftmp[len] = 0;
+	strncpy(buftmp, buffer, len);
+
+	char *p = strtok(buftmp, "\r\n");
+	while(p!=NULL)
+	{
+		p = strtok(NULL, "\r\n");
+		if(p) 
+		{
+			if(strstr(p, "$GNRMC"))
+			{		
+				if(safe_sendto("satfi", p, strlen(p)) < 0)
+				{
+					LOGD("test:safe_sendto error\n");
+				}
+				else
+				{				
+					LOGD("test:%d,%s\n", strlen(p), p);
+				}
+			}
+		}
+	}
+
+    return MTK_GPS_SUCCESS;
+}
+

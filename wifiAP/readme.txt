@@ -1,6 +1,6 @@
 开机将wifi配置为AP热点模式
 
-修改注册广播BOOT_COMPLETED
+增加注册广播BOOT_COMPLETED
 packages/apps/Settings/AndroidManifest.xml
 
 <!-- M: for RECEIVE_BOOT_COMPLETED @{ -->
