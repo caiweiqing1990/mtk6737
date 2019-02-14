@@ -41,7 +41,6 @@ int StrToBcd(unsigned char *bcd, const char *str, int strlen);
 int log_insert(char *MsID, void *data, unsigned int datalen);
 int ConnectTSC(char* routename, char* ip, int port, int *err, int timeout);
 
-
 #define GPS_DATA_FILE		"/storage/self/primary/GpsData.txt"
 #define CALL_RECORDS_FILE	"/storage/self/primary/CallRecords.txt"
 #define SAT_IMEI_FILE		"/storage/self/primary/configSat.ini"
@@ -150,7 +149,6 @@ typedef  struct _n3g
 typedef struct _sat
 {
   int sat_fd;                //SAT模块文件
-  int sat_fd_message;
   int sat_available;
   int sat_status;            //0：command 1：online data
   enum SAT_STATE sat_state;
@@ -371,7 +369,7 @@ void Data_Transmit(char *MsID, void *data);
 
 #define __DEBUG__  
 #ifdef __DEBUG__  
-#define satfi_log(x...) LOGD(x)
+#define satfi_log(x...) LOGE(x)
 #else
 #define satfi_log(x...)
 #endif
@@ -710,9 +708,9 @@ int GpsDataADD(char *packdata, unsigned short packsize)
 }
 
 
-int code_convert (char *tocode, char *fromcode, char *inbuf, size_t *inlen, char *outbuf, size_t *outlen)
+int code_convert(char *tocode, char *fromcode, char *inbuf, size_t *inlen, char *outbuf, size_t *outlen)
 {
-	iconv_t cd 	= iconv_open (tocode, fromcode);
+	iconv_t cd 	= iconv_open(tocode, fromcode);
 	if (cd == (iconv_t)-1)
 	{
 		perror ("iconv_open");
@@ -724,7 +722,7 @@ int code_convert (char *tocode, char *fromcode, char *inbuf, size_t *inlen, char
 	size_t inbytesleft = *inlen;
 	size_t outbytesleft = *outlen;
 
-	size_t ret = iconv (cd, &tmpin, &inbytesleft, &tmpout, &outbytesleft);
+	size_t ret = iconv(cd, &tmpin, &inbytesleft, &tmpout, &outbytesleft);
 	if (ret == -1)
 	{
 		iconv_close(cd);
@@ -2327,9 +2325,9 @@ short get_sat_dailstatus()
   return status;
 }
 
+#define USB_BOOT		HW_GPIO120
 #define PWREN			HW_GPIO127
 #define RESET_IN		HW_GPIO122
-#define USB_BOOT		HW_GPIO120
 
 #define AP_WAKEUP_BB	HW_GPIO123
 #define BB_WAKEUPAP		HW_GPIO124
@@ -2409,7 +2407,6 @@ static void *func_y(void *p)
 			{
 				init_serial(&base->sat.sat_fd, base->sat.sat_dev_name, base->sat.sat_baud_rate);
 				base->sat.sat_state = SAT_STATE_AT;
-				base->sat.sat_fd_message = base->sat.sat_fd;
 			}
 		}		
 		
@@ -2753,7 +2750,6 @@ int handle_sat_data(int *satfd, char *data, int *ofs)
 				{
 					if(idx>18 && data[idx-2]=='\n' && data[idx-1]=='\n')
 					{					
-						satfi_log("%d %d %d %s\n",strlen(data), base.sat.sat_fd_message, idx, data);
 						unsigned char Decode[1024] = {0};
 						char OAphonenum[21] = {0};	//发送方地址（手机号码）
 						int i=0;
@@ -3241,7 +3237,7 @@ int handle_sat_data(int *satfd, char *data, int *ofs)
 					}
 					else
 					{
-						satfi_log("not parse sat data %d:%d:%s\n",base.sat.sat_fd_message, *satfd, data);						
+						satfi_log("not parse sat data %s\n", data);						
 					}
 					idx=0;
 				}
@@ -7514,7 +7510,7 @@ void *SystemServer(void *p)
 			if(base->sat.sat_msg_sending == 0)
 			{
 				//没有短信正在发送
-				CheckisHaveMessageAndTriggerSend(base->sat.sat_fd_message);
+				CheckisHaveMessageAndTriggerSend(base->sat.sat_fd);
 				msg_send_timeout=0;
 			}
 			else
@@ -7551,7 +7547,6 @@ void *SystemServer(void *p)
 void init()
 {
 	base.sat.sat_fd = -1;
-	base.sat.sat_fd_message = -1;
 	base.sat.sat_status = 0;
 	base.sat.sat_state = -1;
 	base.sat.sat_calling = 0;
@@ -8847,7 +8842,7 @@ int main_fork(void)
 	//if(pthread_create(&id_6, NULL, CheckProgramUpdateServer, (void *)&base) == -1) exit(1);
 
 	//sat拨号线程,ring检测
-	if(pthread_create(&id_4, NULL, func_y, (void *)&base) == -1) exit(1);
+	//if(pthread_create(&id_4, NULL, func_y, (void *)&base) == -1) exit(1);
 	if(pthread_create(&id_5, NULL, ring_detect, (void *)&base) == -1) exit(1);
 
 	//电话音频处理

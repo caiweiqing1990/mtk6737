@@ -71,6 +71,7 @@ adb push Y:\mytest\bin\mytest /system/bin/
 adb push Y:\power_mode\bin\power_mode /system/bin/
 adb push Y:\power_mode\bin\mtkgpio /system/bin/
 adb push Y:\power_mode\bin\httpdown /system/bin/
+adb push Y:\power_mode\bin\chat /system/bin/
 adb push Y:\satfi\bin\satfi /system/bin/
 adb push Y:\satfi\bin\config.ini /storage/self/primary/
 adb push Y:\satfi\bin\configSat.ini /storage/self/primary/
@@ -90,8 +91,13 @@ adb pull /mnt/in.raw Y:\gpio_test\bin\
 
 
 adb push Y:\gpsinf\bin\gps_test /system/bin/
+logcat pseudo:D *:S
 
-/home/book/work/XY3701_N0/out/target/product/len6737t_66_sh_n/obj/KERNEL_OBJ/drivers/misc/mediatek/gpio
+/home/book/work/XY3701_N0/vendor/mediatek/proprietary/hardware/connectivity/gps/mtk_mnld/mnl/src/pseudo_mnl.c +161
+mtk_gps_sys_nmea_output_to_app
+
+mmm vendor/mediatek/proprietary/hardware/connectivity/gps/mtk_mnld
+out/target/product/len6737t_66_sh_n/system/vendor/bin/mnld
 
 PIN73	GPIO61
 PIN76	GPIO62
@@ -109,12 +115,11 @@ mtkgpio	63
 mtkgpio	64
 
 
-更新系统Settings.apk，开机自动WIFI热点AP模式 SSID：SatFi 密码：12345678
-adb push Z:\satfi\bin\Settings.apk /system/priv-app/Settings
-
+更新系统Settings.apk，开机自动WIFI热点AP模式 SSID:SatFi-MTK6737 密码:12345678
+adb push Y:\satfi\bin\Settings.apk /system/priv-app/Settings
 
 MTK6737串口设备节点
-/dev/ttyMT0
+/dev/ttyMT0 调试串口(usb转)
 /dev/ttyMT1
 /dev/ttyMT2
 /dev/ttyMT3
@@ -334,5 +339,4 @@ codegen.dws				XY3701_N0\kernel-3.18\drivers\misc\mediatek\mach\mt6735\len6737t_
 DrvGen.exe				XY3701_N0\kernel-3.18\tools\dct\old_dct
 
 dtc -I dtb -O dts /home/book/work/XY3701_N0/out/target/product/len6737t_66_sh_n/obj/KERNEL_OBJ/arch/arm64/boot/dts/len6737t_66_sh_n.dtb -o tmp.dts
-
 
