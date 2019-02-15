@@ -7477,28 +7477,102 @@ int safe_sendto(const char* path, const char* buff, int len) {
 }
 
 
+int gps_start() 
+{
+    satfi_log("gps_start\n");
+#define MTK_HAL2MNL "mtk_hal2mnl"
+#define HAL_MNL_BUFF_SIZE           (16 * 1024)
+#define HAL_MNL_INTERFACE_VERSION   1
+
+	typedef enum {
+		HAL2MNL_HAL_REBOOT						= 0,
+		HAL2MNL_GPS_INIT						= 101,
+		HAL2MNL_GPS_START						= 102,
+		HAL2MNL_GPS_STOP						= 103,
+		HAL2MNL_GPS_CLEANUP 					= 104,
+		HAL2MNL_GPS_INJECT_TIME 				= 105,
+		HAL2MNL_GPS_INJECT_LOCATION 			= 106,
+		HAL2MNL_GPS_DELETE_AIDING_DATA			= 107,
+		HAL2MNL_GPS_SET_POSITION_MODE			= 108,
+		HAL2MNL_DATA_CONN_OPEN					= 201,
+		HAL2MNL_DATA_CONN_OPEN_WITH_APN_IP_TYPE = 202,
+		HAL2MNL_DATA_CONN_CLOSED				= 203,
+		HAL2MNL_DATA_CONN_FAILED				= 204,
+		HAL2MNL_SET_SERVER						= 301,
+		HAL2MNL_SET_REF_LOCATION				= 302,
+		HAL2MNL_SET_ID							= 303,
+		HAL2MNL_NI_MESSAGE						= 401,
+		HAL2MNL_NI_RESPOND						= 402,
+		HAL2MNL_UPDATE_NETWORK_STATE			= 501,
+		HAL2MNL_UPDATE_NETWORK_AVAILABILITY 	= 502,
+		HAL2MNL_GPS_MEASUREMENT 				= 601,
+		HAL2MNL_GPS_NAVIGATION					= 602,
+	} hal2mnl_cmd;
+
+
+    char buff[HAL_MNL_BUFF_SIZE] = {0};
+    int offset = 0;
+    put_int(buff, &offset, HAL_MNL_INTERFACE_VERSION);
+    put_int(buff, &offset, HAL2MNL_GPS_START);
+    return safe_sendto(MTK_HAL2MNL, buff, offset);
+}
+
+int gps_stop() 
+{
+    satfi_log("gps_stop\n");
+#define MTK_HAL2MNL "mtk_hal2mnl"
+#define HAL_MNL_BUFF_SIZE           (16 * 1024)
+#define HAL_MNL_INTERFACE_VERSION   1
+
+	typedef enum {
+		HAL2MNL_HAL_REBOOT						= 0,
+		HAL2MNL_GPS_INIT						= 101,
+		HAL2MNL_GPS_START						= 102,
+		HAL2MNL_GPS_STOP						= 103,
+		HAL2MNL_GPS_CLEANUP 					= 104,
+		HAL2MNL_GPS_INJECT_TIME 				= 105,
+		HAL2MNL_GPS_INJECT_LOCATION 			= 106,
+		HAL2MNL_GPS_DELETE_AIDING_DATA			= 107,
+		HAL2MNL_GPS_SET_POSITION_MODE			= 108,
+		HAL2MNL_DATA_CONN_OPEN					= 201,
+		HAL2MNL_DATA_CONN_OPEN_WITH_APN_IP_TYPE = 202,
+		HAL2MNL_DATA_CONN_CLOSED				= 203,
+		HAL2MNL_DATA_CONN_FAILED				= 204,
+		HAL2MNL_SET_SERVER						= 301,
+		HAL2MNL_SET_REF_LOCATION				= 302,
+		HAL2MNL_SET_ID							= 303,
+		HAL2MNL_NI_MESSAGE						= 401,
+		HAL2MNL_NI_RESPOND						= 402,
+		HAL2MNL_UPDATE_NETWORK_STATE			= 501,
+		HAL2MNL_UPDATE_NETWORK_AVAILABILITY 	= 502,
+		HAL2MNL_GPS_MEASUREMENT 				= 601,
+		HAL2MNL_GPS_NAVIGATION					= 602,
+	} hal2mnl_cmd;
+
+    char buff[HAL_MNL_BUFF_SIZE] = {0};
+    int offset = 0;
+    put_int(buff, &offset, HAL_MNL_INTERFACE_VERSION);
+    put_int(buff, &offset, HAL2MNL_GPS_STOP);
+    return safe_sendto(MTK_HAL2MNL, buff, offset);
+}
+
 void *SystemServer(void *p)
 {
-#define GPS_INTERVAL	1800
 	BASE *base = (BASE *)p;
 
 	time_t now;
-	int sm2700ledstaton = 0;//0表示灭
-	int gpsledstaton = 0;	//0表示灭
-	int stat = 0;
-
 	int TimeOutCnt = 0;
 	int HeartBeatTimeOutCnt = 0;
-	int GpsSendInterval = GPS_INTERVAL;
 
 	int msg_send_timeout=0;
+
+	int cnt=0;
 
 	while(1)
 	{
 		now = time(0);
 		if(base->tsc.tsc_hb_req_ltime == 0 && base->tsc.tsc_hb_rsp_ltime == 0)
 		{
-			stat &= (~(1<<0));
 			TimeOutCnt = 0;
 			HeartBeatTimeOutCnt = 0;
 		}
@@ -7507,12 +7581,10 @@ void *SystemServer(void *p)
 			if(base->tsc.tsc_hb_rsp_ltime < base->tsc.tsc_hb_req_ltime)
 			{
 				//satfi_log("TimeOutCnt = %d %d %d\n", TimeOutCnt, base->tsc.tsc_hb_rsp_ltime, base->tsc.tsc_hb_req_ltime);
-				stat &= (~(1<<0));
 				if(PackHead == NULL)TimeOutCnt++;
 			}
 			else
 			{
-				stat |= (1<<0);
 				TimeOutCnt = 0;
 				HeartBeatTimeOutCnt = 0;
 			}
@@ -7524,7 +7596,6 @@ void *SystemServer(void *p)
 				if(HeartBeatTimeOutCnt > 2)
 				{
 					HeartBeatTimeOutCnt = 0;
-					stat &= (~(1<<0));
 					//Close_Tsc_Socket();
 				}
 				else
@@ -7538,22 +7609,6 @@ void *SystemServer(void *p)
 		HeartBeat(base);
 		udpVoiceHeartBeat(base);
 		SendPackToTSC();//处理消息发送到服务器的优先级别，优先发送指令，对讲数据，消息，语音，图片
-
-		if(GpsSendInterval == GPS_INTERVAL)
-		{
-			if(CreateGpsMessage() == 1)
-			{
-				GpsSendInterval--;
-			}
-		}
-		else if((GpsSendInterval--) <= 0)
-		{
-			GpsSendInterval=GPS_INTERVAL;
-			if(CreateGpsMessage() == 1)
-			{
-				GpsSendInterval--;
-			}
-		}
 
 		//if(base->sat.sat_state_phone != SAT_STATE_PHONE_DIALING)
 		if(base->sat.sat_calling == 0)
@@ -7587,6 +7642,14 @@ void *SystemServer(void *p)
 				}
 			}
 		}
+
+		if((cnt % 600) == 0)
+		{
+			gps_stop();
+			gps_start();
+		}
+		
+		++cnt;		
 	}
 	
 	return NULL;
@@ -8894,46 +8957,6 @@ int safe_recvfrom(int fd, char* buff, int len) {
     return ret;
 }
 
-int gps_start() 
-{
-    satfi_log("gps_start\n");
-#define MTK_HAL2MNL "mtk_hal2mnl"
-#define HAL_MNL_BUFF_SIZE           (16 * 1024)
-#define HAL_MNL_INTERFACE_VERSION   1
-
-	typedef enum {
-		HAL2MNL_HAL_REBOOT						= 0,
-		HAL2MNL_GPS_INIT						= 101,
-		HAL2MNL_GPS_START						= 102,
-		HAL2MNL_GPS_STOP						= 103,
-		HAL2MNL_GPS_CLEANUP 					= 104,
-		HAL2MNL_GPS_INJECT_TIME 				= 105,
-		HAL2MNL_GPS_INJECT_LOCATION 			= 106,
-		HAL2MNL_GPS_DELETE_AIDING_DATA			= 107,
-		HAL2MNL_GPS_SET_POSITION_MODE			= 108,
-		HAL2MNL_DATA_CONN_OPEN					= 201,
-		HAL2MNL_DATA_CONN_OPEN_WITH_APN_IP_TYPE = 202,
-		HAL2MNL_DATA_CONN_CLOSED				= 203,
-		HAL2MNL_DATA_CONN_FAILED				= 204,
-		HAL2MNL_SET_SERVER						= 301,
-		HAL2MNL_SET_REF_LOCATION				= 302,
-		HAL2MNL_SET_ID							= 303,
-		HAL2MNL_NI_MESSAGE						= 401,
-		HAL2MNL_NI_RESPOND						= 402,
-		HAL2MNL_UPDATE_NETWORK_STATE			= 501,
-		HAL2MNL_UPDATE_NETWORK_AVAILABILITY 	= 502,
-		HAL2MNL_GPS_MEASUREMENT 				= 601,
-		HAL2MNL_GPS_NAVIGATION					= 602,
-	} hal2mnl_cmd;
-
-
-    char buff[HAL_MNL_BUFF_SIZE] = {0};
-    int offset = 0;
-    put_int(buff, &offset, HAL_MNL_INTERFACE_VERSION);
-    put_int(buff, &offset, HAL2MNL_GPS_START);
-    return safe_sendto(MTK_HAL2MNL, buff, offset);
-}
-
 void main_thread_loop(void)
 {
 	fd_set fds;
@@ -8945,8 +8968,7 @@ void main_thread_loop(void)
 
 	char gpsDataBuf[1024];
 	int gpsSocketfd = create_satfi_udp_fd();
-	satfi_log("gpsSocketfd=%d\n", gpsSocketfd);
-	gps_start();
+	//satfi_log("gpsSocketfd=%d\n", gpsSocketfd);
 	
 	while(1)
 	{
@@ -8977,7 +8999,7 @@ void main_thread_loop(void)
 		switch(select(maxfd+1,&fds,NULL,NULL,&timeout))
 		{
 			case -1: satfi_log("select error %s\n", strerror(errno)); break;
-			case  0: satfi_log("select timeout"); break;
+			case  0: satfi_log("select timeout\n"); break;
 			default:
 				if(base.sat.sat_fd > 0 && FD_ISSET(base.sat.sat_fd, &fds)) {
 					handle_sat_data(&base.sat.sat_fd, SatDataBuf[0], &SatDataOfs[0]);//卫星模块数据
@@ -8986,10 +9008,13 @@ void main_thread_loop(void)
 				if(gpsSocketfd > 0 && FD_ISSET(gpsSocketfd, &fds))
 				{
 					int n = safe_recvfrom(gpsSocketfd, gpsDataBuf, 1024);
-					gpsDataBuf[n] = 0;
-					strncpy(base.gps.gps_bd, gpsDataBuf, n);
-					parseGpsData(gpsDataBuf, n);
-					//satfi_log("gpsDataBuf=%s\n", gpsDataBuf);
+					if(n>0)
+					{
+						gpsDataBuf[n] = 0;
+						strncpy(base.gps.gps_bd, gpsDataBuf, n);
+						parseGpsData(gpsDataBuf, n);
+						//satfi_log("gpsDataBuf=%s\n", gpsDataBuf);
+					}
 				}
 				
 				break;

@@ -76,6 +76,7 @@ adb push Y:\satfi\bin\satfi /system/bin/
 adb push Y:\satfi\bin\config.ini /storage/self/primary/
 adb push Y:\satfi\bin\configSat.ini /storage/self/primary/
 
+adb push Z:\XY3701_N0\out\target\product\len6737t_66_sh_n\system\vendor\bin\mnld /system/vendor/bin/mnld
 
 adb push Y:\gpio_test\bin\pcm_test /mnt
 adb push Y:\gpio_test\bin\in.raw /mnt
@@ -417,5 +418,5 @@ lrwxrwxrwx 1 root root 21 2019-01-31 18:41 tee1 -> /dev/block/mmcblk0 p15
 lrwxrwxrwx 1 root root 21 2019-01-31 18:41 tee2 -> /dev/block/mmcblk0 p16
 lrwxrwxrwx 1 root root 21 2019-01-31 18:41 userdata -> /dev/block/mmcblk0 p22
 
-
+$GNRMC,035511.011,V,2309.6627,N,11324.6487,E,0.000,0.00,150219,,,N*50
 
