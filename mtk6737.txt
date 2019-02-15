@@ -340,8 +340,6 @@ DrvGen.exe				XY3701_N0\kernel-3.18\tools\dct\old_dct
 
 dtc -I dtb -O dts /home/book/work/XY3701_N0/out/target/product/len6737t_66_sh_n/obj/KERNEL_OBJ/arch/arm64/boot/dts/len6737t_66_sh_n.dtb -o tmp.dts
 
-
-
 INT32 mtk_gps_sys_nmea_output_to_app(const char * buffer, UINT32 length) {
     if (enable_dbg_log == MTK_GPS_TRUE) {  // Need to use prop to control debug on/of
         LOGD("len:%d,%s", length, buffer);
@@ -374,4 +372,50 @@ INT32 mtk_gps_sys_nmea_output_to_app(const char * buffer, UINT32 length) {
 
     return MTK_GPS_SUCCESS;
 }
+
+130|len6737t_66_sh_n:/ $ route
+Kernel IP routing table
+Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
+10.0.0.0        *               255.0.0.0       U     0      0        0 ccmni0
+192.168.43.0    *               255.255.255.0   U     0      0        0 ap0
+
+广州德亨：
+BGPIP：121.201.18.118
+网关：121.201.18.1
+掩码：255.255.255.0
+
+香港IP：112.73.6.44
+网关：112.73.6.33
+掩码：255.255.255.224
+机柜位置：B04-01
+
+端口 5589
+
+inma/root	Upl00king@020/Gzkxc020*#408601
+
+lrwxrwxrwx 1 root root 20 2019-01-31 18:41 boot -> /dev/block/mmcblk0 p7
+lrwxrwxrwx 1 root root 21 2019-01-31 18:41 cache -> /dev/block/mmcblk0 p21
+lrwxrwxrwx 1 root root 21 2019-01-31 18:41 expdb -> /dev/block/mmcblk0 p10
+lrwxrwxrwx 1 root root 21 2019-01-31 18:41 flashinfo -> /dev/block/mmcblk0 p23
+lrwxrwxrwx 1 root root 21 2019-01-31 18:41 frp -> /dev/block/mmcblk0 p17
+lrwxrwxrwx 1 root root 21 2019-01-31 18:41 keystore -> /dev/block/mmcblk0 p14
+lrwxrwxrwx 1 root root 20 2019-01-31 18:41 lk -> /dev/block/mmcblk0 p5
+lrwxrwxrwx 1 root root 20 2019-01-31 18:41 logo -> /dev/block/mmcblk0 p9
+lrwxrwxrwx 1 root root 21 2019-01-31 18:41 metadata -> /dev/block/mmcblk0 p19
+lrwxrwxrwx 1 root root 21 2019-01-31 18:41 nvdata -> /dev/block/mmcblk0 p18
+lrwxrwxrwx 1 root root 20 2019-01-31 18:41 nvram -> /dev/block/mmcblk0 p2
+lrwxrwxrwx 1 root root 21 2019-01-31 18:41 oemkeystore -> /dev/block/mmcblk0 p12
+lrwxrwxrwx 1 root root 20 2019-01-31 18:41 para -> /dev/block/mmcblk0 p6
+lrwxrwxrwx 1 root root 20 2019-01-31 18:41 proinfo -> /dev/block/mmcblk0 p1
+lrwxrwxrwx 1 root root 20 2019-01-31 18:41 protect1 -> /dev/block/mmcblk0 p3
+lrwxrwxrwx 1 root root 20 2019-01-31 18:41 protect2 -> /dev/block/mmcblk0 p4
+lrwxrwxrwx 1 root root 20 2019-01-31 18:41 recovery -> /dev/block/mmcblk0 p8
+lrwxrwxrwx 1 root root 21 2019-01-31 18:41 seccfg -> /dev/block/mmcblk0 p11
+lrwxrwxrwx 1 root root 21 2019-01-31 18:41 secro -> /dev/block/mmcblk0 p13
+lrwxrwxrwx 1 root root 21 2019-01-31 18:41 system -> /dev/block/mmcblk0 p20
+lrwxrwxrwx 1 root root 21 2019-01-31 18:41 tee1 -> /dev/block/mmcblk0 p15
+lrwxrwxrwx 1 root root 21 2019-01-31 18:41 tee2 -> /dev/block/mmcblk0 p16
+lrwxrwxrwx 1 root root 21 2019-01-31 18:41 userdata -> /dev/block/mmcblk0 p22
+
+
 

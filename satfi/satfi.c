@@ -1922,19 +1922,21 @@ int parseGpsData(char *buf, int len)
 	{
 		strncpy(&data[i++][0], p, 11);
 		p = strtok(NULL, del);
-		//if(p) printf("*** %02d : %s\n", i, p);
+		//if(p) satfi_log("*** %02d : %s\n", i, p);
 	}
 
 	if(data[2][0]!='A')
 	{
-		bGetGpsData = 0;
-		base.gps.Lg 	= 0;
-		base.gps.Lg_D 	= 0;
-		base.gps.Lt 	= 0;
-		base.gps.Lt_D 	= 0;
-		base.gps.Date 	= 0;
-		base.gps.Speed	= 0;
-		return 0;
+		//bGetGpsData = 0;
+		//base.gps.Lg 	= 0;
+		//base.gps.Lg_D 	= 0;
+		//base.gps.Lt 	= 0;
+		//base.gps.Lt_D 	= 0;
+		//base.gps.Date 	= 0;
+		//base.gps.Speed	= 0;
+		//return 0;
+
+		data[2][0] = 'A';
 	}
 	
 	strcpy(GpsData, "$GPRMC,"); // $GNRMC,$GPRMC --> $GPRMC
@@ -2004,7 +2006,7 @@ int parseGpsData(char *buf, int len)
 		bGetGpsData = 0;
 	}
 
-	static int isSetTime = 0;
+	static int isSetTime = 1;
 	if(isSetTime == 0)
 	{
 		time_t t = mktime(&Tm);
@@ -8841,10 +8843,6 @@ int socket_bind_udp(const char* path)
         close(fd);
         return -1;
     }
-    satfi_log("path=%s\n", path);
-    if (chmod(path, 0660) < 0) {
-        satfi_log("chmod err = [%s]\n", strerror(errno));
-    }
     return fd;
 }
 
@@ -8978,8 +8976,8 @@ void main_thread_loop(void)
 		timeout.tv_usec = 0;
 		switch(select(maxfd+1,&fds,NULL,NULL,&timeout))
 		{
-			case -1: satfi_log("select error %s\n", strerror(errno));break;
-			case  0: satfi_log("select timeout");break;
+			case -1: satfi_log("select error %s\n", strerror(errno)); break;
+			case  0: satfi_log("select timeout"); break;
 			default:
 				if(base.sat.sat_fd > 0 && FD_ISSET(base.sat.sat_fd, &fds)) {
 					handle_sat_data(&base.sat.sat_fd, SatDataBuf[0], &SatDataOfs[0]);//卫星模块数据
@@ -8990,6 +8988,7 @@ void main_thread_loop(void)
 					int n = safe_recvfrom(gpsSocketfd, gpsDataBuf, 1024);
 					gpsDataBuf[n] = 0;
 					strncpy(base.gps.gps_bd, gpsDataBuf, n);
+					parseGpsData(gpsDataBuf, n);
 					//satfi_log("gpsDataBuf=%s\n", gpsDataBuf);
 				}
 				
