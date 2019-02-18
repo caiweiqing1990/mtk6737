@@ -9,6 +9,10 @@ codegen.dws
 Z:\XY3701_N0\kernel-3.18\drivers\misc\mediatek\mach\mt6735\len6737t_66_sh_n\dct\dct
 
 
+LK模块：
+mmm bootable/bootloader/lk:clean-lk （clean操作）
+mmm bootable/bootloader/lk:lk （编译）
+
 X:\XY3701_N0\kernel-3.18\drivers\misc\mediatek\mach\mt6735\len6737t_66_sh_n\dct\dct
 
 MT6737T_LTE_Smartphone_Application_Processor_Software_Register_Table_V1.0-0073718527	753页
@@ -55,6 +59,7 @@ GPIO187	PCM0_DO0
 GPIO185	PCM0_DI
 GPIO184	PCM0_CLK
 
+执行下，才能开机启动satfi
 adb root
 adb remount
 adb shell restorecon system/bin/satfi
@@ -75,8 +80,9 @@ adb push Y:\power_mode\bin\chat /system/bin/
 adb push Y:\satfi\bin\satfi /system/bin/
 adb push Y:\satfi\bin\config.ini /storage/self/primary/
 adb push Y:\satfi\bin\configSat.ini /storage/self/primary/
-
 adb push Z:\XY3701_N0\out\target\product\len6737t_66_sh_n\system\vendor\bin\mnld /system/vendor/bin/mnld
+
+替换以上程序
 
 adb push Y:\gpio_test\bin\pcm_test /mnt
 adb push Y:\gpio_test\bin\in.raw /mnt
@@ -93,6 +99,7 @@ adb pull /mnt/in.raw Y:\gpio_test\bin\
 
 adb push Y:\gpsinf\bin\gps_test /system/bin/
 logcat pseudo:D *:S
+logcat RIL:D *:S
 
 /home/book/work/XY3701_N0/vendor/mediatek/proprietary/hardware/connectivity/gps/mtk_mnld/mnl/src/pseudo_mnl.c +161
 mtk_gps_sys_nmea_output_to_app
@@ -419,4 +426,17 @@ lrwxrwxrwx 1 root root 21 2019-01-31 18:41 tee2 -> /dev/block/mmcblk0 p16
 lrwxrwxrwx 1 root root 21 2019-01-31 18:41 userdata -> /dev/block/mmcblk0 p22
 
 $GNRMC,035511.011,V,2309.6627,N,11324.6487,E,0.000,0.00,150219,,,N*50
+
+WIFIAP IP
+frameworks/opt/net/wifi/service/java/com/android/server/wifi/SoftApManager.java +317
+
+vendor/mediatek/proprietary/hardware/ril/gsm/rild/Android.mk:58:LOCAL_MODULE:= mtkrild
+
+vendor/mediatek/proprietary/bootable/bootloader/lk/target/len6737t_66_sh_n
+
+vendor/mediatek/proprietary/bootable/bootloader/lk/platform/mt6735/boot_mode_menu.c:169:                        dprintf(0,  "[VOL_UP]Key Detect, current select:%d\n", select);
+
+console=tty0 console=ttyMT0,921600n1 root=/dev/ram vmalloc=496M androidboot.hardware=mt6735 slub_max_order=0 slub_debug=O androidboot.verifiedbootstate=green bootopt=64S3,32N2,64N2 androidboot.selinux=permissive printk.disable_uart=0 ddebug_query="file *mediatek* +p ; file *gpu* =_" bootprof.pl_t=3680 bootprof.lk_t=3588 boot_reason=4 androidboot.serialno=0123456789ABCDEF androidboot.bootreason=wdt_by_pass_pwk gpt=1 initcall_debug=1 mrdump.lk=MRDUMP04 mrdump_rsvmem=0x41e00000,0x400000,0x42100000,0x19c4c0,0x4e000000,0x200000 mrdump_ddr_reserve_ready=no
+
+
 

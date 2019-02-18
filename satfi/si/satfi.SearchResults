@@ -1,3 +1,1 @@
----- sat_fd_message Matches (2 in 1 files) ----
-Satfi.c (y:\satfi):						//satfi_log("%d %d %d %s\n",strlen(data), base.sat.sat_fd_message, idx, data);
-Satfi.c (y:\satfi):						//satfi_log("not parse sat data %d:%d:%s\n",base.sat.sat_fd_message, *satfd, data);						
+---- RIL_Init Matches (0 in 0 files) ----
