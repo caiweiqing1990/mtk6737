@@ -9,9 +9,6 @@ codegen.dws
 Z:\XY3701_N0\kernel-3.18\drivers\misc\mediatek\mach\mt6735\len6737t_66_sh_n\dct\dct
 
 
-LK模块：
-mmm bootable/bootloader/lk:clean-lk （clean操作）
-mmm bootable/bootloader/lk:lk （编译）
 
 X:\XY3701_N0\kernel-3.18\drivers\misc\mediatek\mach\mt6735\len6737t_66_sh_n\dct\dct
 
@@ -300,6 +297,11 @@ CONFIG_IP6_NF_RAW=y
 CONFIG_STP=y
 CONFIG_BRIDGE=y
 CONFIG_LLC=y
+
+LK模块：
+mmm bootable/bootloader/lk:clean-lk （clean操作）
+mmm bootable/bootloader/lk:lk （编译）
+
 
 kernel模块:
 mmm kernel-3.18:clean-kernel 					(clean操作)
