@@ -1476,10 +1476,6 @@ int SendPackToTSC(void)
 					}
 					
 					hadsendlen += pHeader->length;
-					if(hadsendlen >= base.tsc.mss)
-					{
-						break;
-					}
 				}
 				break;
 			}
@@ -1536,10 +1532,6 @@ int SendPackToTSC(void)
 					}
 					
 					hadsendlen += pHeader->length;
-					if(hadsendlen >= base.tsc.mss)
-					{
-						break;
-					}
 				}
 				break;
 			}

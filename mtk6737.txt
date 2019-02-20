@@ -79,10 +79,13 @@ adb push Y:\satfi\bin\config.ini /storage/self/primary/
 adb push Y:\satfi\bin\configSat.ini /storage/self/primary/
 adb push Z:\XY3701_N0\out\target\product\len6737t_66_sh_n\system\vendor\bin\mnld /system/vendor/bin/mnld
 
+
+
 替换以上程序
 
 
 adb push Y:\satfi\bin\mtkrild /vendor/bin/
+adb push Y:\satfi\bin\ril_test /mnt
 
 adb push Y:\gpio_test\bin\pcm_test /mnt
 adb push Y:\gpio_test\bin\in.raw /mnt
