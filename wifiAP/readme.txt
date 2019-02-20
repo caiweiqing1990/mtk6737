@@ -14,3 +14,5 @@ packages/apps/Settings/AndroidManifest.xml
 增加文件
 
 packages/apps/Settings/src/com/mediatek/settings/BootFinishBroadcastReceiver.java
+
+cp out/target/product/len6737t_66_sh_n/system/priv-app/Settings/Settings.apk external/test/satfi/bin/ -fr

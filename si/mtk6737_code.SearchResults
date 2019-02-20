@@ -1,0 +1,3 @@
+---- RIL_startEventLoop Matches (2 in 1 files) ----
+Rild.c (z:\xy3701_n0\vendor\mediatek\proprietary\hardware\ril\gsm\rild):extern void RIL_startEventLoop();
+Rild.c (z:\xy3701_n0\vendor\mediatek\proprietary\hardware\ril\gsm\rild):    RIL_startEventLoop();

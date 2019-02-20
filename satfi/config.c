@@ -70,6 +70,7 @@ int SetKeyString(char *appName, char *keyName, char *profile, char *keyValOld, c
 	}
   }
 
+
   fseek(fp, 0, SEEK_SET);
   memset(appname, 0, sizeof(appname));
   sprintf(appname, "[%s]", appName);
@@ -125,9 +126,10 @@ int SetKeyString(char *appName, char *keyName, char *profile, char *keyValOld, c
       }
     }
   }
+
   fclose(fp);
   time(&tp);
-  tm=localtime(&time);
+  tm=localtime(&tp);
   sprintf(ucFileNameBak,"%s.%04d%02d%02d%02d%02d%02d",
           profile,
           tm->tm_year+1900,

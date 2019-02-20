@@ -263,6 +263,7 @@ char *make_csq(char *buf, time_t *timep, int csqval);
 void CreateSOSMessage(char *Msid, int Lg, int Lt, int AlarmType);
 void CreateMessage(char *Msid, char *toPhone, int ID, char *messagedata);
 int AppCallUpRsp(int socket, short sat_state_phone);
+void gpio_out(int gpio, int val);
 
 typedef struct _grpinfo
 {
@@ -1162,12 +1163,12 @@ int Message_Pack_Add(char *packdata, unsigned short packsize, unsigned int Name)
 
 		if(PackHead == NULL)
 		{
-			//satfi_log("Message_Pack_Add1 packsize=%d Name=%d %d\n",packsize, Name, cnt);
+			satfi_log("Message_Pack_Add1 packsize=%d Name=%d\n",packsize, Name);
 			PackHead = tmp;
 		}
 		else
 		{
-			//satfi_log("Message_Pack_Add2 packsize=%d Name=%d %d\n",packsize, Name, cnt);
+			satfi_log("Message_Pack_Add2 packsize=%d Name=%d\n",packsize, Name);
 			q->next = tmp;
 		}
 	}
@@ -1408,12 +1409,12 @@ int SendPackToTSC(void)
 		p = PackHead;
 		while(p)
 		{
-			ioctl(sock_tsc, SIOCOUTQ, &(base.tsc.SendBufSize));
-			if(base.tsc.SendBufSize >= base.tsc.mss)
-			{
-				//satfi_log("No Send");
-				return 0;
-			}
+			//ioctl(sock_tsc, SIOCOUTQ, &(base.tsc.SendBufSize));
+			//if(base.tsc.SendBufSize >= base.tsc.mss)
+			//{
+			//	satfi_log("No Send");
+			//	return 0;
+			//}
 			
 			if(p->type == 0 && p->isSended == 0 && p->PackSeq == 0 && p->Packtotal == 0)
 			{
@@ -1428,12 +1429,12 @@ int SendPackToTSC(void)
 		p = PackHead;
 		while(p)
 		{			
-			ioctl(sock_tsc, SIOCOUTQ, &(base.tsc.SendBufSize));
-			if(base.tsc.SendBufSize >= base.tsc.mss)
-			{
+			//ioctl(sock_tsc, SIOCOUTQ, &(base.tsc.SendBufSize));
+			//if(base.tsc.SendBufSize >= base.tsc.mss)
+			//{
 				//satfi_log("No Send");
-				return 0;
-			}
+			//	return 0;
+			//}
 			
 			if(p->type == 1 && p->isSended == 0 && p->Packtotal != 0 && p->PackSeq < p->Packtotal)
 			{
@@ -1488,12 +1489,12 @@ int SendPackToTSC(void)
 		p = PackHead;
 		while(p)
 		{			
-			ioctl(sock_tsc, SIOCOUTQ, &(base.tsc.SendBufSize));
-			if(base.tsc.SendBufSize >= base.tsc.mss)
-			{
+			//ioctl(sock_tsc, SIOCOUTQ, &(base.tsc.SendBufSize));
+			//if(base.tsc.SendBufSize >= base.tsc.mss)
+			//{
 				//satfi_log("No Send");
-				return 0;
-			}
+			//	return 0;
+			//}
 			
 			if(p->type == 2 && p->isSended == 0 && p->Packtotal != 0 && p->PackSeq < p->Packtotal)
 			{
@@ -1994,16 +1995,21 @@ int parseGpsData(char *buf, int len)
 	base.gps.Date 	= (unsigned long long)mktime(&Tm) * 1000;
 	base.gps.Speed	= (int)(Speed*100);
 
-	//printf("Lg=%d Lt=%d Lg_D=%c Lt_D=%c Speed=%d Date=%lld\n",
+	//satfi_log("Lg=%d Lt=%d Lg_D=%c Lt_D=%c Speed=%d Date=%lld\n",
 	//base.gps.Lg, base.gps.Lt, base.gps.Lg_D, base.gps.Lt_D, base.gps.Speed, base.gps.Date);
+	base.sat.sat_csq_value = 0;
+	base.sat.sat_csq_ltime = mktime(&Tm);
+	gpio_out(82, 1);
 
-	if(Speed < 40.0)
+	if(base.gps.Lg == 0 || base.gps.Lt == 0)
 	{
-		bGetGpsData = 1;
+		gpio_out(78, 0);
+		bGetGpsData = 0;
 	}
 	else
 	{
-		bGetGpsData = 0;
+		gpio_out(78, 1);
+		bGetGpsData = 1;
 	}
 
 	static int isSetTime = 1;
@@ -2339,15 +2345,15 @@ short get_sat_dailstatus()
 #define AP_SLEEP_BB		HW_GPIO121
 #define BB_SLEEP_AP		HW_GPIO98
 
-void gpio_out(int pin, int val)
+void gpio_out(int gpio, int val)
 {
 	int fd = open("/dev/mtgpio", O_RDONLY);
-	ioctl(fd, GPIO_IOCTMODE0, pin);			//配置为GPIO模式
-	ioctl(fd, GPIO_IOCSDIROUT, pin);		//配置为输出模式
+	ioctl(fd, GPIO_IOCTMODE0, gpio);			//配置为GPIO模式
+	ioctl(fd, GPIO_IOCSDIROUT, gpio);		//配置为输出模式
 	if(val == 0)
-		ioctl(fd, GPIO_IOCSDATALOW, pin);	//输出低电平
+		ioctl(fd, GPIO_IOCSDATALOW, gpio);	//输出低电平
 	else
-		ioctl(fd, GPIO_IOCSDATAHIGH, pin);	//输出高电平
+		ioctl(fd, GPIO_IOCSDATAHIGH, gpio);	//输出高电平
 	close(fd);
 }
 
@@ -7030,10 +7036,12 @@ static void *select_tsc(void *p)
 			sock_tsc = ConnectTSC(NULL, base->tsc.tsc_addr, base->tsc.tsc_port, NULL, 10);
 			if(sock_tsc > 0)
 			{
+				gpio_out(79, 1);//led6 gpio82 pin71
 				base->n3g.n3g_status = 1;
 			}
 			else
 			{
+				gpio_out(79, 0);
 				base->n3g.n3g_status = 0;
 			}
 			sleep(5);
@@ -7153,40 +7161,40 @@ static int CheckProgramUpdate(void)
 	char tmpBuf[256] = {0};
 	int maxline = 3;
 
-	myexec("rm -f /tmp/satfi_1_ramips_24kec.ipk", NULL, NULL);
-	myexec("rm -f /tmp/update.ini", NULL, NULL);
+	myexec("rm -f /storage/self/primary/satfi_1_ramips_24kec.ipk", NULL, NULL);
+	myexec("rm -f /storage/self/primary/update.ini", NULL, NULL);
 	
 	//bzero(cmd, sizeof(cmd));
 	//sprintf(cmd,"wget -c -P /tmp/ %s", config_url);
 	//myexec(cmd, NULL, NULL);
 
-	if(!isFileExists("/tmp/update.ini"))
+	if(!isFileExists("/storage/self/primary/update.ini"))
 	{
-		satfi_log("wget /tmp/update.ini not exit\n");
+		satfi_log("wget /storage/self/primary/update.ini not exit\n");
 		bzero(cmd, sizeof(cmd));
-		sprintf(cmd,"httpdown %s /tmp/update.ini %s\n", base.tsc.route, config_url);
+		sprintf(cmd,"httpdown xx /storage/self/primary/update.ini http://202.85.218.6/TSCWEB/satfi/update.ini\n", base.tsc.route, config_url);
 		satfi_log("%s\n",cmd);
 		myexec(cmd, NULL, NULL);
 	}
 
-	if(!isFileExists("/tmp/update.ini"))
+	if(!isFileExists("/storage/self/primary/update.ini"))
 	{
-		satfi_log("httpdown /tmp/update.ini not exit\n");
+		satfi_log("httpdown /storage/self/primary/update.ini not exit\n");
 		bzero(cmd, sizeof(cmd));
-		sprintf(cmd,"curl -o /tmp/update.ini %s", config_url);
+		sprintf(cmd,"curl -o /storage/self/primary/update.ini %s", config_url);
 		myexec(cmd, NULL, NULL);
 	}
 
-	if(!isFileExists("/tmp/update.ini"))
+	if(!isFileExists("/storage/self/primary/update.ini"))
 	{
-		satfi_log("/tmp/update.ini not exit %d\n",__LINE__);
+		satfi_log("/storage/self/primary/update.ini not exit %d\n",__LINE__);
 		return 2;
 	}
 
-	GetIniKeyString("update","VERSION","/tmp/update.ini",version);
-	GetIniKeyString("update","MD5SUM","/tmp/update.ini",md5sum);
-	GetIniKeyString("update","SATFIMD5SUM","/tmp/update.ini",satfimd5sum);
-	GetIniKeyString("update","URL","/tmp/update.ini",satfiurl);
+	GetIniKeyString("update","VERSION","/storage/self/primary/update.ini",version);
+	GetIniKeyString("update","MD5SUM","/storage/self/primary/update.ini",md5sum);
+	GetIniKeyString("update","SATFIMD5SUM","/storage/self/primary/update.ini",satfimd5sum);
+	GetIniKeyString("update","URL","/storage/self/primary/update.ini",satfiurl);
 
 	satfi_log("version=%s satfi_version=%s\n",version, satfi_version);
 	satfi_log("md5sum=%s\n",md5sum);
@@ -7198,43 +7206,43 @@ static int CheckProgramUpdate(void)
 		if(strcmp(satfi_version,version) != 0)
 		{
 			//download
-			if(!isFileExists("/tmp/satfi_1_ramips_24kec.ipk"))
+			if(!isFileExists("/storage/self/primary/satfi_1_ramips_24kec.ipk"))
 			{
-				satfi_log("wget /tmp/satfi_1_ramips_24kec.ipk not exit\n");
+				satfi_log("wget /storage/self/primary/satfi_1_ramips_24kec.ipk not exit\n");
 				bzero(cmd, sizeof(cmd));
-				sprintf(cmd,"httpdown %s /tmp/satfi_1_ramips_24kec.ipk %s\n", base.tsc.route, satfiurl);
+				sprintf(cmd,"httpdown %s /storage/self/primary/satfi_1_ramips_24kec.ipk %s\n", base.tsc.route, satfiurl);
 				satfi_log("%s",cmd);
 				myexec(cmd, NULL, NULL); 
 			}
 
-			if(!isFileExists("/tmp/satfi_1_ramips_24kec.ipk"))
+			if(!isFileExists("/storage/self/primary/satfi_1_ramips_24kec.ipk"))
 			{
-				satfi_log("httpdown /tmp/satfi_1_ramips_24kec.ipk not exit\n");
+				satfi_log("httpdown /storage/self/primary/satfi_1_ramips_24kec.ipk not exit\n");
 				bzero(cmd, sizeof(cmd));
-				sprintf(cmd,"curl -o /tmp/satfi_1_ramips_24kec.ipk %s", satfiurl);
+				sprintf(cmd,"curl -o /storage/self/primary/satfi_1_ramips_24kec.ipk %s", satfiurl);
 				myexec(cmd, NULL, NULL); 
 			}
 
-			if(!isFileExists("/tmp/satfi_1_ramips_24kec.ipk"))
+			if(!isFileExists("/storage/self/primary/satfi_1_ramips_24kec.ipk"))
 			{
-				satfi_log("/tmp/satfi_1_ramips_24kec.ipk not exit\n");
+				satfi_log("/storage/self/primary/satfi_1_ramips_24kec.ipk not exit\n");
 				return 2;
 			}
 
-			myexec("md5sum /tmp/satfi_1_ramips_24kec.ipk", tmpBuf, &maxline);
+			myexec("md5sum /storage/self/primary/satfi_1_ramips_24kec.ipk", tmpBuf, &maxline);
 
 			if(strstr(tmpBuf, md5sum) != NULL)
 			{
-				myexec("opkg install /tmp/satfi_1_ramips_24kec.ipk --force-overwrite --force-downgrade", tmpBuf, &maxline);
-				myexec("opkg install /tmp/satfi_1_ramips_24kec.ipk",tmpBuf, &maxline);
+				myexec("opkg install /storage/self/primary/satfi_1_ramips_24kec.ipk --force-overwrite --force-downgrade", tmpBuf, &maxline);
+				myexec("opkg install /storage/self/primary/satfi_1_ramips_24kec.ipk",tmpBuf, &maxline);
 
 				bzero(tmpBuf,sizeof(tmpBuf));
 				myexec("md5sum /bin/satfi", tmpBuf, &maxline);
 				if(strstr(tmpBuf, satfimd5sum) != NULL)
 				{
 					satfi_log("update success\n");
-					myexec("rm -f /tmp/satfi_1_ramips_24kec.ipk", NULL, NULL);
-					myexec("rm -f /tmp/update.ini", NULL, NULL);
+					myexec("rm -f /storage/self/primary/satfi_1_ramips_24kec.ipk", NULL, NULL);
+					myexec("rm -f /storage/self/primary/update.ini", NULL, NULL);
 					return 0;//update success
 				}
 				else
@@ -7252,7 +7260,7 @@ static int CheckProgramUpdate(void)
 		else
 		{
 			satfi_log("not need update\n");
-			myexec("rm -f /tmp/update.ini", NULL, NULL);
+			myexec("rm -f /storage/self/primary/update.ini", NULL, NULL);
 			return 1;//not need update
 		}
 	}	
@@ -7815,18 +7823,20 @@ void init()
 	if(strlen(ucTmp)!=0)
 	{
 		strcpy(config_url, ucTmp);
-		satfi_log("url:%s\n", ucTmp);
+		satfi_log("url:%s\n", config_url);
 	}
 
 	version_num = GetIniKeyInt("version","VERSIONNUM",CONFIG_FILE);
 	satfi_log("version_num:%d\n", version_num);
 	
-	GetIniKeyString("satellite", "SAT_IMEI", SAT_IMEI_FILE, base.sat.sat_imei);
+	//GetIniKeyString("satellite", "SAT_IMEI", SAT_IMEI_FILE, base.sat.sat_imei);
 	if(strlen(base.sat.sat_imei)==0)
 	{
 		sprintf(base.sat.sat_imei ,"80000086%07u", time(0)%1000000);
+		//satfi_log("base.sat.sat_imei:%s\n", base.sat.sat_imei);
 		SetKeyString("satellite", "SAT_IMEI", SAT_IMEI_FILE, NULL, base.sat.sat_imei);
 	}
+
 }
  
 int AppCallUpRsp(int socket, short sat_state_phone)
@@ -9047,7 +9057,7 @@ int main_fork(void)
 	
 	//System检测，心跳包
 	if(pthread_create(&id_5, NULL, SystemServer, (void *)&base) == -1) exit(1);
-	//if(pthread_create(&id_6, NULL, CheckProgramUpdateServer, (void *)&base) == -1) exit(1);
+	if(pthread_create(&id_6, NULL, CheckProgramUpdateServer, (void *)&base) == -1) exit(1);
 
 	//sat拨号线程,ring检测
 	//if(pthread_create(&id_4, NULL, func_y, (void *)&base) == -1) exit(1);
@@ -9073,7 +9083,7 @@ int main(int argc, char *argv[])
     //coreFileSize.rlim_cur = 1000*1024;
     //coreFileSize.rlim_max = 4294967295UL;
     //setrlimit(RLIMIT_CORE, &coreFileSize);
-    sleep(10);
+	sleep(10);
 
 	while(1)
 	{
