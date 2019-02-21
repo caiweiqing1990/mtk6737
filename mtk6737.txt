@@ -1,6 +1,6 @@
 kernel配置文件
 kernel-3.18/arch/arm64/configs/len6737t_66_sh_n_defconfig
-
+CONFIG_MTK_PMIC
 DrvGen.exe路径
 kernel-3.18/tools/dct/old_dct/DrvGen.exe
 
@@ -8,11 +8,11 @@ codegen.dws
 ./kernel-3.18/drivers/misc/mediatek/mach/mt6735/len6737t_66_sh_n/dct/dct/codegen.dws
 Z:\XY3701_N0\kernel-3.18\drivers\misc\mediatek\mach\mt6735\len6737t_66_sh_n\dct\dct
 
-
-
 X:\XY3701_N0\kernel-3.18\drivers\misc\mediatek\mach\mt6735\len6737t_66_sh_n\dct\dct
 
 MT6737T_LTE_Smartphone_Application_Processor_Software_Register_Table_V1.0-0073718527	753页
+
+kernel-3.18/arch/arm64/boot/dts/mt6735.dtsi +358
 
 PIN73 PCM_CLK 	DIO GPIO61 & PCM_CLK DVDD18
 PIN74 PCM_TX 	DO 	GPIO64 & PCM_TX DVDD18
@@ -79,6 +79,7 @@ adb push Y:\satfi\bin\config.ini /storage/self/primary/
 adb push Y:\satfi\bin\configSat.ini /storage/self/primary/
 adb push Z:\XY3701_N0\out\target\product\len6737t_66_sh_n\system\vendor\bin\mnld /system/vendor/bin/mnld
 
+<<<<<<< HEAD
 
 
 替换以上程序
@@ -87,10 +88,15 @@ adb push Z:\XY3701_N0\out\target\product\len6737t_66_sh_n\system\vendor\bin\mnld
 adb push Y:\satfi\bin\mtkrild /vendor/bin/
 adb push Y:\satfi\bin\ril_test /mnt
 
+=======
+替换以上程序
+
+>>>>>>> 8947044e15fb44781c6ebb3aec87c1438036815f
 adb push Y:\gpio_test\bin\pcm_test /mnt
 adb push Y:\gpio_test\bin\in.raw /mnt
 adb push Y:\pcm_module\pcm_master_gpio.ko /mnt
 adb push Y:\pcm_module\pcm_slave_gpio.ko /mnt
+adb push Y:\power_mode\bin\wifitest /mnt
 
 rmmod pcm_master_gpio.ko;insmod pcm_master_gpio.ko
 chmod +x pcm_test
@@ -102,10 +108,14 @@ adb pull /mnt/in.raw Y:\gpio_test\bin\
 
 adb push Y:\gpsinf\bin\gps_test /system/bin/
 logcat pseudo:D *:S
+<<<<<<< HEAD
 logcat RILD:* *:S
 
 
 start ril-daemon-mtk
+=======
+logcat RIL:D *:S
+>>>>>>> 8947044e15fb44781c6ebb3aec87c1438036815f
 
 /home/book/work/XY3701_N0/vendor/mediatek/proprietary/hardware/connectivity/gps/mtk_mnld/mnl/src/pseudo_mnl.c +161
 mtk_gps_sys_nmea_output_to_app
@@ -322,7 +332,6 @@ LK模块：
 mmm bootable/bootloader/lk:clean-lk （clean操作）
 mmm bootable/bootloader/lk:lk （编译）
 
-
 kernel模块:
 mmm kernel-3.18:clean-kernel 					(clean操作)
 make kernel bootimage 							(在修改内核配置 arch/arm64/configs/len6737t_66_sh_n_defconfig 情况下必须使用该命令才生效)
@@ -458,5 +467,29 @@ vendor/mediatek/proprietary/bootable/bootloader/lk/target/len6737t_66_sh_n
 
 vendor/mediatek/proprietary/bootable/bootloader/lk/platform/mt6735/boot_mode_menu.c:169:                        dprintf(0,  "[VOL_UP]Key Detect, current select:%d\n", select);
 
+lk去掉对按键的检测，防止启动死循环
+int unshield_recovery_detection(void)
+{
+        //because recovery_check_command_trigger's BOOL is different from the BOOL in this file.
+        //so use code like this type.
+—       //return recovery_check_command_trigger()? TRUE:FALSE; 
++       return TRUE;
+}
+
+
 console=tty0 console=ttyMT0,921600n1 root=/dev/ram vmalloc=496M androidboot.hardware=mt6735 slub_max_order=0 slub_debug=O androidboot.verifiedbootstate=green bootopt=64S3,32N2,64N2 androidboot.selinux=permissive printk.disable_uart=0 ddebug_query="file *mediatek* +p ; file *gpu* =_" bootprof.pl_t=3680 bootprof.lk_t=3588 boot_reason=4 androidboot.serialno=0123456789ABCDEF androidboot.bootreason=wdt_by_pass_pwk gpt=1 initcall_debug=1 mrdump.lk=MRDUMP04 mrdump_rsvmem=0x41e00000,0x400000,0x42100000,0x19c4c0,0x4e000000,0x200000 mrdump_ddr_reserve_ready=no
+
+
+static const char HOSTAPD_BIN_FILE[]    = "/system/bin/hostapd";
+static const char HOSTAPD_CONF_FILE[] = "/data/misc/wifi/hostapd.conf";
+static const char WIFI_ENTROPY_FILE[] = "/data/misc/wifi/entropy.bin";
+execl(HOSTAPD_BIN_FILE, HOSTAPD_BIN_FILE,"-e", WIFI_ENTROPY_FILE, HOSTAPD_CONF_FILE, (char *) NULL)
+  
+
+/system/bin/hostapd -e /data/misc/wifi/entropy.bin /data/misc/wifi/hostapd.conf
+
+am start -a android.intent.action.CALL -d tel:10086 拨打电话10086
+ndc softap stopap
+ndc softap startap
+
 
