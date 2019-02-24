@@ -10,6 +10,8 @@ Z:\XY3701_N0\kernel-3.18\drivers\misc\mediatek\mach\mt6735\len6737t_66_sh_n\dct\
 
 X:\XY3701_N0\kernel-3.18\drivers\misc\mediatek\mach\mt6735\len6737t_66_sh_n\dct\dct
 
+/home/book/work/XY3701_N0/out/target/product/len6737t_66_sh_n/obj/KERNEL_OBJ/arch/arm64/boot/dts/len6737t_66_sh_n.dtb
+
 MT6737T_LTE_Smartphone_Application_Processor_Software_Register_Table_V1.0-0073718527	753页
 
 kernel-3.18/arch/arm64/boot/dts/mt6735.dtsi +358
@@ -73,13 +75,38 @@ adb push Y:\mytest\bin\mytest /system/bin/
 adb push Y:\power_mode\bin\power_mode /system/bin/
 adb push Y:\power_mode\bin\mtkgpio /system/bin/
 adb push Y:\power_mode\bin\httpdown /system/bin/
-adb push Y:\power_mode\bin\chat /system/bin/
+adb push Y:\power_mode\bin\chat /system/bin/ 
+adb push Y:\power_mode\bin\n_gsm /system/bin/ 
 adb push Y:\satfi\bin\satfi /system/bin/
 adb push Y:\satfi\bin\config.ini /storage/self/primary/
 adb push Y:\satfi\bin\configSat.ini /storage/self/primary/
 adb push Z:\XY3701_N0\out\target\product\len6737t_66_sh_n\system\vendor\bin\mnld /system/vendor/bin/mnld
 
-<<<<<<< HEAD
+adb push Y:\satfi\bin\sat-dailer /etc/ppp/peers/sat-dailer
+adb push Y:\satfi\bin\sat-chat /etc/ppp/char/sat-chat
+adb push Y:\satfi\bin\disconnect-chat /etc/ppp/char/disconnect-chat
+
+pppd call sat-dailer
+power_mode msm01a on
+power_mode msm01a reset
+
+mytest /dev/ttygsm1 115200 at
+mytest /dev/ttyMT1 115200 AT^DAUTH=4,\"ctnet@mycdma.cn\",\"vnet.mobi\"
+cat /dev/ttyMT1
+echo -e "at\r\n" > /dev/ttyMT1
+
+mytest /dev/ttyMT1 115200  AT+CFUN=1
+
+mytest /dev/ttyMT1 115200  AT^DEPCD=1
+
+mytest /dev/ttyMT1 115200  AT+CGDCONT=4,\"IP\",\"ctnet\",,0,0
+
+mytest /dev/ttyMT1 115200  AT^DAUTH=4,\"ctnet@mycdma.cn\",\"vnet.mobi\"
+mytest /dev/ttyMT1 115200  AT+CGEQREQ=4,3,10,10,10,10
+mytest /dev/ttyMT1 115200  AT^DTEST
+mytest /dev/ttyMT1 115200  AT^DMPCHN=1
+mytest /dev/ttyMT1 115200  AT^DLKS=0
+mytest /dev/ttyMT1 115200  ATD*98*4#
 
 
 替换以上程序
@@ -327,7 +354,7 @@ CONFIG_IP6_NF_RAW=y
 CONFIG_STP=y
 CONFIG_BRIDGE=y
 CONFIG_LLC=y
-
+CONFIG_VT=y
 LK模块：
 mmm bootable/bootloader/lk:clean-lk （clean操作）
 mmm bootable/bootloader/lk:lk （编译）
@@ -340,7 +367,8 @@ make kernel bootimage 							(在修改内核配置 arch/arm64/configs/len6737t_
 mmm kernel-3.18:kernel 							(编译)
 make bootimage-nodeps 							(打包成bootimage)
 
-make ARCH=arm64 CROSS_COMPILE=/home/book/work/XY3701_N0/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/bin/aarch64-linux-android- len6737t_66_sh_n_defconfig
+cd /home/book/work/XY3701_N0/out/target/product/len6737t_66_sh_n/obj/KERNEL_OBJ
+make ARCH=arm64 CROSS_COMPILE=/home/book/work/XY3701_N0/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/bin/aarch64-linux-android-
 make ARCH=arm64 CROSS_COMPILE=/home/book/work/XY3701_N0/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/bin/aarch64-linux-android- menuconfig
 make ARCH=arm64 CROSS_COMPILE=/home/book/work/XY3701_N0/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/bin/aarch64-linux-android- modules
 
@@ -484,12 +512,10 @@ static const char HOSTAPD_BIN_FILE[]    = "/system/bin/hostapd";
 static const char HOSTAPD_CONF_FILE[] = "/data/misc/wifi/hostapd.conf";
 static const char WIFI_ENTROPY_FILE[] = "/data/misc/wifi/entropy.bin";
 execl(HOSTAPD_BIN_FILE, HOSTAPD_BIN_FILE,"-e", WIFI_ENTROPY_FILE, HOSTAPD_CONF_FILE, (char *) NULL)
-  
+
 
 /system/bin/hostapd -e /data/misc/wifi/entropy.bin /data/misc/wifi/hostapd.conf
 
-am start -a android.intent.action.CALL -d tel:10086 拨打电话10086
+am start -a android.intent.action.CALL -d tel:111111 拨打电话 111111
 ndc softap stopap
 ndc softap startap
-
-

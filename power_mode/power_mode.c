@@ -99,15 +99,13 @@ void gpio_out(int pin, int val)
 
 void msm01a_on(void)
 {
-	gpio_out(AP_WAKEUP_BB, 1);
-	gpio_out(AP_SLEEP_BB, 1);
-	gpio_out(PWREN, 0);
-	gpio_out(RESET_IN, 0);
+	gpio_out(AP_WAKEUP_BB, 0);
+	gpio_out(AP_SLEEP_BB, 0);
 	gpio_out(USB_BOOT, 1);
 	sleep(1);
-	gpio_out(PWREN, 1);
-	sleep(2);
 	gpio_out(RESET_IN, 1);
+	sleep(1);
+	gpio_out(PWREN, 1);
 }
 
 void msm01a_reset(void)
@@ -139,10 +137,10 @@ int main(int argc, char **argv)
 	
 	if(!strcmp("msm01a", argv[1])){
 		if (!strcmp("reset", argv[2])){
-			msm01a_on();
+			msm01a_reset();
 		}
 		else if (!strcmp("on", argv[2])){
-			msm01a_reset();
+			msm01a_on();
 		}
 		else if (!strcmp("off", argv[2])){
 			msm01a_off();

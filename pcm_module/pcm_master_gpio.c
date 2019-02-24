@@ -12,7 +12,7 @@
 
 #include "gpio_cfg.h"
 
-#define GPIOTAG                "[PCM_MASTER] "
+#define GPIOTAG                "PCM_MASTER"
 #define GPIOLOG(fmt, arg...)   pr_debug(GPIOTAG fmt, ##arg)
 #define GPIOMSG(fmt, arg...)   pr_warn(fmt, ##arg)
 #define GPIOERR(fmt, arg...)   pr_err(GPIOTAG "===================================%5d: "fmt, __LINE__, ##arg)
@@ -33,6 +33,11 @@
 #define	PCM1_SYNC			62
 #define	PCM1_DI				63
 #define	PCM1_DO0			64
+
+#define	PCM2_CLK			48
+#define	PCM2_SYNC			47
+#define	PCM2_DI				51
+#define	PCM2_DO0			52
 
 #define PCM_BITS			16
 #define PCM_RATE			8000

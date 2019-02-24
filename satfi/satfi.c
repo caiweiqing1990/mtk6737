@@ -1989,9 +1989,9 @@ int parseGpsData(char *buf, int len)
 
 	//satfi_log("Lg=%d Lt=%d Lg_D=%c Lt_D=%c Speed=%d Date=%lld\n",
 	//base.gps.Lg, base.gps.Lt, base.gps.Lg_D, base.gps.Lt_D, base.gps.Speed, base.gps.Date);
-	base.sat.sat_csq_value = 0;
-	base.sat.sat_csq_ltime = mktime(&Tm);
-	gpio_out(82, 1);
+	//base.sat.sat_csq_value = 0;
+	//base.sat.sat_csq_ltime = mktime(&Tm);
+	//gpio_out(82, 1);
 
 	if(base.gps.Lg == 0 || base.gps.Lt == 0)
 	{
@@ -2351,15 +2351,14 @@ void gpio_out(int gpio, int val)
 
 void msm01a_on(void)
 {
-	gpio_out(AP_WAKEUP_BB, 1);
-	gpio_out(AP_SLEEP_BB, 1);
-	gpio_out(PWREN, 0);
-	gpio_out(RESET_IN, 0);
+	gpio_out(86, 0);//串口1 流控引脚
+	gpio_out(AP_WAKEUP_BB, 0);
+	gpio_out(AP_SLEEP_BB, 0);
 	gpio_out(USB_BOOT, 1);
 	sleep(1);
-	gpio_out(PWREN, 1);
-	sleep(2);
 	gpio_out(RESET_IN, 1);
+	sleep(1);
+	gpio_out(PWREN, 1);
 }
 
 void msm01a_reset(void)
@@ -2420,7 +2419,7 @@ static void *func_y(void *p)
 			{
 				case SAT_STATE_AT:
 					satfi_log("func_y:send AT to SAT Module\n");
-					uart_send(base->sat.sat_fd, "AT\r\n", 4);
+					uart_send(base->sat.sat_fd, "AT^DAUTH=4,\"ctnet@mycdma.cn\",\"vnet.mobi\"\r\n", strlen("AT^DAUTH=4,\"ctnet@mycdma.cn\",\"vnet.mobi\"\r\n"));
 					base->sat.sat_state = SAT_STATE_AT_W;
 					counter=0;
 					break;
@@ -8589,16 +8588,12 @@ static void SignalHandler(int nSigno)
     }
 }
 
-#define PCM_SET_RECORD			0
-#define PCM_SET_UNRECORD		1	
-#define PCM_READ_PCM			2
-#define PCM_START				3
-#define PCM_STOP				4
-#define PCM_SET_PLAYBACK		5
-#define PCM_SET_UNPLAYBACK		6
-#define PCM_WRITE_PCM			7
-#define PCM_OPEN				13
-#define PCM_CLOSE				14
+#define PCM_IOC_MAGIC 0x80
+
+#define PCM_START           _IO(PCM_IOC_MAGIC, 0x01)
+#define PCM_READ_PCM        _IOR(PCM_IOC_MAGIC, 0x02, uint32_t)
+#define PCM_WRITE_PCM       _IOW(PCM_IOC_MAGIC, 0x03, uint32_t)
+#define PCM_STOP          	_IO(PCM_IOC_MAGIC, 0x04)
 
 #define NN 160
 static int pcmfd=-1;
@@ -8780,7 +8775,7 @@ static void *sendto_app_voice_udp(void *p)
 	int packsize = 320;
 	int ret;
 	
-	char voicebuf[4800];
+	char voicebuf[3200];
 	struct sockaddr_in *clientAddr1 = &(base->sat.clientAddr1);
 	int len = sizeof(struct sockaddr_in);
 
@@ -8801,16 +8796,13 @@ static void *sendto_app_voice_udp(void *p)
 			if(pcmfd<0)
 			{
 				int iRecordCH=0;
-				pcmfd = open("/dev/pcm0", O_RDWR);
-				ioctl(pcmfd, PCM_OPEN, &ret);
-				satfi_log("PCM_OPEN=%d\n", ret);
+				pcmfd = open("/dev/pcm_master_gpio", O_RDWR);
+				satfi_log("pcmfd=%d\n", pcmfd);
 				if (ret < 0)
 				{
-					ioctl(pcmfd, PCM_CLOSE);
 					return NULL;
 				}
-				ioctl(pcmfd, PCM_SET_PLAYBACK, &iRecordCH);
-				ioctl(pcmfd, PCM_SET_RECORD, &iRecordCH);
+				
 				ioctl(pcmfd, PCM_START, 0);
 				
 				if(pcmfd>0)
@@ -8860,11 +8852,7 @@ static void *sendto_app_voice_udp(void *p)
 			if(pcmfd>0)
 			{
 				satfi_log("AudioRecord Exit pcmfd=%d %d\n", pcmfd, base->sat.sat_calling);	
-				ioctl(pcmfd, PCM_STOP, 0);
-				ioctl(pcmfd, PCM_SET_UNPLAYBACK);
-				ioctl(pcmfd, PCM_SET_UNRECORD);
-				
-				ioctl(pcmfd, PCM_CLOSE);
+				ioctl(pcmfd, PCM_STOP, 0);				
 				close(pcmfd);
 				pcmfd = -1;
 				
@@ -9052,7 +9040,7 @@ int main_fork(void)
 	if(pthread_create(&id_6, NULL, CheckProgramUpdateServer, (void *)&base) == -1) exit(1);
 
 	//sat拨号线程,ring检测
-	//if(pthread_create(&id_4, NULL, func_y, (void *)&base) == -1) exit(1);
+	if(pthread_create(&id_4, NULL, func_y, (void *)&base) == -1) exit(1);
 	if(pthread_create(&id_5, NULL, ring_detect, (void *)&base) == -1) exit(1);
 
 	//电话音频处理
@@ -9075,7 +9063,7 @@ int main(int argc, char *argv[])
     //coreFileSize.rlim_cur = 1000*1024;
     //coreFileSize.rlim_max = 4294967295UL;
     //setrlimit(RLIMIT_CORE, &coreFileSize);
-	sleep(10);
+	//sleep(10);
 
 	while(1)
 	{

@@ -1,0 +1,27 @@
+debug
+nolock
+nodetach
+/dev/ttyMT1
+115200
+#crtscts
+linkname
+gprs
+novj
+user
+linux
+usepeerdns
+noauth
+noipdefault
+novj
+nodeflate
+novjccomp
+noccp
+local
+defaultroute
+lcp-max-configure 30
+ipcp-max-configure 50
+mru 1500
+mtu 1500
+connect '/system/bin/chat -s -v -f /etc/ppp/char/sat-chat'
+disconnect '/system/bin/chat -s -v -f /etc/ppp/char/disconnect-chat'
+     

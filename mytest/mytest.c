@@ -214,7 +214,7 @@ int main(int argc, char *argv[])
 	
 	int baud_rate = atoi(argv[2]);
 	init_serial(&satfd, argv[1], baud_rate);
-	printf("satfd = %d baud_rate=%d\n",B115200, B9600);
+	printf("satfd = %d baud_rate=%d\n",satfd, baud_rate);
 	pthread_t thread_checksat;
 	pthread_create(&thread_checksat, NULL, func_xx, NULL);
 	char buf[1024]={0};
@@ -240,9 +240,9 @@ int main(int argc, char *argv[])
 		uart_send(satfd, buf, 1);
 	}
 	
-	while(1)
+	//while(1)
 	{
-		sleep(5);
+		sleep(1);
 	}
 	return 0;
 }
