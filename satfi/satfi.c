@@ -2479,7 +2479,9 @@ static void *func_y(void *p)
 			switch(base->sat.sat_state)
 			{
 				case SAT_STATE_AT:
-					satfi_log("func_y:send AT to SAT Module\n");
+					satfi_log("func_y:send AT+CMUX to SAT Module\n");
+					satfi_log("func_y:send at^logswitch to SAT Module\n");
+					sleep(3);
 					uart_send(base->sat.sat_fd, "AT+CMUX=0,0,5,1600\r\n", strlen("AT+CMUX=0,0,5,1600\r\n"));
 					base->sat.sat_state = SAT_STATE_AT_W;
 					counter=0;

@@ -226,7 +226,7 @@ service satfi /system/bin/satfi
 on property:dev.bootcomplete=1
 	start satfi
 
-service satfi /system/bin/pppd call sat-dailer
+service sat_pppd /system/bin/pppd call sat-dailer
     user root
     group root
     class main
