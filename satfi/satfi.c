@@ -29,6 +29,8 @@
 #include <sys/un.h>
 #include <strings.h>
 #include <stdio.h>
+#include <linux/gsmmux.h>
+
 #include "msg.h"
 #include "server.h"
 #include "config.h"
@@ -372,8 +374,8 @@ void Data_Transmit(char *MsID, void *data);
 
 #define __DEBUG__  
 #ifdef __DEBUG__  
-#define satfi_log(x...) printf(x)
-//#define satfi_log(x...) LOGE(x)
+//#define satfi_log(x...) printf(x)
+#define satfi_log(x...) ALOGE(x)
 #else
 #define satfi_log(x...)
 #endif
@@ -1769,7 +1771,7 @@ int init_serial(int *fd, char *device, int baud_rate)
 	/* 2.修改获得的参数 */
 	options.c_cflag |= CLOCAL | CREAD; /* 设置控制模块状态：本地连接，接收使能 */
 	options.c_cflag &= ~CSIZE;		   /* 字符长度，设置数据位之前，一定要屏蔽这一位 */
-	options.c_cflag &= ~CRTSCTS;	   /* 无硬件流控 */
+	options.c_cflag &= ~CRTSCTS;	   		/* 无硬件流控 */
 	options.c_cflag |= CS8; 		   /* 8位数据长度 */
 	options.c_cflag &= ~CSTOPB; 	   /* 1位停止位 */
 	options.c_iflag |= IGNPAR;		   /* 无奇偶校验 */
@@ -2281,7 +2283,9 @@ short get_sat_status()
     status = 5; //正在获取定位数据
   }
   else if(base.sat.sat_state == SAT_STATE_CSQ ||
-          base.sat.sat_state == SAT_STATE_CSQ_W)
+          base.sat.sat_state == SAT_STATE_CSQ_W || 
+          base.sat.sat_state == SAT_STATE_CREG_W || 
+          base.sat.sat_state == SAT_STATE_CREG)
   {
     status = 4; //信号强度不够
   }
@@ -2351,6 +2355,8 @@ void gpio_out(int gpio, int val)
 
 void msm01a_on(void)
 {
+	gpio_out(49, 1);//功放使能 接收
+	gpio_out(50, 1);//功放使能 发送
 	gpio_out(86, 0);//串口1 流控引脚
 	gpio_out(AP_WAKEUP_BB, 0);
 	gpio_out(AP_SLEEP_BB, 0);
@@ -2368,6 +2374,50 @@ void msm01a_reset(void)
 	gpio_out(RESET_IN, 1);
 }
 
+#define SERIAL_PORT		"/dev/ttyMT1"
+void CMUX_init(int serialfd)
+{
+#define N_GSM0710		21	/* GSM 0710 Mux */
+
+	satfi_log("CMUX_init\n");
+
+	int ldisc = N_GSM0710;
+	struct gsm_config c;
+	/* open the serial port connected to the modem */
+	//int fd;
+	//init_serial(&fd, SERIAL_PORT, DEFAULT_SPEED);
+
+	/* configure the serial port : speed, flow control ... */
+
+	/* send the AT commands to switch the modem to CMUX mode
+	   and check that it's successful (should return OK) */
+	//write(fd, "AT+CMUX=0,0,5,1600\r\n", 20);
+
+	/* experience showed that some modems need some time before
+	   being able to answer to the first MUX packet so a delay
+	   may be needed here in some case */
+	//sleep(3);
+
+	/* use n_gsm line discipline */
+	ioctl(serialfd, TIOCSETD, &ldisc);
+
+	/* get n_gsm configuration */
+	ioctl(serialfd, GSMIOC_GETCONF, &c);
+	/* we are initiator and need encoding 0 (basic) */
+	c.initiator = 1;
+	c.encapsulation = 0;
+	/* our modem defaults to a maximum size of 127 bytes */
+	c.mru = 127;
+	c.mtu = 127;
+	/* set the new configuration */
+	ioctl(serialfd, GSMIOC_SETCONF, &c);
+
+	/* and wait for ever to keep the line discipline enabled */
+	//daemon(0,0);
+	//pause();
+
+	//close(fd);
+}
 
 /* 卫星模块线程
  *
@@ -2377,7 +2427,10 @@ static void *func_y(void *p)
 	BASE *base = (BASE*)p;
 	int counter = 0;
 
-//#define SAT_MESSAGE_DEV	"/dev/ttyS0"
+	char *serialname = SERIAL_PORT;
+
+	int cmux=0;
+	
 	satfi_log("power_mode msm01a on\n");
 	msm01a_on();
 	sleep(10);
@@ -2399,7 +2452,7 @@ static void *func_y(void *p)
 			base->sat.sat_state = SAT_STATE_RESTART_W;
 			base->sat.sat_status = 0;
 			base->sat.sat_msg_sending = 0;
-			msm01a_reset();
+			//msm01a_reset();
 			sleep(10);
 			continue;
 		}
@@ -2407,10 +2460,18 @@ static void *func_y(void *p)
 		{
 			if(base->sat.sat_fd < 0)
 			{
-				init_serial(&base->sat.sat_fd, base->sat.sat_dev_name, base->sat.sat_baud_rate);
+				if(cmux == 0)
+				{
+					serialname = SERIAL_PORT;
+				}
+				else
+				{
+					serialname = base->sat.sat_dev_name;
+				}
+				init_serial(&base->sat.sat_fd, serialname, base->sat.sat_baud_rate);
 				base->sat.sat_state = SAT_STATE_AT;
 			}
-		}		
+		}
 		
 		if(base->sat.sat_fd > 0 && base->sat.sat_calling == 0 && base->sat.sat_msg_sending == 0)
 		{
@@ -2419,7 +2480,7 @@ static void *func_y(void *p)
 			{
 				case SAT_STATE_AT:
 					satfi_log("func_y:send AT to SAT Module\n");
-					uart_send(base->sat.sat_fd, "AT^DAUTH=4,\"ctnet@mycdma.cn\",\"vnet.mobi\"\r\n", strlen("AT^DAUTH=4,\"ctnet@mycdma.cn\",\"vnet.mobi\"\r\n"));
+					uart_send(base->sat.sat_fd, "AT+CMUX=0,0,5,1600\r\n", strlen("AT+CMUX=0,0,5,1600\r\n"));
 					base->sat.sat_state = SAT_STATE_AT_W;
 					counter=0;
 					break;
@@ -2448,6 +2509,15 @@ static void *func_y(void *p)
 					break;
 				case SAT_STATE_IMSI:
 				case SAT_STATE_IMSI_W:
+					if(cmux == 0)
+					{
+						close(base->sat.sat_fd);
+						base->sat.sat_fd = -1;
+						myexec("n_gsm", NULL, NULL);
+						//CMUX_init(base->sat.sat_fd);
+						cmux=1;
+						break;
+					}
 					satfi_log("func_y:send AT+CIMI to SAT Module\n");
 					uart_send(base->sat.sat_fd, "AT+CIMI\r\n", 9);
 					base->sat.sat_state = SAT_STATE_IMSI_W;
@@ -2499,6 +2569,13 @@ static void *func_y(void *p)
 		//sat_unlock();
 		if(base->sat.sat_status == 1)
 		{
+			if(base->sat.sat_dialing == 0)
+			{
+				base->sat.sat_dialing = 1;
+				satfi_log("pppd call sat-dailer\n");
+				myexec("start sat_pppd", NULL, NULL);
+				satfi_log("pppd call sat-dailer passed\n");
+			}
 			sleep(5);
 		}
 		else
@@ -3022,7 +3099,7 @@ int handle_sat_data(int *satfd, char *data, int *ofs)
 				}
 				else if(strstr(data,"\n\nOK\n\n"))
 				{
-					//satfi_log("%s %d", data, __LINE__);
+					//satfi_log("%s %d\n", data, __LINE__);
 					sat_lock();
 					if(base.sat.sat_state_phone==SAT_STATE_PHONE_CLCC) 
 					{
@@ -7952,7 +8029,7 @@ static void *CallUpThread(void *p)
 		{
 			case SAT_STATE_PHONE_CLCC:
 				satfi_log("SAT_STATE_PHONE_CLCC\n");
-		        uart_send(base->sat.sat_fd, "AT^PCMMODE=0,0,0,0,0,0,0\r\n", 26);
+		        uart_send(base->sat.sat_fd, "AT^PCMMODE=0,1,0,0,0,0,0\r\n", 26);
 		        break;
 			case SAT_STATE_PHONE_CLCC_OK:
 				satfi_log("SAT_STATE_PHONE_CLCC_OK\n");
@@ -8879,7 +8956,7 @@ int socket_bind_udp(const char* path)
 
     fd = socket(PF_LOCAL, SOCK_DGRAM, 0);
     if (fd < 0) {
-        satfi_log("socket_bind_udp() socket() failed reason=[%s]%d",
+        satfi_log("socket_bind_udp() socket() failed reason=[%s]%d\n",
             strerror(errno), errno);
         return -1;
     }
@@ -8891,7 +8968,7 @@ int socket_bind_udp(const char* path)
     addr.sun_family = AF_UNIX;
     unlink(addr.sun_path);
     if (bind(fd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
-        satfi_log("socket_bind_udp() bind() failed path=[%s] reason=[%s]%d",
+        satfi_log("socket_bind_udp() bind() failed path=[%s] reason=[%s]%d\n",
             path, strerror(errno), errno);
         close(fd);
         return -1;
@@ -8904,13 +8981,13 @@ int socket_bind_udp(const char* path)
 int socket_set_blocking(int fd, int blocking) 
 {
     if (fd < 0) {
-        satfi_log("socket_set_blocking() invalid fd=%d", fd);
+        satfi_log("socket_set_blocking() invalid fd=%d\n", fd);
         return -1;
     }
 
     int flags = fcntl(fd, F_GETFL, 0);
     if (flags == -1) {
-        satfi_log("socket_set_blocking() fcntl() failed invalid flags=%d reason=[%s]%d",
+        satfi_log("socket_set_blocking() fcntl() failed invalid flags=%d reason=[%s]%d\n",
             flags, strerror(errno), errno);
         return -1;
     }
@@ -9037,7 +9114,7 @@ int main_fork(void)
 	
 	//System检测，心跳包
 	if(pthread_create(&id_5, NULL, SystemServer, (void *)&base) == -1) exit(1);
-	if(pthread_create(&id_6, NULL, CheckProgramUpdateServer, (void *)&base) == -1) exit(1);
+	//if(pthread_create(&id_6, NULL, CheckProgramUpdateServer, (void *)&base) == -1) exit(1);
 
 	//sat拨号线程,ring检测
 	if(pthread_create(&id_4, NULL, func_y, (void *)&base) == -1) exit(1);
@@ -9065,6 +9142,15 @@ int main(int argc, char *argv[])
     //setrlimit(RLIMIT_CORE, &coreFileSize);
 	//sleep(10);
 
+	int i;
+	char ucbuf[256]={0};
+	int major = 247;
+	for(i=1; i<=6; i++)
+	{
+		sprintf(ucbuf, "mknod /dev/ttygsm%d c %d %d", i, major, i);
+		myexec(ucbuf, NULL, NULL);
+	}
+	
 	while(1)
 	{
 		fpid = fork();

@@ -1,4 +1,23 @@
----- MAXLINE Matches (4 in 1 files) ----
-Satfi.c (z:\xy3701_n0\external\test\satfi):#define MAXLINE 1024
-Satfi.c (z:\xy3701_n0\external\test\satfi):  char result[MAXLINE],command[MAXLINE];
-Satfi.c (z:\xy3701_n0\external\test\satfi):  char tmp[MAXLINE];
+---- sat_status Matches (22 in 2 files) ----
+Msg.h (z:\xy3701_n0\external\test\satfi):  short sat_status;
+Msg.h (z:\xy3701_n0\external\test\satfi):  short sat_status;
+Satfi.c (z:\xy3701_n0\external\test\satfi):  int sat_status;            //0：command 1：online data
+Satfi.c (z:\xy3701_n0\external\test\satfi):		satfi_log("CheckisHaveMessageAndTriggerSend %d\n", base.sat.sat_status);
+Satfi.c (z:\xy3701_n0\external\test\satfi):  else if(base.sat.sat_status == 1) status = 0;			  //工作正常
+Satfi.c (z:\xy3701_n0\external\test\satfi):  //else if(base.sat.sat_status == 0) status = 1;      //没有拨号，暂时设置状态：正在拨号中
+Satfi.c (z:\xy3701_n0\external\test\satfi):			base->sat.sat_status = 0;
+Satfi.c (z:\xy3701_n0\external\test\satfi):		if(base->sat.sat_status == 1)
+Satfi.c (z:\xy3701_n0\external\test\satfi):								base.sat.sat_status = 0;
+Satfi.c (z:\xy3701_n0\external\test\satfi):								base.sat.sat_status = 1;
+Satfi.c (z:\xy3701_n0\external\test\satfi):								if(base.sat.sat_status == 1)
+Satfi.c (z:\xy3701_n0\external\test\satfi):									base.sat.sat_status = 0;
+Satfi.c (z:\xy3701_n0\external\test\satfi):								base.sat.sat_status = 0;
+Satfi.c (z:\xy3701_n0\external\test\satfi):								base.sat.sat_status = 0;
+Satfi.c (z:\xy3701_n0\external\test\satfi):								//base.sat.sat_status = 0;								
+Satfi.c (z:\xy3701_n0\external\test\satfi):				rsp->sat_status = get_sat_status();
+Satfi.c (z:\xy3701_n0\external\test\satfi):				rsp->sat_status = get_sat_status();
+Satfi.c (z:\xy3701_n0\external\test\satfi):					base->sat.sat_status = 1;
+Satfi.c (z:\xy3701_n0\external\test\satfi):					base->sat.sat_status = 0;
+Satfi.c (z:\xy3701_n0\external\test\satfi):					base->sat.sat_status = 0;
+Satfi.c (z:\xy3701_n0\external\test\satfi):			base->sat.sat_status = 1;
+Satfi.c (z:\xy3701_n0\external\test\satfi):	base.sat.sat_status = 0;

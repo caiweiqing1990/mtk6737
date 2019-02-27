@@ -1,9 +1,11 @@
 debug
+#logfile /storage/self/primary/pppdlog
 nolock
 nodetach
-/dev/ttyMT1
+#/dev/ttyMT1
+/dev/ttygsm5
 115200
-#crtscts
+crtscts
 linkname
 gprs
 novj
@@ -17,6 +19,7 @@ nodeflate
 novjccomp
 noccp
 local
+persist
 defaultroute
 lcp-max-configure 30
 ipcp-max-configure 50

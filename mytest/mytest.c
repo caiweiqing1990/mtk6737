@@ -72,7 +72,8 @@ int init_serial(int *fd, char *device, int baud_rate)
 	/* 2.修改获得的参数 */
 	options.c_cflag |= CLOCAL | CREAD; /* 设置控制模块状态：本地连接，接收使能 */
 	options.c_cflag &= ~CSIZE;         /* 字符长度，设置数据位之前，一定要屏蔽这一位 */
-	options.c_cflag &= ~CRTSCTS;       /* 无硬件流控 */
+	//options.c_cflag &= ~CRTSCTS;       /* 无硬件流控 */
+	options.c_cflag |= CRTSCTS;       /* 硬件流控 */
 	options.c_cflag |= CS8;            /* 8位数据长度 */
 	options.c_cflag &= ~CSTOPB;        /* 1位停止位 */
 	options.c_iflag |= IGNPAR;         /* 无奇偶校验 */
@@ -214,6 +215,9 @@ int main(int argc, char *argv[])
 	
 	int baud_rate = atoi(argv[2]);
 	init_serial(&satfd, argv[1], baud_rate);
+	if(satfd == 0)
+		return 0;
+	
 	printf("satfd = %d baud_rate=%d\n",satfd, baud_rate);
 	pthread_t thread_checksat;
 	pthread_create(&thread_checksat, NULL, func_xx, NULL);

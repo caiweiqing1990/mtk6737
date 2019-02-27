@@ -16,8 +16,9 @@
 #define DEFAULT_SPEED	B115200
 #define SERIAL_PORT		"/dev/ttyMT1"
 
-int main()
+int main(int argc, char *argv[])
 {
+	int val;
 	int ldisc = N_GSM0710;
 	struct gsm_config c;
 	struct termios configuration;
@@ -31,30 +32,50 @@ int main()
 
 	/* send the AT commands to switch the modem to CMUX mode
 	   and check that it's successful (should return OK) */
-	write(fd, "AT+CMUX=0,0,5,1600\r", 19);
+	//write(fd, "AT+CMUX=0,0,5,1600\r", 19);
 
 	/* experience showed that some modems need some time before
 	   being able to answer to the first MUX packet so a delay
 	   may be needed here in some case */
-	sleep(3);
+	//sleep(3);
 
-	/* use n_gsm line discipline */
-	ioctl(fd, TIOCSETD, &ldisc);
+	if(argc == 1)
+	{
+		/* use n_gsm line discipline */
+		ioctl(fd, TIOCGETD, &val);
+		
+		if(val == N_GSM0710)
+			return 0;
+		
+		ioctl(fd, TIOCSETD, &ldisc);
 
-	/* get n_gsm configuration */
-	ioctl(fd, GSMIOC_GETCONF, &c);
-	/* we are initiator and need encoding 0 (basic) */
-	c.initiator = 1;
-	c.encapsulation = 0;
-	/* our modem defaults to a maximum size of 127 bytes */
-	c.mru = 127;
-	c.mtu = 127;
-	/* set the new configuration */
-	ioctl(fd, GSMIOC_SETCONF, &c);
-
+		/* get n_gsm configuration */
+		ioctl(fd, GSMIOC_GETCONF, &c);
+		/* we are initiator and need encoding 0 (basic) */
+		c.initiator = 1;
+		c.encapsulation = 0;
+		/* our modem defaults to a maximum size of 127 bytes */
+		c.mru = 127;
+		c.mtu = 127;
+		/* set the new configuration */
+		ioctl(fd, GSMIOC_SETCONF, &c);		
+	}
+	else
+	{
+		val = 0;
+		ioctl(fd, TIOCSETD, &val);
+		
+		ioctl(fd, GSMIOC_GETCONF, &c);
+		c.initiator = 0;
+		c.encapsulation = 1;
+		/* our modem defaults to a maximum size of 127 bytes */
+		c.mru = 64;
+		c.mtu = 64;
+		ioctl(fd, GSMIOC_SETCONF, &c);	
+	}
+	
 	/* and wait for ever to keep the line discipline enabled */
 	daemon(0,0);
 	pause();
-
 	return 0;
 }

@@ -58,10 +58,11 @@ GPIO187	PCM0_DO0
 GPIO185	PCM0_DI
 GPIO184	PCM0_CLK
 
-执行下，才能开机启动satfi
+为了不重烧整个系统，执行下，才能开机启动satfi pppd服务
 adb root
 adb remount
 adb shell restorecon system/bin/satfi
+adb shell restorecon system/bin/pppd
 
 
 /system分区配置可读可写
@@ -90,12 +91,12 @@ pppd call sat-dailer
 power_mode msm01a on
 power_mode msm01a reset
 
-mytest /dev/ttygsm1 115200 at
+mytest /dev/ttygsm2 115200 AT+CGACT=0,4
 mytest /dev/ttyMT1 115200 AT^DAUTH=4,\"ctnet@mycdma.cn\",\"vnet.mobi\"
 cat /dev/ttyMT1
 echo -e "at\r\n" > /dev/ttyMT1
 
-mytest /dev/ttyMT1 115200  AT+CFUN=1
+mytest /dev/ttyMT1 115200  AT+CMUX=0,0,5,1600
 
 mytest /dev/ttyMT1 115200  AT^DEPCD=1
 
@@ -108,6 +109,8 @@ mytest /dev/ttyMT1 115200  AT^DMPCHN=1
 mytest /dev/ttyMT1 115200  AT^DLKS=0
 mytest /dev/ttyMT1 115200  ATD*98*4#
 
+
+mytest /dev/ttyMT3 115200  AT
 
 替换以上程序
 
@@ -123,6 +126,7 @@ adb push Y:\gpio_test\bin\pcm_test /mnt
 adb push Y:\gpio_test\bin\in.raw /mnt
 adb push Y:\pcm_module\pcm_master_gpio.ko /mnt
 adb push Y:\pcm_module\pcm_slave_gpio.ko /mnt
+adb push Y:\pcm_module\n_gsm.ko /mnt
 adb push Y:\power_mode\bin\wifitest /mnt
 
 rmmod pcm_master_gpio.ko;insmod pcm_master_gpio.ko
@@ -137,6 +141,7 @@ adb push Y:\gpsinf\bin\gps_test /system/bin/
 logcat pseudo:D *:S
 <<<<<<< HEAD
 logcat RILD:* *:S
+logcat SatFi:* *:S
 
 
 start ril-daemon-mtk
