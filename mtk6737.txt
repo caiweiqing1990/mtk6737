@@ -225,10 +225,21 @@ service satfi /system/bin/satfi
 
 on property:dev.bootcomplete=1
 	start satfi
+
+service satfi /system/bin/pppd call sat-dailer
+    user root
+    group root
+    class main
+	disabled
+    oneshot
+	
 	
 2、system/sepolicy/file_contexts
 #add my	
+#/system/bin/pppd	u:object_r:ppp_exec:s0
+
 /system/bin/satfi	u:object_r:satfi_exec:s0
+/system/bin/pppd	u:object_r:pppd_exec:s0
 
 3、system/sepolicy/satfi.te
 #add my
@@ -242,8 +253,8 @@ allow satfi toolbox_exec:file { getattr execute read open execute_no_trans };
 allow satfi storage_file:lnk_file { read open };
 allow satfi tmpfs:dir { write read open search };
 allow satfi mnt_user_file:dir { write read open search };
-allow satfi fuse:dir { write read open search };
-allow satfi fuse:file { write read open getattr };
+allow satfi fuse:dir { write read open search remove_name add_name };
+allow satfi fuse:file { write read open getattr rename create unlink };
 allow satfi self:tcp_socket { create setopt bind listen connect };
 allow satfi self:capability { net_raw };
 allow satfi self:udp_socket { create bind };
@@ -259,7 +270,25 @@ allow satfi shell_exec:file { execute_no_trans };
 allow satfi mnt_user_file:lnk_file { write read open };
 allow satfi self:capability { dac_override };
 allow satfi mtgpio_device:chr_file { read write open ioctl };
+allow satfi device:chr_file { read write open ioctl };
 
+allow satfi mnld:unix_dgram_socket { sendto };
+
+4.system/sepolicy/pppd.te
+type pppd, domain;
+type pppd_exec, exec_type, file_type;
+init_daemon_domain(pppd)
+domain_trans(init, shell_exec, pppd)
+net_domain(pppd)
+
+allow pppd ppp_exec:file { getattr };
+allow pppd ppp_device:chr_file { read write open };
+allow pppd shell_exec:file { execute_no_trans };
+
+allow pppd device:chr_file { getattr read write open ioctl };
+allow pppd self:capability { dac_override net_admin net_raw setgid setuid };
+allow pppd kernel:system { module_request };
+allow pppd system_file:file { execute_no_trans };
 
 make bootimage
 make bootimage-nodeps
