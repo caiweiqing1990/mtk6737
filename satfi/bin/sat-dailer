@@ -27,4 +27,3 @@ mru 1500
 mtu 1500
 connect '/system/bin/chat -s -v -f /etc/ppp/char/sat-chat'
 disconnect '/system/bin/chat -s -v -f /etc/ppp/char/disconnect-chat'
-     

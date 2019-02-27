@@ -9140,7 +9140,7 @@ int main(int argc, char *argv[])
     //coreFileSize.rlim_cur = 1000*1024;
     //coreFileSize.rlim_max = 4294967295UL;
     //setrlimit(RLIMIT_CORE, &coreFileSize);
-	//sleep(10);
+	sleep(10);
 
 	int i;
 	char ucbuf[256]={0};
