@@ -1,23 +1,15 @@
----- sat_status Matches (22 in 2 files) ----
-Msg.h (z:\xy3701_n0\external\test\satfi):  short sat_status;
-Msg.h (z:\xy3701_n0\external\test\satfi):  short sat_status;
-Satfi.c (z:\xy3701_n0\external\test\satfi):  int sat_status;            //0：command 1：online data
-Satfi.c (z:\xy3701_n0\external\test\satfi):		satfi_log("CheckisHaveMessageAndTriggerSend %d\n", base.sat.sat_status);
-Satfi.c (z:\xy3701_n0\external\test\satfi):  else if(base.sat.sat_status == 1) status = 0;			  //工作正常
-Satfi.c (z:\xy3701_n0\external\test\satfi):  //else if(base.sat.sat_status == 0) status = 1;      //没有拨号，暂时设置状态：正在拨号中
-Satfi.c (z:\xy3701_n0\external\test\satfi):			base->sat.sat_status = 0;
-Satfi.c (z:\xy3701_n0\external\test\satfi):		if(base->sat.sat_status == 1)
-Satfi.c (z:\xy3701_n0\external\test\satfi):								base.sat.sat_status = 0;
-Satfi.c (z:\xy3701_n0\external\test\satfi):								base.sat.sat_status = 1;
-Satfi.c (z:\xy3701_n0\external\test\satfi):								if(base.sat.sat_status == 1)
-Satfi.c (z:\xy3701_n0\external\test\satfi):									base.sat.sat_status = 0;
-Satfi.c (z:\xy3701_n0\external\test\satfi):								base.sat.sat_status = 0;
-Satfi.c (z:\xy3701_n0\external\test\satfi):								base.sat.sat_status = 0;
-Satfi.c (z:\xy3701_n0\external\test\satfi):								//base.sat.sat_status = 0;								
-Satfi.c (z:\xy3701_n0\external\test\satfi):				rsp->sat_status = get_sat_status();
-Satfi.c (z:\xy3701_n0\external\test\satfi):				rsp->sat_status = get_sat_status();
-Satfi.c (z:\xy3701_n0\external\test\satfi):					base->sat.sat_status = 1;
-Satfi.c (z:\xy3701_n0\external\test\satfi):					base->sat.sat_status = 0;
-Satfi.c (z:\xy3701_n0\external\test\satfi):					base->sat.sat_status = 0;
-Satfi.c (z:\xy3701_n0\external\test\satfi):			base->sat.sat_status = 1;
-Satfi.c (z:\xy3701_n0\external\test\satfi):	base.sat.sat_status = 0;
+---- sscanf Matches (14 in 6 files) ----
+Atchannels.c (z:\xy3701_n0\vendor\mediatek\proprietary\hardware\ril\gsm\mtk-ril):        if (sscanf(command, "AT+EFUN=%d", &targetMode) == 1) {
+Atchannels.c (z:\xy3701_n0\vendor\mediatek\proprietary\hardware\ril\gsm\mtk-ril):            RLOGD("sscanf fail, wrong argument");
+Config.c (z:\xy3701_n0\external\test\satfi):        sscanf(buf,"%[^=|^ |^\t]",keyname);
+Config.c (z:\xy3701_n0\external\test\satfi):         sscanf(++c,"%[^\n]",keyvalold);
+Config.c (z:\xy3701_n0\external\test\satfi):        sscanf(buf, "%[^=|^ |^\t]", keyname);
+Config.c (z:\xy3701_n0\external\test\satfi):          sscanf(++c,"%[^\n]", keyVal);
+Ril_callbacks.c (z:\xy3701_n0\vendor\mediatek\proprietary\hardware\ril\gsm\mtk-ril):            int res = sscanf(de->d_name, "%d", &pid);
+Ril_sim.c (z:\xy3701_n0\vendor\mediatek\proprietary\hardware\ril\gsm\mtk-ril):    sscanf(&(payload[len - 4]), "%02x%02x", &(sim_auth_response.sw1),
+Ril_ss.c (z:\xy3701_n0\vendor\mediatek\proprietary\hardware\ril\gsm\mtk-ril):        sscanf(pos, "%2hhx", &byteArray[count]);
+Satfi.c (z:\xy3701_n0\external\test\satfi):	sscanf(data[7],"%lf",&Speed);
+Satfi.c (z:\xy3701_n0\external\test\satfi):	sscanf(data[5],"%lf",&Lg);
+Satfi.c (z:\xy3701_n0\external\test\satfi):	sscanf(data[3],"%lf",&Lt);
+Satfi.c (z:\xy3701_n0\external\test\satfi):	sscanf(data[6],"%c",&Lg_D);
+Satfi.c (z:\xy3701_n0\external\test\satfi):	sscanf(data[4],"%c",&Lt_D);

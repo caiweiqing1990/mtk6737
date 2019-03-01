@@ -79,13 +79,19 @@ adb push Y:\power_mode\bin\httpdown /system/bin/
 adb push Y:\power_mode\bin\chat /system/bin/ 
 adb push Y:\power_mode\bin\n_gsm /system/bin/ 
 adb push Y:\satfi\bin\satfi /system/bin/
+adb push Y:\satfi\bin\busybox /system/bin/
 adb push Y:\satfi\bin\config.ini /storage/self/primary/
 adb push Y:\satfi\bin\configSat.ini /storage/self/primary/
-adb push Z:\XY3701_N0\out\target\product\len6737t_66_sh_n\system\vendor\bin\mnld /system/vendor/bin/mnld
+adb push Z:\XY3701_N0\out\target\product\len6737t_66_sh_n\symbols\system\vendor\bin\mnld /system/vendor/bin/mnld
 
 adb push Y:\satfi\bin\sat-dailer /etc/ppp/peers/sat-dailer
 adb push Y:\satfi\bin\sat-chat /etc/ppp/char/sat-chat
 adb push Y:\satfi\bin\disconnect-chat /etc/ppp/char/disconnect-chat
+
+
+adb push Y:\satfi\bin\sysctl.conf /etc/sysctl.conf
+
+iptables -t nat -A POSTROUTING -o eth1 -j MASQUERADE
 
 pppd call sat-dailer
 power_mode msm01a on
@@ -553,3 +559,10 @@ execl(HOSTAPD_BIN_FILE, HOSTAPD_BIN_FILE,"-e", WIFI_ENTROPY_FILE, HOSTAPD_CONF_F
 am start -a android.intent.action.CALL -d tel:111111 拨打电话 111111
 ndc softap stopap
 ndc softap startap
+
+
+/system/bin/iptables -t nat -F
+/system/bin/iptables -F
+/system/bin/iptables -t nat -A POSTROUTING -o ppp0 -s 192.168.43.0/24 -j MASQUERADE
+echo 1 > /proc/sys/net/ipv4/ip_forward
+

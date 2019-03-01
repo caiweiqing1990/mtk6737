@@ -4,11 +4,9 @@ nolock
 nodetach
 #/dev/ttyMT1
 /dev/ttygsm5
-115200
+921600
 crtscts
-linkname
-gprs
-novj
+linkname sat
 user
 linux
 usepeerdns

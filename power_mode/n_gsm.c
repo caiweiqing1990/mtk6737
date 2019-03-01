@@ -65,13 +65,13 @@ int main(int argc, char *argv[])
 		val = 0;
 		ioctl(fd, TIOCSETD, &val);
 		
-		ioctl(fd, GSMIOC_GETCONF, &c);
-		c.initiator = 0;
-		c.encapsulation = 1;
+		//ioctl(fd, GSMIOC_GETCONF, &c);
+		//c.initiator = 0;
+		//c.encapsulation = 1;
 		/* our modem defaults to a maximum size of 127 bytes */
-		c.mru = 64;
-		c.mtu = 64;
-		ioctl(fd, GSMIOC_SETCONF, &c);	
+		//c.mru = 64;
+		//c.mtu = 64;
+		//ioctl(fd, GSMIOC_SETCONF, &c);	
 	}
 	
 	/* and wait for ever to keep the line discipline enabled */

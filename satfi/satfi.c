@@ -2201,6 +2201,33 @@ int isFileHaveString(char *Filename, char *String)
 	}
 }
 
+int get_gsmtty_major(void)
+{
+	char rbuf[256]={0};
+	char buf[256]={0};
+	int  maxline = 1;
+
+	int major;
+	char device[256];
+
+	sprintf(buf, "cat /proc/devices | grep gsmtty");
+	
+	myexec(buf, rbuf, &maxline);
+	//satfi_log("rbuf=%s %d\n",rbuf, strlen(rbuf));
+
+	if(strlen(rbuf) > 0)
+	{
+		sscanf(rbuf, "%d %s", &major, device);
+		satfi_log("major=%d device=%s\n", major, device);
+		return major;
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+
 //0 存在ifname
 int checkroute(char *ifname, char *addr, int checkaddr)
 {
@@ -2479,9 +2506,10 @@ static void *func_y(void *p)
 			switch(base->sat.sat_state)
 			{
 				case SAT_STATE_AT:
+					satfi_log("func_y:send AT^LOGSWITCH to SAT Module\n");
+					uart_send(base->sat.sat_fd, "AT^LOGSWITCH=1\r\n", strlen("AT^LOGSWITCH=1\r\n"));
+					sleep(5);
 					satfi_log("func_y:send AT+CMUX to SAT Module\n");
-					satfi_log("func_y:send at^logswitch to SAT Module\n");
-					sleep(3);
 					uart_send(base->sat.sat_fd, "AT+CMUX=0,0,5,1600\r\n", strlen("AT+CMUX=0,0,5,1600\r\n"));
 					base->sat.sat_state = SAT_STATE_AT_W;
 					counter=0;
@@ -3154,6 +3182,7 @@ int handle_sat_data(int *satfd, char *data, int *ofs)
 					}
 					else 
 					{
+						//satfi_log("%s %d\n", data, __LINE__);
 						//printf("none %d\n",base->sat.sat_state_phone);
 						//base->sat.sat_state_phone = SAT_STATE_PHONE_IDLE;
 					}
@@ -9092,6 +9121,22 @@ void main_thread_loop(void)
 	
 }
 
+void ttygsmcreate(void)
+{
+	int i;
+	int major;
+	char ucbuf[256]={0};
+	if(!isFileExists(base.sat.sat_dev_name))
+	{
+		major = get_gsmtty_major();
+		for(i=1; i<=6; i++)
+		{
+			sprintf(ucbuf, "mknod /dev/ttygsm%d c %d %d", i, major, i);
+			myexec(ucbuf, NULL, NULL);
+		}
+	}
+}
+
 int main_fork(void)
 {
 	pthread_t id_1,id_2;
@@ -9103,7 +9148,7 @@ int main_fork(void)
 	signal(SIGPIPE,SignalHandler);
 	
 	init();
-
+	ttygsmcreate();
 	//处理服务器,APP数据
 	if(pthread_create(&id_1, NULL, select_app, (void *)&base) == -1) exit(1);
 	if(pthread_create(&id_2, NULL, select_tsc, (void *)&base) == -1) exit(1);
@@ -9142,16 +9187,7 @@ int main(int argc, char *argv[])
     //coreFileSize.rlim_cur = 1000*1024;
     //coreFileSize.rlim_max = 4294967295UL;
     //setrlimit(RLIMIT_CORE, &coreFileSize);
-	sleep(10);
-
-	int i;
-	char ucbuf[256]={0};
-	int major = 247;
-	for(i=1; i<=6; i++)
-	{
-		sprintf(ucbuf, "mknod /dev/ttygsm%d c %d %d", i, major, i);
-		myexec(ucbuf, NULL, NULL);
-	}
+	//sleep(10);
 	
 	while(1)
 	{
