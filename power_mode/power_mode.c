@@ -99,7 +99,8 @@ void gpio_out(int pin, int val)
 
 void msm01a_on(void)
 {
-	//gpio_out(86, 0);//串口1 流控引脚	gpio_out(AP_WAKEUP_BB, 0);
+	gpio_out(86, 0);//串口1 流控引脚
+	gpio_out(AP_WAKEUP_BB, 0);
 	gpio_out(AP_SLEEP_BB, 0);
 	gpio_out(USB_BOOT, 1);
 	sleep(1);

@@ -1771,7 +1771,7 @@ int init_serial(int *fd, char *device, int baud_rate)
 	/* 2.修改获得的参数 */
 	options.c_cflag |= CLOCAL | CREAD; /* 设置控制模块状态：本地连接，接收使能 */
 	options.c_cflag &= ~CSIZE;		   /* 字符长度，设置数据位之前，一定要屏蔽这一位 */
-	options.c_cflag &= ~CRTSCTS;	   		/* 无硬件流控 */
+	options.c_cflag |= CRTSCTS;	   		/* 硬件流控 */
 	options.c_cflag |= CS8; 		   /* 8位数据长度 */
 	options.c_cflag &= ~CSTOPB; 	   /* 1位停止位 */
 	options.c_iflag |= IGNPAR;		   /* 无奇偶校验 */
@@ -2380,11 +2380,18 @@ void gpio_out(int gpio, int val)
 	close(fd);
 }
 
+void gpio_pull_disable(int gpio)
+{
+	int fd = open("/dev/mtgpio", O_RDONLY);
+	ioctl(fd, GPIO_IOCSPULLDISABLE, gpio);
+	close(fd);
+}
+
 void msm01a_on(void)
 {
 	gpio_out(49, 1);//功放使能 接收
 	gpio_out(50, 1);//功放使能 发送
-	gpio_out(86, 0);//串口1 流控引脚
+	gpio_pull_disable(86);//串口1 流控引脚
 	gpio_out(AP_WAKEUP_BB, 0);
 	gpio_out(AP_SLEEP_BB, 0);
 	gpio_out(USB_BOOT, 1);
@@ -2456,7 +2463,7 @@ static void *func_y(void *p)
 
 	char *serialname = SERIAL_PORT;
 
-	int cmux=0;
+	int cmux=1;
 	
 	satfi_log("power_mode msm01a on\n");
 	msm01a_on();
@@ -2506,11 +2513,11 @@ static void *func_y(void *p)
 			switch(base->sat.sat_state)
 			{
 				case SAT_STATE_AT:
-					satfi_log("func_y:send AT^LOGSWITCH to SAT Module\n");
-					uart_send(base->sat.sat_fd, "AT^LOGSWITCH=1\r\n", strlen("AT^LOGSWITCH=1\r\n"));
-					sleep(5);
-					satfi_log("func_y:send AT+CMUX to SAT Module\n");
-					uart_send(base->sat.sat_fd, "AT+CMUX=0,0,5,1600\r\n", strlen("AT+CMUX=0,0,5,1600\r\n"));
+					//satfi_log("func_y:send AT^LOGSWITCH to SAT Module\n");
+					//uart_send(base->sat.sat_fd, "AT^LOGSWITCH=1\r\n", strlen("AT^LOGSWITCH=1\r\n"));
+					//sleep(5);
+					satfi_log("func_y:send AT to SAT Module\n");
+					uart_send(base->sat.sat_fd, "AT\r\n", strlen("AT\r\n"));
 					base->sat.sat_state = SAT_STATE_AT_W;
 					counter=0;
 					break;
@@ -2531,6 +2538,7 @@ static void *func_y(void *p)
 					satfi_log("func_y:send AT+CFUN=1 to SAT Module\n");
 					uart_send(base->sat.sat_fd, "AT+CFUN=1\r\n", 11);
 					base->sat.sat_state = SAT_STATE_SIM_ACTIVE_W;
+					sleep(20);
 					break;
 				case SAT_STATE_CFUN:
 					satfi_log("func_y:send AT+CFUN? to SAT Module\n");
@@ -9065,7 +9073,8 @@ void main_thread_loop(void)
 	char SatDataBuf[2][1024];
 
 	char gpsDataBuf[1024];
-	int gpsSocketfd = create_satfi_udp_fd();
+	int gpsSocketfd = -1;
+	//int gpsSocketfd = create_satfi_udp_fd();
 	//satfi_log("gpsSocketfd=%d\n", gpsSocketfd);
 	
 	while(1)
@@ -9137,27 +9146,27 @@ void ttygsmcreate(void)
 	}
 }
 
-int main_fork(void)
+int main(void)
 {
 	pthread_t id_1,id_2;
 	pthread_t id_3,id_4;
 	pthread_t id_5,id_6;
 	pthread_t id_7,id_8;
 
-	prctl(PR_SET_PDEATHSIG, SIGKILL);//父进程退出发送SIGKILL 给子进程
-	signal(SIGPIPE,SignalHandler);
+	//prctl(PR_SET_PDEATHSIG, SIGKILL);//父进程退出发送SIGKILL 给子进程
+	//signal(SIGPIPE,SignalHandler);
 	
 	init();
 	ttygsmcreate();
 	//处理服务器,APP数据
 	if(pthread_create(&id_1, NULL, select_app, (void *)&base) == -1) exit(1);
-	if(pthread_create(&id_2, NULL, select_tsc, (void *)&base) == -1) exit(1);
+	//if(pthread_create(&id_2, NULL, select_tsc, (void *)&base) == -1) exit(1);
 
 	//切换路由
 	//if(pthread_create(&id_3, NULL, check_route, (void *)&base) == -1) exit(1);
 
 	//使用udp，接收服务器对讲语音数据
-	if(pthread_create(&id_4, NULL, select_tsc_udp, (void *)&base) == -1) exit(1);
+	//if(pthread_create(&id_4, NULL, select_tsc_udp, (void *)&base) == -1) exit(1);
 	
 	//System检测，心跳包
 	if(pthread_create(&id_5, NULL, SystemServer, (void *)&base) == -1) exit(1);
@@ -9175,6 +9184,7 @@ int main_fork(void)
 	return 0;
 }
 
+#if 0
 int main(int argc, char *argv[])
 {
 	int status;
@@ -9239,4 +9249,4 @@ int main(int argc, char *argv[])
 	
 	return 0;
 }
-
+#endif
