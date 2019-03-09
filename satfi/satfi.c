@@ -2538,7 +2538,7 @@ static void *func_y(void *p)
 					satfi_log("func_y:send AT+CFUN=1 to SAT Module\n");
 					uart_send(base->sat.sat_fd, "AT+CFUN=1\r\n", 11);
 					base->sat.sat_state = SAT_STATE_SIM_ACTIVE_W;
-					sleep(20);
+					sleep(10);
 					break;
 				case SAT_STATE_CFUN:
 					satfi_log("func_y:send AT+CFUN? to SAT Module\n");
@@ -9155,6 +9155,7 @@ int main(void)
 
 	//prctl(PR_SET_PDEATHSIG, SIGKILL);//父进程退出发送SIGKILL 给子进程
 	//signal(SIGPIPE,SignalHandler);
+	sleep(10);
 	
 	init();
 	ttygsmcreate();

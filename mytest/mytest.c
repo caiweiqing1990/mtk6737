@@ -72,7 +72,6 @@ int init_serial(int *fd, char *device, int baud_rate)
 	/* 2.修改获得的参数 */
 	options.c_cflag |= CLOCAL | CREAD; /* 设置控制模块状态：本地连接，接收使能 */
 	options.c_cflag &= ~CSIZE;         /* 字符长度，设置数据位之前，一定要屏蔽这一位 */
-	//options.c_cflag &= ~CRTSCTS;       /* 无硬件流控 */
 	options.c_cflag |= CRTSCTS;       /* 硬件流控 */
 	options.c_cflag |= CS8;            /* 8位数据长度 */
 	options.c_cflag &= ~CSTOPB;        /* 1位停止位 */
