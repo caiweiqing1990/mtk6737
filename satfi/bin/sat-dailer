@@ -2,8 +2,8 @@ debug
 #logfile /storage/self/primary/pppdlog
 nolock
 nodetach
-#/dev/ttyMT1
-/dev/ttygsm5
+/dev/ttyMT1
+#/dev/ttygsm5
 921600
 crtscts
 linkname sat

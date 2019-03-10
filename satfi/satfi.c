@@ -2607,13 +2607,13 @@ static void *func_y(void *p)
 		//sat_unlock();
 		if(base->sat.sat_status == 1)
 		{
-			if(base->sat.sat_dialing == 0)
-			{
-				base->sat.sat_dialing = 1;
-				satfi_log("pppd call sat-dailer\n");
-				myexec("start sat_pppd", NULL, NULL);
-				satfi_log("pppd call sat-dailer passed\n");
-			}
+			//if(base->sat.sat_dialing == 0)
+			//{
+			//	base->sat.sat_dialing = 1;
+			//	satfi_log("pppd call sat-dailer\n");
+			//	myexec("start sat_pppd", NULL, NULL);
+			//	satfi_log("pppd call sat-dailer passed\n");
+			//}
 			sleep(5);
 		}
 		else

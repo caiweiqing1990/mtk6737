@@ -79,6 +79,7 @@ adb push Y:\power_mode\bin\httpdown /system/bin/
 adb push Y:\power_mode\bin\chat /system/bin/ 
 adb push Y:\power_mode\bin\n_gsm /system/bin/ 
 adb push Y:\satfi\bin\satfi /system/bin/
+adb push Y:\satfi\bin\pppd.sh /system/bin/
 adb push Y:\satfi\bin\busybox /system/bin/
 adb push Y:\satfi\bin\config.ini /storage/self/primary/
 adb push Y:\satfi\bin\configSat.ini /storage/self/primary/
@@ -302,6 +303,7 @@ make bootimage-nodeps
 adb root
 adb remount
 adb shell restorecon system/bin/satfi
+adb shell restorecon system/bin/pppd
 
 cp out/target/product/len6737t_66_sh_n/system/priv-app/Settings/Settings.apk external/test/satfi/bin/
 
@@ -568,41 +570,13 @@ echo 1 > /proc/sys/net/ipv4/ip_forward
 
 
 ip route add 192.168.43.0/24 dev ap0 table local_network proto static scope link
-
 ip route add 192.168.43.0/24 dev ap0 table local proto static scope link
-
 iptables -t nat -F
 iptables -F
-
-iptables -P OUTPUT DROP
-iptables -P FORWARD DROP
-
 iptables -A OUTPUT -o lo -j ACCEPT
-
-iptables -A OUTPUT -d 192.168.43.0/24 -j ACCEPT
-iptables -A FORWARD -d 192.168.43.0/24 -j ACCEPT
-
-iptables -A OUTPUT -d 10.54.109.0/24 -j ACCEPT
-iptables -A FORWARD -d 10.54.109.0/24 -j ACCEPT
-
-iptables -A OUTPUT -d 172.19.33.113 -j ACCEPT
-iptables -A FORWARD -d 172.19.33.113 -j ACCEPT
-
 iptables -t nat -A POSTROUTING -o ppp0 -s 192.168.43.0/24 -j MASQUERADE
 echo 1 > /proc/sys/net/ipv4/ip_forward
-
 ip rule add from all lookup main
-
-
-adb push C:\Users\Administrator\Desktop\MTK6737\iptableppp.sh /system/bin/
-adb push C:\Users\Administrator\Desktop\MTK6737\config.ini /storage/self/primary/config.ini
-adb pull /storage/self/primary/config.ini C:\Users\Administrator\Desktop\MTK6737\config.ini
-
-adb push C:\Users\Administrator\Desktop\MTK6737\sat-dailer-921600 /etc/ppp/peers/sat-dailer
-adb pull /etc/ppp/peers/sat-dailer C:\Users\Administrator\Desktop\MTK6737\sat-dailer
-adb push C:\Users\Administrator\Desktop\MTK6737\sat-chat /etc/ppp/peers/sat-chat
-adb pull /etc/ppp/char/sat-chat C:\Users\Administrator\Desktop\MTK6737\sat-chat
-
 
 adb connect 192.168.43.1
 adb root
@@ -622,4 +596,4 @@ cat /sys/devices/virtual/misc/mtgpio/pin
 echo -w=84:3 1 0 0 1 0 1 > /sys/devices/virtual/misc/mtgpio/pin
 echo -w=86:3 1 0 0 1 1 1 > /sys/devices/virtual/misc/mtgpio/pin
 
-
+adb push Y:\satfi\bin\satfi 
