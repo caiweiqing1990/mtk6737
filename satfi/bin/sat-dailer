@@ -6,6 +6,7 @@ nodetach
 #/dev/ttygsm5
 921600
 crtscts
+#xonxoff
 linkname sat
 user
 linux

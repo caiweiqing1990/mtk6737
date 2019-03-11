@@ -1771,7 +1771,7 @@ int init_serial(int *fd, char *device, int baud_rate)
 	/* 2.修改获得的参数 */
 	options.c_cflag |= CLOCAL | CREAD; /* 设置控制模块状态：本地连接，接收使能 */
 	options.c_cflag &= ~CSIZE;		   /* 字符长度，设置数据位之前，一定要屏蔽这一位 */
-	options.c_cflag |= CRTSCTS;	   		/* 硬件流控 */
+	options.c_cflag |= CRTSCTS|IXON|IXOFF;	   		/* 硬件流控 */
 	options.c_cflag |= CS8; 		   /* 8位数据长度 */
 	options.c_cflag &= ~CSTOPB; 	   /* 1位停止位 */
 	options.c_iflag |= IGNPAR;		   /* 无奇偶校验 */
@@ -2387,6 +2387,21 @@ void gpio_pull_disable(int gpio)
 	close(fd);
 }
 
+void gpio_pull_enable(int gpio)
+{
+	int fd = open("/dev/mtgpio", O_RDONLY);
+	ioctl(fd, GPIO_IOCSPULLENABLE, gpio);
+	close(fd);
+}
+
+void gpio_pull_up(int gpio)
+{
+	int fd = open("/dev/mtgpio", O_RDONLY);
+	ioctl(fd, GPIO_IOCSPULLUP, gpio);
+	close(fd);
+}
+
+
 void msm01a_on(void)
 {
 	gpio_out(49, 1);//功放使能 接收
@@ -2472,6 +2487,19 @@ static void *func_y(void *p)
 	while(1)
 	{
 		//sat_lock();
+		if(base->sat.sat_dialing == 1)
+		{
+			if(base->sat.sat_fd > 0)
+			{
+				satfi_log("close(base->sat.sat_fd)\n");
+				close(base->sat.sat_fd);
+				base->sat.sat_fd = -1;
+			}
+			
+			sleep(10);
+			continue;
+		}
+
 		if (!isFileExists(base->sat.sat_dev_name) || base->sat.sat_state == SAT_STATE_RESTART)
 		{
 			if(!isFileExists(base->sat.sat_dev_name))satfi_log("no exist %s\n", base->sat.sat_dev_name);
@@ -2513,9 +2541,6 @@ static void *func_y(void *p)
 			switch(base->sat.sat_state)
 			{
 				case SAT_STATE_AT:
-					//satfi_log("func_y:send AT^LOGSWITCH to SAT Module\n");
-					//uart_send(base->sat.sat_fd, "AT^LOGSWITCH=1\r\n", strlen("AT^LOGSWITCH=1\r\n"));
-					//sleep(5);
 					satfi_log("func_y:send AT to SAT Module\n");
 					uart_send(base->sat.sat_fd, "AT\r\n", strlen("AT\r\n"));
 					base->sat.sat_state = SAT_STATE_AT_W;
@@ -7683,6 +7708,18 @@ void *SystemServer(void *p)
 
 	int cnt=0;
 
+#define GPIO_START_PPPD	HW_GPIO42
+	int fd = open("/dev/mtgpio", O_RDONLY);
+	ioctl(fd, GPIO_IOCTMODE0, GPIO_START_PPPD);
+	ioctl(fd, GPIO_IOCSDIRIN, GPIO_START_PPPD);
+	ioctl(fd, GPIO_IOCSPULLENABLE, GPIO_START_PPPD);
+	ioctl(fd, GPIO_IOCQPULLEN, GPIO_START_PPPD);
+	ioctl(fd, GPIO_IOCSPULLUP, GPIO_START_PPPD);
+
+	int pin_stat = -1, stat = -1;
+
+	int activety = 0;
+
 	while(1)
 	{
 		now = time(0);
@@ -7758,13 +7795,48 @@ void *SystemServer(void *p)
 			}
 		}
 
-		if((cnt % 600) == 0)
+		if(base->sat.sat_status == 1)
 		{
-			gps_stop();
-			gps_start();
-		}
+			if(activety)
+			{
+				ioctl(fd, GPIO_IOCSDATALOW, HW_GPIO83);
+			}
+			else
+			{
+				ioctl(fd, GPIO_IOCSDATAHIGH, HW_GPIO83);
+			}
+			activety = !activety;
 		
-		++cnt;		
+			if(base->sat.sat_dialing == 0)
+			{
+				pin_stat = ioctl(fd, GPIO_IOCQDATAIN, GPIO_START_PPPD);
+				if(pin_stat != stat)
+				{
+					satfi_log("pin_stat=%d\n",pin_stat);
+					if(pin_stat == 0)
+					{
+						if(base->sat.sat_dialing == 0)
+						{
+							base->sat.sat_dialing = 1;
+							ioctl(fd, GPIO_IOCSDATAHIGH, HW_GPIO79);
+							sleep(10);
+							satfi_log("pppd call sat-dailer\n");
+							myexec("start sat_pppd", NULL, NULL);
+							satfi_log("pppd call sat-dailer passed\n");
+						}
+					}
+				}
+				stat = pin_stat;
+			}
+		}
+
+		//if((cnt % 600) == 0)
+		//{
+		//	gps_stop();
+		//	gps_start();
+		//}
+		
+		++cnt;	
 	}
 	
 	return NULL;
@@ -9155,6 +9227,15 @@ int main(void)
 
 	//prctl(PR_SET_PDEATHSIG, SIGKILL);//父进程退出发送SIGKILL 给子进程
 	//signal(SIGPIPE,SignalHandler);
+	gpio_out(HW_GPIO82, 1);
+	gpio_out(HW_GPIO83, 1);
+	gpio_out(HW_GPIO81, 1);
+	gpio_out(HW_GPIO80, 1);
+
+	gpio_out(HW_GPIO78, 0);
+	gpio_out(HW_GPIO79, 0);
+
+
 	sleep(10);
 	
 	init();
