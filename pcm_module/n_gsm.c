@@ -2287,6 +2287,8 @@ static void gsmld_receive_buf(struct tty_struct *tty, const unsigned char *cp,
 	char buf[64];
 	char flags = TTY_NORMAL;
 
+	printk("weiqing %s %d %d\n", __FUNCTION__, __LINE__, count);
+
 	if (debug & 4)
 		print_hex_dump_bytes("gsmld_receive: ", DUMP_PREFIX_OFFSET,
 				     cp, count);
@@ -2356,6 +2358,7 @@ static void gsmld_close(struct tty_struct *tty)
 {
 	struct gsm_mux *gsm = tty->disc_data;
 
+	printk("weiqing %s %d\n", __FUNCTION__, __LINE__);
 	gsmld_detach_gsm(tty, gsm);
 
 	gsmld_flush_buffer(tty);
@@ -2378,6 +2381,7 @@ static void gsmld_close(struct tty_struct *tty)
 static int gsmld_open(struct tty_struct *tty)
 {
 	struct gsm_mux *gsm;
+	printk("weiqing %s %d\n", __FUNCTION__, __LINE__);
 
 	if (tty->ops->write == NULL)
 		return -EINVAL;
@@ -2392,6 +2396,7 @@ static int gsmld_open(struct tty_struct *tty)
 
 	/* Attach the initial passive connection */
 	gsm->encoding = 1;
+	printk("weiqing gsmld_open\n");
 	return gsmld_attach_gsm(tty, gsm);
 }
 
@@ -2457,6 +2462,7 @@ static void gsmld_write_wakeup(struct tty_struct *tty)
 static ssize_t gsmld_read(struct tty_struct *tty, struct file *file,
 			 unsigned char __user *buf, size_t nr)
 {
+	printk("weiqing %s %d\n", __FUNCTION__, __LINE__);
 	return -EOPNOTSUPP;
 }
 
@@ -2478,6 +2484,7 @@ static ssize_t gsmld_write(struct tty_struct *tty, struct file *file,
 			   const unsigned char *buf, size_t nr)
 {
 	int space = tty_write_room(tty);
+	printk("weiqing gsmld_write %d %d\n", space, nr);
 	if (space >= nr)
 		return tty->ops->write(tty, buf, nr);
 	set_bit(TTY_DO_WRITE_WAKEUP, &tty->flags);
@@ -2503,6 +2510,7 @@ static unsigned int gsmld_poll(struct tty_struct *tty, struct file *file,
 {
 	unsigned int mask = 0;
 	struct gsm_mux *gsm = tty->disc_data;
+	printk("weiqing %s %d\n", __FUNCTION__, __LINE__);
 
 	poll_wait(file, &tty->read_wait, wait);
 	poll_wait(file, &tty->write_wait, wait);
@@ -2983,6 +2991,7 @@ static int gsmtty_open(struct tty_struct *tty, struct file *filp)
 	struct gsm_dlci *dlci = tty->driver_data;
 	struct tty_port *port = &dlci->port;
 
+	printk("weiqing gsmtty_open %d\n", port->count);
 	port->count++;
 	tty_port_tty_set(port, tty);
 
@@ -3018,6 +3027,7 @@ static void gsmtty_close(struct tty_struct *tty, struct file *filp)
 	}
 	tty_port_close_end(&dlci->port, tty);
 	tty_port_tty_set(&dlci->port, NULL);
+	printk("weiqing gsmtty_close\n");
 	return;
 }
 
@@ -3038,6 +3048,7 @@ static int gsmtty_write(struct tty_struct *tty, const unsigned char *buf,
 	if (dlci->state == DLCI_CLOSED)
 		return -EINVAL;
 	/* Stuff the bytes into the fifo queue */
+	printk("weiqing gsmtty_write %d\n", len);
 	sent = kfifo_in_locked(dlci->fifo, buf, len, &dlci->lock);
 	/* Need to kick the channel */
 	gsm_dlci_data_kick(dlci);
@@ -3047,6 +3058,7 @@ static int gsmtty_write(struct tty_struct *tty, const unsigned char *buf,
 static int gsmtty_write_room(struct tty_struct *tty)
 {
 	struct gsm_dlci *dlci = tty->driver_data;
+	printk("weiqing %s %d\n", __FUNCTION__, __LINE__);
 	if (dlci->state == DLCI_CLOSED)
 		return -EINVAL;
 	return TX_SIZE - kfifo_len(dlci->fifo);
@@ -3055,6 +3067,7 @@ static int gsmtty_write_room(struct tty_struct *tty)
 static int gsmtty_chars_in_buffer(struct tty_struct *tty)
 {
 	struct gsm_dlci *dlci = tty->driver_data;
+	printk("weiqing %s %d\n", __FUNCTION__, __LINE__);
 	if (dlci->state == DLCI_CLOSED)
 		return -EINVAL;
 	return kfifo_len(dlci->fifo);
@@ -3063,6 +3076,7 @@ static int gsmtty_chars_in_buffer(struct tty_struct *tty)
 static void gsmtty_flush_buffer(struct tty_struct *tty)
 {
 	struct gsm_dlci *dlci = tty->driver_data;
+	printk("weiqing %s %d\n", __FUNCTION__, __LINE__);
 	if (dlci->state == DLCI_CLOSED)
 		return;
 	/* Caution needed: If we implement reliable transport classes
@@ -3083,6 +3097,7 @@ static void gsmtty_wait_until_sent(struct tty_struct *tty, int timeout)
 static int gsmtty_tiocmget(struct tty_struct *tty)
 {
 	struct gsm_dlci *dlci = tty->driver_data;
+	printk("weiqing %s %d\n", __FUNCTION__, __LINE__);
 	if (dlci->state == DLCI_CLOSED)
 		return -EINVAL;
 	return dlci->modem_rx;
@@ -3093,6 +3108,7 @@ static int gsmtty_tiocmset(struct tty_struct *tty,
 {
 	struct gsm_dlci *dlci = tty->driver_data;
 	unsigned int modem_tx = dlci->modem_tx;
+	printk("weiqing %s %d\n", __FUNCTION__, __LINE__);
 
 	if (dlci->state == DLCI_CLOSED)
 		return -EINVAL;
@@ -3113,6 +3129,7 @@ static int gsmtty_ioctl(struct tty_struct *tty,
 	struct gsm_dlci *dlci = tty->driver_data;
 	struct gsm_netconfig nc;
 	int index;
+	printk("weiqing %s %d\n", __FUNCTION__, __LINE__);
 
 	if (dlci->state == DLCI_CLOSED)
 		return -EINVAL;
@@ -3143,6 +3160,7 @@ static int gsmtty_ioctl(struct tty_struct *tty,
 static void gsmtty_set_termios(struct tty_struct *tty, struct ktermios *old)
 {
 	struct gsm_dlci *dlci = tty->driver_data;
+	printk("weiqing %s %d\n", __FUNCTION__, __LINE__);
 	if (dlci->state == DLCI_CLOSED)
 		return;
 	/* For the moment its fixed. In actual fact the speed information

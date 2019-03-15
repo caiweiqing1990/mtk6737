@@ -6,3 +6,13 @@ iptables -A OUTPUT -o lo -j ACCEPT
 iptables -t nat -A POSTROUTING -o ppp0 -s 192.168.43.0/24 -j MASQUERADE
 echo 1 > /proc/sys/net/ipv4/ip_forward
 ip rule add from all lookup main
+
+
+myexec("iptables -t nat -F", NULL, NULL);
+myexec("iptables -F", NULL, NULL);
+myexec("iptables -A OUTPUT -o lo -j ACCEPT", NULL, NULL);
+myexec("iptables -t nat -A POSTROUTING -o ppp0 -s 192.168.43.0/24 -j MASQUERADE", NULL, NULL);
+myexec("echo 1 > /proc/sys/net/ipv4/ip_forward", NULL, NULL);
+myexec("ip rule add from all lookup main", NULL, NULL);
+
+

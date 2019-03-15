@@ -55,8 +55,8 @@ int main(int argc, char *argv[])
 		c.initiator = 1;
 		c.encapsulation = 0;
 		/* our modem defaults to a maximum size of 127 bytes */
-		c.mru = 127;
-		c.mtu = 127;
+		c.mru = 1500;
+		c.mtu = 1500;
 		/* set the new configuration */
 		ioctl(fd, GSMIOC_SETCONF, &c);		
 	}

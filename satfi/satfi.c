@@ -345,6 +345,8 @@ int bGetGpsData = 0;
 int sock_tsc = -1;
 int sock_udp = -1;
 
+int mtgpiofd = -1;
+
 int VoltageVal = 0;
 #define VOLTAGE_WARNING_ADC_VAL	3500	
 int udpvoicetimeout = 60;
@@ -365,7 +367,7 @@ void Data_To_MsID(char *MsID, void *data);
 void Data_To_ExceptMsID(char *MsID, void *data);
 void Data_Transmit(char *MsID, void *data);
 
-#define LOG_TAG "SatFi"
+#define LOG_TAG "satfi"
 #include <cutils/sockets.h>
 #include <cutils/log.h>     /*logging in logcat*/
 #define LOGD(fmt, arg ...) ALOGD("%s: " fmt, __FUNCTION__ , ##arg)
@@ -2235,7 +2237,7 @@ int checkroute(char *ifname, char *addr, int checkaddr)
 	char buf[256]={0};
 	char rbuf[256]={0};
 	int  maxline = 1;
-	if(ifname==NULL||addr==NULL||strlen(ifname)==0||strlen(addr)==0)
+	if(ifname==NULL||strlen(ifname)==0)
 	{
 		rslt = 1;
 	}
@@ -2243,23 +2245,16 @@ int checkroute(char *ifname, char *addr, int checkaddr)
 	{
 		if(checkaddr)
 		{
-			sprintf(buf, "route | grep %s | grep %s | awk '{ print $NF }'", ifname, addr);
+			sprintf(buf, "route | grep %s | grep %s", ifname, addr);
 		}
 		else
 		{
-			sprintf(buf, "route | grep %s | awk '{ print $NF }'", ifname);
+			sprintf(buf, "route | grep %s", ifname);
 		}
 		myexec(buf, rbuf, &maxline);
 		if(strlen(rbuf)==0)
 		{
 			rslt = 1;
-		}
-		else
-		{
-			if(strcmp(rbuf, ifname) != 0)
-			{
-				rslt = 1;
-			}
 		}
 	}
 
@@ -2478,7 +2473,7 @@ static void *func_y(void *p)
 
 	char *serialname = SERIAL_PORT;
 
-	int cmux=1;
+	int cmux=0;
 	
 	satfi_log("power_mode msm01a on\n");
 	msm01a_on();
@@ -2495,9 +2490,32 @@ static void *func_y(void *p)
 				close(base->sat.sat_fd);
 				base->sat.sat_fd = -1;
 			}
+
+			if(checkroute("ppp0", NULL, 0) == 0)
+			{
+				if(mtgpiofd > 0)
+				{
+					ioctl(mtgpiofd, GPIO_IOCSDATALOW, HW_GPIO79);
+					sleep(1);
+					ioctl(mtgpiofd, GPIO_IOCSDATAHIGH, HW_GPIO79);
+					sleep(1);
+				}
+			}
+			else
+			{
+				satfi_log("ppp0 no exist\n");
+				sleep(10);
+			}
 			
-			sleep(10);
 			continue;
+		}
+		else
+		{
+			if(checkroute("ppp0", NULL, 0) == 0)
+			{
+				base->sat.sat_dialing = 1;
+				continue;
+			}
 		}
 
 		if (!isFileExists(base->sat.sat_dev_name) || base->sat.sat_state == SAT_STATE_RESTART)
@@ -2541,14 +2559,30 @@ static void *func_y(void *p)
 			switch(base->sat.sat_state)
 			{
 				case SAT_STATE_AT:
-					satfi_log("func_y:send AT to SAT Module\n");
-					uart_send(base->sat.sat_fd, "AT\r\n", strlen("AT\r\n"));
+					if(cmux == 0)
+					{
+						satfi_log("func_y:send AT+CMUX=0,0,5,1600 to SAT Module\n");
+						uart_send(base->sat.sat_fd, "AT+CMUX=0,0,5,1600\r\n", strlen("AT+CMUX=0,0,5,1600\r\n"));						
+					}
+					else
+					{
+						satfi_log("func_y:send AT to SAT Module\n");
+						uart_send(base->sat.sat_fd, "AT\r\n", strlen("AT\r\n"));						
+					}
 					base->sat.sat_state = SAT_STATE_AT_W;
 					counter=0;
 					break;
 				case SAT_STATE_AT_W:
-					satfi_log("func_y:send AT to SAT Module %d\n", counter);
-					uart_send(base->sat.sat_fd, "AT\r\n", 4);
+					if(cmux == 0)
+					{
+						satfi_log("func_y:send AT+CMUX=0,0,5,1600 to SAT Module\n");
+						uart_send(base->sat.sat_fd, "AT+CMUX=0,0,5,1600\r\n", strlen("AT+CMUX=0,0,5,1600\r\n"));						
+					}
+					else
+					{
+						satfi_log("func_y:send AT to SAT Module\n");
+						uart_send(base->sat.sat_fd, "AT\r\n", strlen("AT\r\n"));						
+					}
 					base->sat.sat_state = SAT_STATE_AT_W;
 					counter++;
 					if(counter >= 20)
@@ -7710,6 +7744,7 @@ void *SystemServer(void *p)
 
 #define GPIO_START_PPPD	HW_GPIO42
 	int fd = open("/dev/mtgpio", O_RDONLY);
+	mtgpiofd = fd;
 	ioctl(fd, GPIO_IOCTMODE0, GPIO_START_PPPD);
 	ioctl(fd, GPIO_IOCSDIRIN, GPIO_START_PPPD);
 	ioctl(fd, GPIO_IOCSPULLENABLE, GPIO_START_PPPD);
@@ -7819,9 +7854,17 @@ void *SystemServer(void *p)
 						{
 							base->sat.sat_dialing = 1;
 							ioctl(fd, GPIO_IOCSDATAHIGH, HW_GPIO79);
-							sleep(10);
+							sleep(5);
 							satfi_log("pppd call sat-dailer\n");
 							myexec("start sat_pppd", NULL, NULL);
+
+							myexec("iptables -t nat -F", NULL, NULL);
+							myexec("iptables -F", NULL, NULL);
+							myexec("iptables -A OUTPUT -o lo -j ACCEPT", NULL, NULL);
+							myexec("iptables -t nat -A POSTROUTING -o ppp0 -s 192.168.43.0/24 -j MASQUERADE", NULL, NULL);
+							myexec("echo 1 > /proc/sys/net/ipv4/ip_forward", NULL, NULL);
+							myexec("ip rule add from all lookup main", NULL, NULL);
+							
 							satfi_log("pppd call sat-dailer passed\n");
 						}
 					}
@@ -8140,7 +8183,7 @@ static void *CallUpThread(void *p)
 		{
 			case SAT_STATE_PHONE_CLCC:
 				satfi_log("SAT_STATE_PHONE_CLCC\n");
-		        uart_send(base->sat.sat_fd, "AT^PCMMODE=0,1,0,0,0,0,0\r\n", 26);
+		        uart_send(base->sat.sat_fd, "AT^PCMMODE=0,0,0,0,0,0,0\r\n", 26);
 		        break;
 			case SAT_STATE_PHONE_CLCC_OK:
 				satfi_log("SAT_STATE_PHONE_CLCC_OK\n");
@@ -9178,7 +9221,7 @@ void main_thread_loop(void)
 		switch(select(maxfd+1,&fds,NULL,NULL,&timeout))
 		{
 			case -1: satfi_log("select error %s\n", strerror(errno)); break;
-			case  0: satfi_log("select timeout\n"); break;
+			case  0: break;
 			default:
 				if(base.sat.sat_fd > 0 && FD_ISSET(base.sat.sat_fd, &fds)) {
 					handle_sat_data(&base.sat.sat_fd, SatDataBuf[0], &SatDataOfs[0]);//卫星模块数据
@@ -9259,8 +9302,8 @@ int main(void)
 	if(pthread_create(&id_5, NULL, ring_detect, (void *)&base) == -1) exit(1);
 
 	//电话音频处理
-	if(pthread_create(&id_7, NULL, recvfrom_app_voice_udp, (void *)&base) == -1) exit(1);
-	if(pthread_create(&id_8, NULL, sendto_app_voice_udp, (void *)&base) == -1) exit(1);
+	//if(pthread_create(&id_7, NULL, recvfrom_app_voice_udp, (void *)&base) == -1) exit(1);
+	//if(pthread_create(&id_8, NULL, sendto_app_voice_udp, (void *)&base) == -1) exit(1);
 
 	main_thread_loop();
 	return 0;

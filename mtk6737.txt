@@ -86,7 +86,7 @@ adb push Y:\satfi\bin\configSat.ini /storage/self/primary/
 adb push Z:\XY3701_N0\out\target\product\len6737t_66_sh_n\symbols\system\vendor\bin\mnld /system/vendor/bin/mnld
 
 adb push Y:\satfi\bin\sat-dailer /etc/ppp/peers/sat-dailer
-adb push Y:\satfi\bin\sat-chat /etc/ppp/char/sat-chat
+adb push Y:\satfi\bin\sat-chat-384 /etc/ppp/char/sat-chat
 adb push Y:\satfi\bin\disconnect-chat /etc/ppp/char/disconnect-chat
 
 
@@ -103,7 +103,7 @@ mytest /dev/ttyMT1 115200 AT^DAUTH=4,\"ctnet@mycdma.cn\",\"vnet.mobi\"
 cat /dev/ttyMT1
 echo -e "at\r\n" > /dev/ttyMT1
 
-mytest /dev/ttyMT1 115200  AT+CMUX=0,0,5,1600
+mytest /dev/ttyMT1 921600  AT+CMUX=0,0,5,1600
 
 mytest /dev/ttyMT1 115200  AT^DEPCD=1
 
@@ -141,7 +141,7 @@ chmod +x pcm_test
 ./pcm_test in.raw out.raw
 
 adb pull /mnt/out.raw Y:\gpio_test\bin\
-adb pull /mnt/in.raw Y:\gpio_test\bin\
+adb pull /storage/emulated/0/sat.cap Y:\gpio_test\bin\
 
 
 adb push Y:\gpsinf\bin\gps_test /system/bin/
