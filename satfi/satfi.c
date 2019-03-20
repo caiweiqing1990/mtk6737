@@ -2484,13 +2484,6 @@ static void *func_y(void *p)
 		//sat_lock();
 		if(base->sat.sat_dialing == 1)
 		{
-			if(base->sat.sat_fd > 0)
-			{
-				satfi_log("close(base->sat.sat_fd)\n");
-				close(base->sat.sat_fd);
-				base->sat.sat_fd = -1;
-			}
-
 			if(checkroute("ppp0", NULL, 0) == 0)
 			{
 				if(mtgpiofd > 0)
@@ -2505,16 +2498,13 @@ static void *func_y(void *p)
 			{
 				satfi_log("ppp0 no exist\n");
 				sleep(10);
-			}
-			
-			continue;
+			}			
 		}
 		else
 		{
 			if(checkroute("ppp0", NULL, 0) == 0)
 			{
 				base->sat.sat_dialing = 1;
-				continue;
 			}
 		}
 
@@ -2666,14 +2656,22 @@ static void *func_y(void *p)
 		//sat_unlock();
 		if(base->sat.sat_status == 1)
 		{
-			//if(base->sat.sat_dialing == 0)
-			//{
-			//	base->sat.sat_dialing = 1;
-			//	satfi_log("pppd call sat-dailer\n");
-			//	myexec("start sat_pppd", NULL, NULL);
-			//	satfi_log("pppd call sat-dailer passed\n");
-			//}
-			sleep(5);
+			if(base->sat.sat_dialing == 0)
+			{
+				base->sat.sat_dialing = 1;
+				ioctl(mtgpiofd, GPIO_IOCSDATAHIGH, HW_GPIO79);
+				satfi_log("pppd call sat-dailer\n");
+				myexec("start sat_pppd", NULL, NULL);
+				
+				myexec("iptables -t nat -F", NULL, NULL);
+				myexec("iptables -F", NULL, NULL);
+				myexec("iptables -A OUTPUT -o lo -j ACCEPT", NULL, NULL);
+				myexec("iptables -t nat -A POSTROUTING -o ppp0 -s 192.168.43.0/24 -j MASQUERADE", NULL, NULL);
+				myexec("echo 1 > /proc/sys/net/ipv4/ip_forward", NULL, NULL);
+				myexec("ip rule add from all lookup main", NULL, NULL);
+				
+				satfi_log("pppd call sat-dailer passed\n");
+			}
 		}
 		else
 		{
@@ -8183,7 +8181,7 @@ static void *CallUpThread(void *p)
 		{
 			case SAT_STATE_PHONE_CLCC:
 				satfi_log("SAT_STATE_PHONE_CLCC\n");
-		        uart_send(base->sat.sat_fd, "AT^PCMMODE=0,0,0,0,0,0,0\r\n", 26);
+		        uart_send(base->sat.sat_fd, "AT^PCMMODE=0,1,0,0,2,0,0\r\n", 26);
 		        break;
 			case SAT_STATE_PHONE_CLCC_OK:
 				satfi_log("SAT_STATE_PHONE_CLCC_OK\n");

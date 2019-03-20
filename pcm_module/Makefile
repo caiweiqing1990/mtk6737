@@ -1,6 +1,6 @@
 ifneq ($(KERNELRELEASE),)
-#obj-m += pcm_slave_gpio.o
-obj-m += n_gsm.o
+obj-m += pcm_master_gpio.o
+#obj-m += n_gsm.o
 else
 PWD=$(shell pwd)
 KERNELDIR=$(PWD)/../../../out/target/product/len6737t_66_sh_n/obj/KERNEL_OBJ

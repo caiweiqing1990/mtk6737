@@ -143,20 +143,25 @@ static void gpio_set_dir(unsigned long pin, unsigned long dir)
 	}
 }
 
+// 1 + 16 * 3 * 2 
+//125
+#define DELAY_TIME	1000
+
 static unsigned short handle_pcm_frame(unsigned short val_do, int enable_data_out, int enable_data_in)
 {
 	int i;
 	unsigned short val_di=0;
 	
 	gpio_set_out(PCM1_SYNC, DATA_HIGH);
-	udelay(6);
+	gpio_set_out(PCM1_CLK, DATA_HIGH);
+	ndelay(500);ndelay(500);ndelay(500);
+	gpio_set_out(PCM1_CLK, DATA_LOW);
+	ndelay(500);ndelay(500);ndelay(500);
 	gpio_set_out(PCM1_SYNC, DATA_LOW);
-	
-	for(i=0; i<PCM_BITS; i++)
+	for(i=0; i<PCM_BITS*2; i++)
 	{
 		gpio_set_out(PCM1_CLK, DATA_HIGH);
-
-		if(enable_data_out)
+		if(enable_data_out && i<=15)
 		{
 			if(val_do & (1<<(PCM_BITS-1)))
 			{
@@ -168,12 +173,9 @@ static unsigned short handle_pcm_frame(unsigned short val_do, int enable_data_ou
 			}
 			val_do = val_do << 1;
 		}
-
-		udelay(3);
-		
+		ndelay(500);ndelay(500);ndelay(500);
 		gpio_set_out(PCM1_CLK, DATA_LOW);
-
-		if(enable_data_in)
+		if(enable_data_in && i<=15)
 		{
 			if(get_gpio_in_val(PCM1_DI) == 1)
 			{
@@ -184,10 +186,8 @@ static unsigned short handle_pcm_frame(unsigned short val_do, int enable_data_ou
 				val_di &= ~(1<<(PCM_BITS-i-1));
 			}
 		}
-		
-		udelay(3);
+		ndelay(500);ndelay(500);ndelay(500);
 	}
-
 	return val_di;
 }
 

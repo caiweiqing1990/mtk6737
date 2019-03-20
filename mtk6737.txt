@@ -85,6 +85,11 @@ adb push Y:\satfi\bin\config.ini /storage/self/primary/
 adb push Y:\satfi\bin\configSat.ini /storage/self/primary/
 adb push Z:\XY3701_N0\out\target\product\len6737t_66_sh_n\symbols\system\vendor\bin\mnld /system/vendor/bin/mnld
 
+adb push Z:\out\target\product\len6737t_66_sh_n\system\bin\tinymix /system/bin/
+adb push Z:\out\target\product\len6737t_66_sh_n\system\bin\\tinycap /system/bin/
+adb push Z:\out\target\product\len6737t_66_sh_n\system\bin\\tinyplay /system/bin/
+adb push Z:\out\target\product\len6737t_66_sh_n\system\bin\\tinypcminfo /system/bin/
+
 adb push Y:\satfi\bin\sat-dailer /etc/ppp/peers/sat-dailer
 adb push Y:\satfi\bin\sat-chat-384 /etc/ppp/char/sat-chat
 adb push Y:\satfi\bin\disconnect-chat /etc/ppp/char/disconnect-chat
@@ -141,7 +146,6 @@ chmod +x pcm_test
 ./pcm_test in.raw out.raw
 
 adb pull /mnt/out.raw Y:\gpio_test\bin\
-adb pull /storage/emulated/0/sat.cap Y:\gpio_test\bin\
 
 
 adb push Y:\gpsinf\bin\gps_test /system/bin/
@@ -596,4 +600,8 @@ cat /sys/devices/virtual/misc/mtgpio/pin
 echo -w=84:3 1 0 0 1 0 1 > /sys/devices/virtual/misc/mtgpio/pin
 echo -w=86:3 1 0 0 1 1 1 > /sys/devices/virtual/misc/mtgpio/pin
 
-adb push Y:\satfi\bin\satfi 
+adb push Y:\satfi\bin\satfi
+
+AT^PCMMODE=0,1,0,0,2,0,0
+AT^SYSMODE=2,0,1,0,0,1,0,0
+
