@@ -1,0 +1,1245 @@
+[   28.498740] .(0)[1004:system_server]BOOTPROF:     28498.725682:Android:SysServerInit_END
+[   28.527144] .(0)[347:kworker/0:2][VcoreFS] [name:mt_vcore_dvfs_1&]feature_en: 1(0), recover_en: 1, kicker: 2, new_opp: 0(-1)
+[   28.527161] .(0)[347:kworker/0:2][VcoreFS] [name:mt_vcore_dvfs_1&][-1, -1, 0, -1, 0, -1]
+[   28.527173] .(0)[347:kworker/0:2][VcoreFS] [name:mt_vcore_dvfs_1&]kicker: 2, opp: 0, curr_opp: 0(0)
+[   28.527191] .(0)[347:kworker/0:2][VcoreFS] [name:mt_vcore_dvfs_1&]opp: 0, vcore: 1150000(1150000) 
+[   28.527204] .(0)[347:kworker/0:2][VcoreFS] [name:mt_vcore_dvfs_1&][-1, -1, 0, -1, 0, -1]
+[   28.527216] .(0)[347:kworker/0:2][VcoreFS] [name:mt_vcore_dvfs_1&]opp: 0, faxi: 218000(218000), fvenc: 300000(300000) 
+[   28.527234] .(0)[347:kworker/0:2][VcoreFS] [name:mt_vcore_dvfs_1&]opp: 0, fddr: 1466000(1466000) 
+[   28.527244] .(0)[347:kworker/0:2]
+[   28.527244] <<SOC DVFS FLIPER>> flip to S(0), 1622
+[   28.557083] .(2)[137:display_idle_de][name:primary_display&][LP] - enter: 38, flag:0,1
+[   28.594982] .(3)[137:display_idle_de][MMDVFS][name:mmdvfs_mgr&][pid=137]Set vol scen:21,step:0,final:0(0x0),CMD(0,0,0x0),INFO(0,0)
+[   28.595007] .(3)[137:display_idle_de][name:primary_display&][LP] end: 38, flag:1,0
+[   28.647033] .(0)[218:read_poweroff_l][name:ipanic&]filp_open(/dev/block/platform/mtk-msdc.0/by-name/expdb) for aee failed (-2)
+[   28.897261] .(2)[137:display_idle_de][name:primary_display&][LP] - enter: 39, flag:0,1
+[   28.936036] .(1)[137:display_idle_de][MMDVFS][name:mmdvfs_mgr&][pid=137]Set vol scen:21,step:0,final:0(0x0),CMD(0,0,0x0),INFO(0,0)
+[   28.936061] .(1)[137:display_idle_de][name:primary_display&][LP] end: 39, flag:1,0
+[   29.132385] .(1)[1:init]init: avc:  granted  { set } for property=net.cdma.via.service.state pid=1056 uid=1001 gid=1001 scontext=u:r:statusd:s0 tcontext=u:object_r:net_radio_prop:s0 tclass=property_service
+[   29.132824] -(2)[901:gsm0710muxd][PTP] ptp_set_ptp_volt(): cur_temp = 41100, valid = 1
+[   29.140925] .(3)[1047:ActivityManager]BOOTPROF:     29140.911991:AMS:ENABLE_SCREEN
+[   29.157041] .(3)[218:read_poweroff_l][name:ipanic&]filp_open(/dev/block/platform/mtk-msdc.0/by-name/expdb) for aee failed (-2)
+[   29.160963] .(3)[1:init]init: avc:  granted  { set } for property=net.cdma.via.service.state pid=1056 uid=1001 gid=1001 scontext=u:r:statusd:s0 tcontext=u:object_r:net_radio_prop:s0 tclass=property_service
+[   29.178763] .(2)[1136:android.display]BOOTPROF:     29178.748991:AP_Launch: com.android.settings/.FallbackHome 702ms
+[   29.192511] .(3)[1047:ActivityManager]<HWMSEN> hwmsen_enable 607 : the sensor (0) is not attached!!
+[   29.194697] .(3)[1047:ActivityManager]<HWMSEN> ioctl delay handle=0,delay =66
+[   29.196753] .(3)[1:init]init: avc:  granted  { set } for property=net.cdma.via.service.state pid=1056 uid=1001 gid=1001 scontext=u:r:statusd:s0 tcontext=u:object_r:net_radio_prop:s0 tclass=property_service
+[   29.199943] .(3)[1047:ActivityManager]<HWMSEN> hwmsen_set_delay 794 : have no this sensor 0 or operator point is null!
+[   29.203181] .(3)[1047:ActivityManager]<HWMSEN> update_workqueue_polling_rate
+[   29.210643] .(3)[1047:ActivityManager]<HWMSEN> set new workqueue base time=66
+[   29.227038] .(1)[137:display_idle_de][name:primary_display&][LP] - enter: 40, flag:0,1
+[   29.252495] .(3)[137:display_idle_de][MMDVFS][name:mmdvfs_mgr&][pid=137]Set vol scen:21,step:0,final:0(0x0),CMD(0,0,0x0),INFO(0,0)
+[   29.252519] .(3)[137:display_idle_de][name:primary_display&][LP] end: 40, flag:1,0
+[   29.275258] .(2)[1:init]init: Starting service 'volte_stack'...
+[   29.288639] .(2)[1:init]init: Starting service 'volte_ua'...
+[   29.292488] .(2)[1:init]init: Starting service 'volte_imcb'...
+[   29.308406] .(1)[223:bat_thread_kthr]AEE_MONITOR_SET[status]: 0x1
+[   29.365863] .(1)[223:bat_thread_kthr][FGADC] 1,7475,2,4087,93,100,100,2500,2500,-194,0,0,1000,4281,1000,0,0,104,103
+[   29.367947] .(1)[223:bat_thread_kthr]AvgVbat=(4297,4281),AvgI=(401,0),VChr=5033,AvgT=(25,25),SOC=(100,100),UI_SOC=100,ZCV=4087,CHR_Type=1 bcct:0:0 I:65000 Ibat:747
+[   29.370303] .(3)[223:bat_thread_kthr]v=4281,i=0,t=25,soc=100,bcct:0:0 I:65000 Ibat:747
+[   29.372774] .(3)[223:bat_thread_kthr][name:charging_hw_fan5405&][chr_control_interface]UNSUPPORT Function: 48
+[   29.372787] .(3)[223:bat_thread_kthr][BATTERY] Battery full !!
+[   29.372787] 
+[   29.373247] .(3)[223:bat_thread_kthr][name:charging_hw_fan5405&][chr_control_interface]UNSUPPORT Function: 44
+[   29.378632] .(1)[223:bat_thread_kthr][100percent], UI_SOC(100), reset(0) bat_full(1) ever100(1)
+[   29.379753] .(1)[223:bat_thread_kthr][recharging] UI_SOC=100, SOC=100
+[   29.380587] .(1)[223:bat_thread_kthr]UI_SOC=(100), resetBatteryMeter=(0)
+[   29.381521] .(1)[223:bat_thread_kthr]mtk_rtc_common: set_rtc_spare_fg_value, 100
+[   29.382464] .(1)[223:bat_thread_kthr][DLPT_POWER_OFF_EN] run
+[   29.456923] .(0)[308:mtk_wmtd][name:wlan_gen2&][wlan]wlanAdapterStart:(INIT INFO) <wifi> send Wi-Fi Start command
+[   29.468174] -(1)[165:btif_rxd][name:btm_core&][STP-BTM] [I]_stp_btm_put_op: RB_PUT: 0x9
+[   29.487057] .(2)[137:display_idle_de][name:primary_display&][LP] - enter: 41, flag:0,1
+[   29.488333] .(2)[308:mtk_wmtd][name:stp_dbg&][STPDbg]stp_dbg_set_wifiver: wifiver(6571a172)
+[   29.488351] .(2)[308:mtk_wmtd][name:wlan_gen2&][wlan]wlanQueryNicCapability:(INIT INFO) <wifi> ProductID: 0x6571 FwVer: 0xa172.4 DriVer:11_70_00_20170104_1
+[   29.489114] .(2)[308:mtk_wmtd][name:wlan_gen2&][wlan]kalIndicateStatusAndComplete:(AIS INFO) [wifi] wlan%d netif_carrier_off
+[   29.489385] .(2)[308:mtk_wmtd][name:wlan_gen2&][wlan]scnInit:(SCN INFO) ->scnInit()
+[   29.489581] .(2)[308:mtk_wmtd][name:wlan_gen2&][wlan]wlanLoadManufactureData:(INIT INFO) NVRAM 5G Enable(1) SW_En(1) HW_Dis(0) CountryCode(0x0 0x0)
+[   29.489598] .(2)[308:mtk_wmtd][name:wlan_gen2&][wlan]rlmDomainGetDomainInfo:(RLM INFO) No matched country code, use the default regulatory domain
+[   29.489619] .(2)[308:mtk_wmtd][name:wlan_gen2&][wlan]rlmDomainSendPwrLimitCmd:(RLM INFO) Domain: ValidCC =0x0000, ucNum=0
+[   29.495065] .(3)[1731:tx_thread][name:wlan_gen2&][wlan]tx_thread:(INIT INFO) tx_thread starts running...
+[   29.500938] .(1)[308:mtk_wmtd][name:wlan_gen2&][wlan]wlanProbe:(INIT INFO) MAC address: 00:08:22:3e:df:fb 
+[   29.501106] .(1)[308:mtk_wmtd][name:wlan_gen2&][wlan]wlanFwFileCfg:(INIT INFO) read wifi_fw.cfg fail
+[   29.501205] .(3)[1731:tx_thread][name:wlan_gen2&][wlan]nicRxProcessEventPacket:(RX INFO) [F-L][RESTORE] 5G : CalVal : 0x0  ,  A2DP : 0  , SCO : 0  , CFG : 0  ,  CalValueFail : 0  
+[   29.501205] 
+[   29.501303] .(1)[308:mtk_wmtd][name:wlan_gen2&][wlan]wlanoidSetEnableDumpEMILog:(OID INFO) wlanoidSetEnableDumpEMILog: enable:1
+[   29.502306] .(1)[308:mtk_wmtd][name:wmt_chrdev_wifi&][MTK-WIFI] register_set_p2p_mode_handler: (pid 308) register set p2p mode handler ffffffc0006749ac
+[   29.502363] .(1)[308:mtk_wmtd][name:wlan_gen2&][wlan]kalPerMonInit:(SW4 INFO) enter kalPerMonInit
+[   29.502374] .(1)[308:mtk_wmtd][name:wlan_gen2&][wlan]kalPerMonInit:(SW4 INFO) exit kalPerMonInit
+[   29.502386] .(1)[308:mtk_wmtd][WMT-FUNC][W]wmt_func_wifi_on:WMT-FUNC: wmt call wlan probe ok
+[   29.503469] .(1)[308:mtk_wmtd][WMT-CORE][I]wmt_core_dump_func_state:[AF FUNC ON]status(b:0 f:0 g:0 w:2 lpbk:2 coredump:0 wmt:2 ant:0 sd1:0 sd2:0 stp:0)
+[   29.505364] .(3)[1208:WifiStateMachin][HIF-SDIO][I]mtk_wcn_wmt_func_ctrl:OPID(3) type(3) ok
+[   29.506462] .(3)[1208:WifiStateMachin][name:wmt_chrdev_wifi&][MTK-WIFI] WIFI_write: WMT turn on WIFI success!
+[   29.506486] .(3)[1208:WifiStateMachin][name:wmt_chrdev_wifi&][MTK-WIFI] WIFI_close: major 153 minor 0 (pid 1208)
+[   29.512321] .(2)[1177:Binder:494_2][name:wmt_chrdev_wifi&][MTK-WIFI] WIFI_open: major 153 minor 0 (pid 1177)
+[   29.512348] .(2)[1177:Binder:494_2][name:wmt_chrdev_wifi&][MTK-WIFI] WIFI_write: WIFI_write STA
+[   29.512363] .(2)[1177:Binder:494_2][name:wlan_gen2&][wlan]set_p2p_mode_handler:(INIT INFO) 1 0
+[   29.512414] .(0)[1731:tx_thread][name:wlan_gen2&][wlan]wlanoidSetP2pMode:(P2P INFO) Set P2P enable ffffffc05500fdb8 [1] mode[0]
+[   29.512528] .(0)[1731:tx_thread][name:wlan_gen2&][wlan]p2pFsmStateTransition:(P2P STATE) [22] TRANSITION: [0] -> [0]
+[   29.512869] .(2)[1177:Binder:494_2][name:wlan_gen2&][wlan]p2pInit:(P2P INFO) dev name=p2p0
+[   29.514012] .(2)[1177:Binder:494_2][name:wmt_chrdev_wifi&][MTK-WIFI] WIFI_write: Set wlan mode 0 --> 2
+[   29.514046] .(2)[1177:Binder:494_2][name:wmt_chrdev_wifi&][MTK-WIFI] WIFI_close: major 153 minor 0 (pid 1177)
+[   29.520679] .(2)[137:display_idle_de][MMDVFS][name:mmdvfs_mgr&][pid=137]Set vol scen:21,step:0,final:0(0x0),CMD(0,0,0x0),INFO(0,0)
+[   29.520707] .(2)[137:display_idle_de][name:primary_display&][LP] end: 41, flag:1,0
+[   29.556024] .(1)[1208:WifiStateMachin][name:wlan_gen2&][wlan]mtk_cfg80211_set_power_mgmt:(REQ INFO) --> mtk_cfg80211_set_power_mgmt()
+[   29.562531] .(1)[1688:volte_imcb][ccci1/chr]port ccci_imsc open with flag 20002 by volte_imcb
+[   29.580727] .(0)[1731:tx_thread][name:wlan_gen2&][wlan]nicRxProcessEventPacket:(RX INFO) [F-L]Recv cmd hemCmdDriverDumpEmiLog Customize:0 DriverSupport:1 EXP_APMEM_CTRL_COS_DIRECT_TRACE_EN=0
+[   29.580727] 
+[   29.580776] .(0)[1731:tx_thread][name:wlan_gen2&][wlan]wlanoidSet802dot11PowerSaveProfile:(OID INFO) Set Wi-Fi PS mode to CAM (0)
+[   29.580894] .(0)[1731:tx_thread][name:wlan_gen2&][wlan]nicRxProcessEventPacket:(RX INFO) [F-L][MAC]  OWN MAC Enable : 1 
+[   29.580894] 
+[   29.582254] .(0)[1731:tx_thread][name:wlan_gen2&][wlan]nicRxProcessEventPacket:(RX INFO) [F-L][RESTORE] 5G : CalVal : 0x0  ,  A2DP : 0  , SCO : 0  , CFG : 0  ,  CalValueFail : 0  
+[   29.582254] 
+[   29.590155] .(0)[1:init]init: Starting service 'p2p_supplicant'...
+[   29.659417] .(0)[1731:tx_thread][name:wlan_gen2&][wlan]nicRxProcessEventPacket:(RX INFO) [F-L][RESTORE] 5G : CalVal : 0x0  ,  A2DP : 0  , SCO : 0  , CFG : 0  ,  CalValueFail : 0  
+[   29.659417] 
+[   29.667246] .(3)[218:read_poweroff_l][name:ipanic&]filp_open(/dev/block/platform/mtk-msdc.0/by-name/expdb) for aee failed (-2)
+[   29.737302] .(3)[1731:tx_thread][name:wlan_gen2&][wlan]nicRxProcessEventPacket:(RX INFO) [F-L][RESTORE] 5G : CalVal : 0x0  ,  A2DP : 0  , SCO : 0  , CFG : 0  ,  CalValueFail : 0  
+[   29.737302] 
+[   29.757052] .(2)[137:display_idle_de][name:primary_display&][LP] - enter: 42, flag:0,1
+[   29.759270] .(3)[1751:wpa_supplicant][name:wlan_gen2&][wlan]mtk_cfg80211_flush_pmksa:(REQ INFO) --> mtk_cfg80211_flush_pmksa()
+[   29.788317] .(2)[137:display_idle_de][MMDVFS][name:mmdvfs_mgr&][pid=137]Set vol scen:21,step:0,final:0(0x0),CMD(0,0,0x0),INFO(0,0)
+[   29.788340] .(2)[137:display_idle_de][name:primary_display&][LP] end: 42, flag:1,0
+[   29.800706] .(1)[1751:wpa_supplicant][name:wlan_gen2&][wlan]mtk_p2p_cfg80211_change_iface:(P2P INFO) mtk_p2p_cfg80211_change_iface. type: 2
+[   29.801742] .(1)[1751:wpa_supplicant][name:wlan_gen2&][wlan]mtk_p2p_cfg80211_set_power_mgmt:(P2P INFO) mtk_p2p_cfg80211_set_power_mgmt ps=0.
+[   29.814361] .(3)[1731:tx_thread][name:wlan_gen2&][wlan]qmHandleEventBssAbsencePresence:(QM INFO) NAF=1,0,0
+[   29.815347] .(3)[1731:tx_thread][name:wlan_gen2&][wlan]nicRxProcessEventPacket:(RX INFO) [F-L][RESTORE] 5G : CalVal : 0x0  ,  A2DP : 0  , SCO : 0  , CFG : 0  ,  CalValueFail : 0  
+[   29.815347] 
+[   29.892829] .(3)[1731:tx_thread][name:wlan_gen2&][wlan]nicRxProcessEventPacket:(RX INFO) [F-L][RESTORE] 5G : CalVal : 0x0  ,  A2DP : 0  , SCO : 0  , CFG : 0  ,  CalValueFail : 0  
+[   29.892829] 
+[   29.970747] .(3)[1731:tx_thread][name:wlan_gen2&][wlan]nicRxProcessEventPacket:(RX INFO) [F-L][RESTORE] 5G : CalVal : 0x0  ,  A2DP : 0  , SCO : 0  , CFG : 0  ,  CalValueFail : 0  
+[   29.970747] 
+[   29.998325] .(2)[1751:wpa_supplicant][name:wlan_gen2&][wlan]mtk_cfg80211_vendor_set_band:(REQ INFO) mtk_cfg80211_vendor_set_band()
+[   29.998341] .(2)[1751:wpa_supplicant][name:wlan_gen2&][wlan]mtk_cfg80211_vendor_set_band:(REQ INFO) Vendor Set Band value=0
+[   30.012689] .(3)[1731:tx_thread][name:wlan_gen2&][wlan]rlmDomainSendPwrLimitCmd:(RLM INFO) Domain: ValidCC =CN, ChNum=41
+[   30.019309] .(0)[1751:wpa_supplicant][name:wlan_gen2&][wlan]mtk_cfg80211_testmode_cmd:(REQ INFO) --> mtk_cfg80211_testmode_cmd() prParams->index=1, status=0
+[   30.020280] .(3)[1751:wpa_supplicant][name:wlan_gen2&][wlan]mtk_cfg80211_testmode_cmd:(REQ INFO) --> mtk_cfg80211_testmode_cmd() prParams->index=1, status=0
+[   30.021196] .(0)[1751:wpa_supplicant][name:wlan_gen2&][wlan]mtk_cfg80211_testmode_cmd:(REQ INFO) --> mtk_cfg80211_testmode_cmd() prParams->index=1, status=0
+[   30.022126] .(0)[1751:wpa_supplicant][name:wlan_gen2&][wlan]mtk_cfg80211_testmode_cmd:(REQ INFO) --> mtk_cfg80211_testmode_cmd() prParams->index=1, status=0
+[   30.023019] .(2)[1751:wpa_supplicant][name:wlan_gen2&][wlan]mtk_cfg80211_testmode_cmd:(REQ INFO) --> mtk_cfg80211_testmode_cmd() prParams->index=1, status=0
+[   30.024096] .(0)[1751:wpa_supplicant][name:wlan_gen2&][wlan]mtk_cfg80211_testmode_cmd:(REQ INFO) --> mtk_cfg80211_testmode_cmd() prParams->index=1, status=0
+[   30.028263] .(2)[1751:wpa_supplicant][name:wlan_gen2&][wlan]mtk_cfg80211_set_power_mgmt:(REQ INFO) --> mtk_cfg80211_set_power_mgmt()
+[   30.028443] .(0)[1731:tx_thread][name:wlan_gen2&][wlan]wlanoidSet802dot11PowerSaveProfile:(OID INFO) Set Wi-Fi PS mode to FAST PS (2)
+[   30.034620] .(3)[1241:Binder:302_3]BOOTPROF:     30034.606301:BOOT_Animation:END
+[   30.035928] .(2)[1241:Binder:302_3]BOOTPROF:     30035.915839: OFF
+[   30.048331] .(1)[1731:tx_thread][name:wlan_gen2&][wlan]nicRxProcessEventPacket:(RX INFO) [F-L][RESTORE] 5G : CalVal : 0x0  ,  A2DP : 0  , SCO : 0  , CFG : 0  ,  CalValueFail : 0  
+[   30.048331] 
+[   30.064881] .(0)[1751:wpa_supplicant][name:wlan_gen2&][wlan]wlanHandleSystemResume:(INIT INFO) ************wlan System Resume.
+[   30.084573] .(0)[6:kworker/u8:0]binder: [name:binder&]binder_flush: 346 woke 3 threads
+[   30.125691] .(3)[1751:wpa_supplicant][name:wlan_gen2&][wlan]wlanHandleSystemResume:(INIT INFO) ip is not avalible.
+[   30.125710] .(3)[1751:wpa_supplicant][name:wlan_gen2&][wlan]wlanHandleSystemResume:(INIT INFO) Query BSS result: 1 0 0, IP: 0.0.0.0, rStatus: 3221225473
+[   30.125780] .(3)[1751:wpa_supplicant][name:wlan_gen2&][wlan]p2pHandleSystemResume:(P2P INFO) ip is not available.
+[   30.125792] .(3)[1751:wpa_supplicant][name:wlan_gen2&][wlan]mtk_cfg80211_testmode_cmd:(REQ INFO) --> mtk_cfg80211_testmode_cmd() prParams->index=101, status=0
+[   30.125926] .(3)[1751:wpa_supplicant][name:wlan_gen2&][wlan]priv_support_driver_cmd:(REQ INFO) priv_support_driver_cmd: driver cmd "SETSUSPENDMODE 0" on wlan0
+[   30.127428] .(2)[1751:wpa_supplicant][name:wlan_gen2&][wlan]mtk_cfg80211_testmode_cmd:(REQ INFO) --> mtk_cfg80211_testmode_cmd() prParams->index=1, status=0
+[   30.128398] .(2)[1751:wpa_supplicant][name:wlan_gen2&][wlan]mtk_cfg80211_scan:(REQ INFO) mtk_cfg80211_scan(), n_ssids=1, num_ssid=0
+[   30.129113] .(1)[1731:tx_thread][name:wlan_gen2&][wlan]wlanoidGetChannelInfo:(OID INFO) Partial Scan: set channel i=26
+[   30.129139] .(1)[1731:tx_thread][name:wlan_gen2&][wlan]aisFsmSteps:(AIS STATE) [13] TRANSITION: [0] -> [2]
+[   30.129203] .(1)[1731:tx_thread][name:wlan_gen2&][wlan]scnFsmSteps:(SCN STATE) [19] TRANSITION: [0] -> [1]
+[   30.129220] .(1)[1731:tx_thread][name:wlan_gen2&][wlan]scnSendScanReqV2:(SCN INFO) ScanReqV3: ScanType=1, SSIDType=1, Num=0, ChannelType=4, Num=26
+[   30.129283] .(1)[1731:tx_thread][name:wlan_gen2&][wlan]nicTxCmd:(TX INFO) ucCmdSeqNum =253, ucCID =4
+[   30.130994] .(0)[1731:tx_thread][name:wlan_gen2&][wlan]nicRxProcessEventPacket:(RX INFO) [F-L][MAC]  OWN MAC Enable : 1 
+[   30.130994] 
+[   30.131015] .(0)[1731:tx_thread][name:wlan_gen2&][wlan]nicRxProcessEventPacket:(RX INFO) [F-L]FW receive Scan Cmd V3!! SeqNum 1, NT 0, ScanType 1, ChDT 0,  ChType 4, ChNum 26 , SSIDType 1, SSIDNum 0
+[   30.131015] 
+[   30.131149] .(1)[1731:tx_thread][name:wlan_gen2&][wlan]nicRxProcessEventPacket:(RX INFO) [F-L](1) SCAN_STATE_SCAN_START, ScanType 4, PscnFlag 0x0, PscnEn 0
+[   30.131149] 
+[   30.177814] .(0)[218:read_poweroff_l][name:ipanic&]filp_open(/dev/block/platform/mtk-msdc.0/by-name/expdb) for aee failed (-2)
+[   30.178529] .(3)[1:init]init: Service 'bootanim' (pid 346) exited with status 0
+[   30.182127] .(1)[1:init]init: Starting service 'exec 7 (/system/bin/bootstat)'...
+[   30.191307] .(1)[943:mtkrild][ccci1/chr]port ccci_ioctl1 open with flag 20802 by mtkrild
+[   30.192828] .(1)[943:mtkrild][ccci1/chr]efun set to 0
+[   30.194906] .(1)[943:mtkrild][ccci1/chr]port ccci_ioctl1 close rx_len=0 empty=1, clear_cnt=0, drop=0
+[   30.196092] .(1)[943:mtkrild][ccci1/port]critical user check: 0xb
+[   30.210088] .(1)[1:init]init: Service 'exec 7 (/system/bin/bootstat)' (pid 1781) exited with status 0
+[   30.211792] .(1)[1:init]init: Starting service 'exec 8 (/system/bin/bootstat)'...
+[   30.213648] .(1)[1:init]init: Service 'volte_imcb' is being killed...
+[   30.214579] -(1)[1:init][name:mtprof&][signal][1:init] send death sig 9 to [1688:volte_imcb:R]
+[   30.215478] .(1)[1:init]init: Service 'volte_ua' is being killed...
+[   30.216233] .(3)[1747:volte_imcb][ccci1/chr]port ccci_imsc close rx_len=0 empty=1, clear_cnt=0, drop=0
+[   30.216253] .(3)[1747:volte_imcb][ccci1/port]critical user check: 0xb
+[   30.218531] -(1)[1:init][name:mtprof&][signal][1:init] send death sig 9 to [1687:volte_ua:R]
+[   30.220175] .(1)[1:init]init: Service 'volte_stack' is being killed...
+[   30.221109] -(1)[1:init][name:mtprof&][signal][1:init] send death sig 9 to [1683:volte_stack:R]
+[   30.221511] .(1)[1:init]init: Service 'volte_ua' (pid 1687) killed by signal 9
+[   30.222981] .(1)[1:init]init: Service 'volte_imcb' (pid 1688) killed by signal 9
+[   30.224484] .(1)[1:init]init: Service 'volte_stack' (pid 1683) killed by signal 9
+[   30.235821] .(1)[1:init]init: Service 'exec 8 (/system/bin/bootstat)' (pid 1782) exited with status 0
+[   30.237565] .(1)[1:init]init: Starting service 'exec 9 (/system/bin/bootstat)'...
+[   30.252865] .(0)[710:kworker/u8:4]binder: [name:binder&]binder_flush: 494 woke 3 threads
+[   30.266249] .(1)[1:init]init: Service 'exec 9 (/system/bin/bootstat)' (pid 1783) exited with status 0
+[   30.268040] .(1)[1:init]init: Starting service 'exec 10 (/system/bin/bootstat)'...
+[   30.301486] .(0)[6:kworker/u8:0]binder: [name:binder&]binder_flush: 494 woke 3 threads
+[   30.309126] .(3)[943:mtkrild]AEE_MONITOR_SET[status]: 0x1
+[   30.313111] .(3)[943:mtkrild][ccci1/chr]port ccci_ioctl1 open with flag 20802 by mtkrild
+[   30.314180] .(3)[943:mtkrild][ccci1/chr]efun set to 0
+[   30.314894] .(3)[943:mtkrild][ccci1/chr]port ccci_ioctl1 close rx_len=0 empty=1, clear_cnt=0, drop=0
+[   30.316074] .(3)[943:mtkrild][ccci1/port]critical user check: 0xb
+[   30.325560] .(3)[6:kworker/u8:0]binder: [name:binder&]binder_flush: 494 woke 3 threads
+[   30.332761] .(1)[1:init]init: Service 'exec 10 (/system/bin/bootstat)' (pid 1785) exited with status 0
+[   30.341132] .(1)[1:init]init: Starting service 'ged_srv'...
+[   30.343203] .(1)[1:init]init: cannot find '/system/bin/satfi' (No such file or directory), disabling 'satfi'
+[   30.347628] .(3)[6:kworker/u8:0]binder: [name:binder&]binder_flush: 494 woke 3 threads
+[   30.452781] .(1)[1:init]init: Starting service 'volte_stack'...
+[   30.456115] .(1)[1:init]init: Starting service 'volte_ua'...
+[   30.460848] .(1)[1:init]init: Starting service 'volte_imcb'...
+[   30.494490] .(2)[502:AALServiceMain][name:ddp_pwm&][PWM] (latest= 8):   330( 266, 676)  331( 266, 724)  332( 266, 797)  333( 266, 846)  331( 266, 919)  329( 266, 944)  325( 266, 968)  323( 266, 992)
+[   30.560610] .(0)[1576:Binder:1004_7]<HWMSEN> hwmsen_enable 607 : the sensor (7) is not attached!!
+[   30.647230] .(1)[273:logd.auditd]type=1400 audit(1553157267.130:9): avc: denied { search } for pid=1817 comm="Binder:1802_1" name="1528" dev="proc" ino=17295 scontext=u:r:ged_srv:s0 tcontext=u:r:radio:s0 tclass=dir permissive=1
+[   30.650172] .(1)[273:logd.auditd]type=1400 audit(1553157267.130:10): avc: denied { read } for pid=1817 comm="Binder:1802_1" name="cmdline" dev="proc" ino=18795 scontext=u:r:ged_srv:s0 tcontext=u:r:radio:s0 tclass=file permissive=1
+[   30.653306] .(1)[273:logd.auditd]type=1400 audit(1553157267.130:11): avc: denied { open } for pid=1817 comm="Binder:1802_1" path="/proc/1528/cmdline" dev="proc" ino=18795 scontext=u:r:ged_srv:s0 tcontext=u:r:radio:s0 tclass=file permissive=1
+[   30.660795] .(1)[1820:volte_imcb][ccci1/chr]port ccci_imsc open with flag 20002 by volte_imcb
+[   30.661704] .(2)[1:init]init: Service 'volte_imcb' is being killed...
+[   30.661776] -(2)[1:init][name:mtprof&][signal][1:init] send death sig 9 to [1820:volte_imcb:R]
+[   30.662567] .(2)[1:init]init: Service 'volte_ua' is being killed...
+[   30.662661] -(2)[1:init][name:mtprof&][signal][1:init] send death sig 9 to [1819:volte_ua:R]
+[   30.663361] .(2)[1:init]init: Service 'volte_stack' is being killed...
+[   30.663450] -(2)[1:init][name:mtprof&][signal][1:init] send death sig 9 to [1818:volte_stack:R]
+[   30.669093] .(1)[1820:volte_imcb][ccci1/chr]port ccci_imsc close rx_len=0 empty=1, clear_cnt=0, drop=0
+[   30.669492] .(2)[1:init]init: Service 'volte_ua' (pid 1819) killed by signal 9
+[   30.669880] .(2)[1:init]init: Service 'volte_stack' (pid 1818) killed by signal 9
+[   30.674231] .(1)[1820:volte_imcb][ccci1/port]critical user check: 0xb
+[   30.676399] .(0)[1:init]init: Service 'volte_imcb' (pid 1820) killed by signal 9
+[   30.687181] .(1)[218:read_poweroff_l][name:ipanic&]filp_open(/dev/block/platform/mtk-msdc.0/by-name/expdb) for aee failed (-2)
+[   30.689382] .(3)[502:AALServiceMain][name:ddp_pwm&][PWM] (latest= 8):   319( 267,  17)  314( 267,  41)  307( 267,  65)  300( 267,  90)  293( 267, 114)  284( 267, 139)  277( 267, 163)  268( 267, 187)
+[   30.749683] .(0)[1731:tx_thread][name:wlan_gen2&][wlan]rlmDomainSendPwrLimitCmd:(RLM INFO) Domain: ValidCC =CN, ChNum=41
+[   30.847923] .(2)[317:stp_dump3][name:stp_dbg&][STPDbg]stp_dbg_nl_bind: stp_dbg_nl_bind():->
+[   30.847940] .(2)[317:stp_dump3][name:stp_dbg&][STPDbg]stp_dbg_nl_bind: stp_dbg_nl_bind():-> pid  = 317
+[   30.849490] .(3)[317:stp_dump3][HIF-SDIO][I]WMT_open:major 190 minor 0 (pid 317)
+[   30.884131] .(2)[502:AALServiceMain][name:ddp_pwm&][PWM] (latest= 8):   261( 267, 212)  256( 267, 236)  251( 267, 261)  247( 267, 286)  242( 267, 309)  237( 267, 333)  234( 267, 358)  231( 267, 382)
+[   30.930076] .(3)[55:dlpt_notify_thr][name:pmic&][dlpt] get_dlpt_imix_charging 6219 4275 3100 170
+[   30.932618] .(0)[55:dlpt_notify_thr][PBM] [ma_to_mw] 4271(mV) * 5500(mA) = 23490(mW)
+[   30.934926] .(0)[55:dlpt_notify_thr][name:pmic&][exec_dlpt_callback] g_dlpt_val=5500
+[   30.934944] .(0)[55:dlpt_notify_thr][name:pmic&][DLPT_final] 5500,0,100,100,5500
+[   30.944967] .(3)[1731:tx_thread][name:wlan_gen2&][wlan]rlmDomainSendPwrLimitCmd:(RLM INFO) Domain: ValidCC =CN, ChNum=41
+[   31.009681] .(3)[61:kworker/3:1]cfg80211: Calling CRDA to update world regulatory domain
+[   31.079577] .(2)[502:AALServiceMain][name:ddp_pwm&][PWM] (latest= 8):   226( 267, 407)  223( 267, 432)  232( 267, 455)  242( 267, 479)  251( 267, 504)  261( 267, 528)  271( 267, 552)  280( 267, 577)
+[   31.128115] .(0)[1751:wpa_supplicant][name:wlan_gen2&][wlan]mtk_cfg80211_testmode_cmd:(REQ INFO) --> mtk_cfg80211_testmode_cmd() prParams->index=1, status=0
+[   31.197399] .(3)[218:read_poweroff_l][name:ipanic&]filp_open(/dev/block/platform/mtk-msdc.0/by-name/expdb) for aee failed (-2)
+[   31.260692] .(1)[1027:Binder:1004_1]mtk_rtc_common: set tc time = 2019/03/21 08:34:28
+[   31.322542] .(3)[502:AALServiceMain]AEE_MONITOR_SET[status]: 0x1
+[   31.322545] .(3)[502:AALServiceMain][name:ddp_pwm&][PWM] (latest= 8):   290( 267, 601)  299( 267, 626)  309( 267, 650)  319( 267, 674)  328( 267, 699)  335( 267, 723)  334( 268, 153)  333( 268, 201)
+[   31.351095] .(3)[1:init]init: avc:  granted  { set } for property=net.cdma.via.service.state pid=1056 uid=1001 gid=1001 scontext=u:r:statusd:s0 tcontext=u:object_r:net_radio_prop:s0 tclass=property_service
+[   31.431466] .(1)[1731:tx_thread][name:wlan_gen2&][wlan]rlmDomainSendPwrLimitCmd:(RLM INFO) Domain: ValidCC =CN, ChNum=41
+[   31.491128] .(3)[1731:tx_thread][name:wlan_gen2&][wlan]nicRxProcessEventPacket:(RX INFO) [F-L]FW Version: 0xA1.72.4  ConnectionStatus[1, 1]. CurrentTP Tx: 36 Kbps( 0 Mbps). Rx: 0 Kbps( 0 Mbps). g_fgPhoneSuspended 0. g_Hotspot 0  EB 0  MEM  30  I: 0  C: 0  W: 2016021 Gamemode 0 
+[   31.491128] 
+[   31.546222] .(1)[1731:tx_thread][name:wlan_gen2&][wlan]scnFsmGenerateScanDoneMsg:(SCN INFO) Rcv Scan Done, NetIdx 0, Obss 0, Status 0, Seq 1 ,STA MAC:[00:08:22:3e:df:fb] FwVer: 0xa172.4 DriVer:11_70_00_20170104_1
+[   31.546245] .(1)[1731:tx_thread][name:wlan_gen2&][wlan]scnFsmSteps:(SCN STATE) [19] TRANSITION: [1] -> [0]
+[   31.546441] .(1)[1731:tx_thread][name:wlan_gen2&][wlan]aisFsmSteps:(AIS STATE) [13] TRANSITION: [2] -> [0]
+[   31.546455] .(1)[1731:tx_thread][name:wlan_gen2&][wlan]aisFsmGetNextRequest:(AIS INFO) aisFsmGetNextRequest
+[   31.546592] .(1)[1731:tx_thread][name:wlan_gen2&][wlan]nicRxProcessEventPacket:(RX INFO) [F-L](1) [SCAN]: TotalChNum 26, ToDriver 8, Bcn 7, ProbeRsp 19, [1,6],[2,5],[3,1],[4,3],[5,10],[6,53],[7,13],[8,12],[9,3],[10,4],[11,6],[12,2],[13,2],[36,8],[40,5],[44,3],[48,6],[52,0],[56,0],[60,0],[64,0],[149,0],[153,1],[157,2],[161,3],[165,0],
+[   31.546592] 
+[   31.552684] .(3)[1731:tx_thread][name:wlan_gen2&][wlan]qmHandleEventBssAbsencePresence:(QM INFO) NAF=0,0,0
+[   31.552703] .(3)[1731:tx_thread][name:wlan_gen2&][wlan]nicRxProcessEventPacket:(RX INFO) [F-L][MAC]  OWN MAC Disable : 0 
+[   31.552703] 
+[   31.669587] .(1)[710:kworker/u8:4]binder: [name:binder&]binder_flush: 494 woke 3 threads
+[   31.694629] .(1)[710:kworker/u8:4]binder: [name:binder&]binder_flush: 494 woke 3 threads
+[   31.707185] .(0)[218:read_poweroff_l][name:ipanic&]filp_open(/dev/block/platform/mtk-msdc.0/by-name/expdb) for aee failed (-2)
+[   31.775470] -(3)[1935:droid.launcher3][PTP] ptp_set_ptp_volt(): cur_temp = 43600, valid = 1
+[   31.867056] .(3)[169:hang_detect][Hang_Detect] init found pid:1.
+[   31.867973] .(3)[169:hang_detect][Hang_Detect] mmcqd/0 found pid:178.
+[   31.868851] .(3)[169:hang_detect][Hang_Detect] surfaceflinger found pid:302.
+[   31.869792] .(3)[169:hang_detect][Hang_Detect] debuggerd found pid:575.
+[   31.870640] .(3)[169:hang_detect][Hang_Detect] debuggerd64 found pid:576.
+[   31.871529] .(3)[169:hang_detect][Hang_Detect] system_server found pid:1004.
+[   31.872431] .(3)[169:hang_detect][Hang_Detect] ndroid.systemui found pid:1257.
+[   31.873366] .(3)[169:hang_detect][Hang_Detect] hang_detect thread counts down 10:10.
+[   32.129181] .(1)[1751:wpa_supplicant][name:wlan_gen2&][wlan]mtk_cfg80211_testmode_cmd:(REQ INFO) --> mtk_cfg80211_testmode_cmd() prParams->index=1, status=0
+[   32.129954] .(0)[842:AudioOut_D]Audio_Speaker_Pga_Gain_Set Speaker_pga_gain= 10
+[   32.133042] .(1)[1751:wpa_supplicant][name:wlan_gen2&][wlan]mtk_cfg80211_scan:(REQ INFO) mtk_cfg80211_scan(), n_ssids=1, num_ssid=0
+[   32.133182] .(1)[1731:tx_thread][name:wlan_gen2&][wlan]wlanoidGetChannelInfo:(OID INFO) Partial Scan: set channel i=26
+[   32.133197] .(1)[1731:tx_thread][name:wlan_gen2&][wlan]aisFsmSteps:(AIS STATE) [13] TRANSITION: [0] -> [2]
+[   32.133240] .(1)[1731:tx_thread][name:wlan_gen2&][wlan]scnFsmSteps:(SCN STATE) [19] TRANSITION: [0] -> [1]
+[   32.133257] .(1)[1731:tx_thread][name:wlan_gen2&][wlan]scnSendScanReqV2:(SCN INFO) ScanReqV3: ScanType=1, SSIDType=1, Num=0, ChannelType=4, Num=26
+[   32.133315] .(1)[1731:tx_thread][name:wlan_gen2&][wlan]nicTxCmd:(TX INFO) ucCmdSeqNum =9, ucCID =4
+[   32.134054] .(2)[1731:tx_thread][name:wlan_gen2&][wlan]nicRxProcessEventPacket:(RX INFO) [F-L][MAC]  OWN MAC Enable : 1 
+[   32.134054] 
+[   32.134738] .(3)[1731:tx_thread][name:wlan_gen2&][wlan]nicRxProcessEventPacket:(RX INFO) [F-L]FW receive Scan Cmd V3!! SeqNum 2, NT 0, ScanType 1, ChDT 0,  ChType 4, ChNum 26 , SSIDType 1, SSIDNum 0
+[   32.134738] 
+[   32.135914] .(1)[1731:tx_thread][name:wlan_gen2&][wlan]nicRxProcessEventPacket:(RX INFO) [F-L](2) SCAN_STATE_SCAN_START, ScanType 4, PscnFlag 0x0, PscnEn 0
+[   32.135914] 
+[   32.146623] .(0)[842:AudioOut_D]mtk_pcm_I2S0dl1_prepare format = 10 SNDRV_PCM_FORMAT_S32_LE = 10 SNDRV_PCM_FORMAT_U32_LE = 12
+[   32.148128] .(0)[842:AudioOut_D]SetI2SDacOut SampleRate 48000, lowjitter 0, I2SWLen 1
+[   32.149947] .(3)[842:AudioOut_D]Speaker_Amp_Set() value = 1
+[   32.149947]  
+[   32.150459] .(3)[842:AudioOut_D][name:mt_soc_codec_63xx&]TurnOnDacPower
+[   32.150954] .(3)[842:AudioOut_D]Speaker_Amp_Change
+[   32.151825] .(3)[842:AudioOut_D]Speaker_ClassAB_Open
+[   32.162689] .(3)[842:AudioOut_D]spk trim offset=4
+[   32.163324] .(3)[842:AudioOut_D]Apply_Speaker_Gain Speaker_pga_gain= 10
+[   32.164525] .(3)[842:AudioOut_D]Audio_Irqcnt1_Set()
+[   32.165168] .(3)[842:AudioOut_D]warn, cannot update irq counter, user_id =           (null), irq1_cnt = 1024
+[   32.194663] -(3)[842:AudioOut_D]mtk_pcm_I2S0dl1_start
+[   32.195339] -(3)[842:AudioOut_D][name:mt_soc_afe_control&]irq_add_user(), user ffffffc075f3d800, irq 0, rate 48000, count 1024
+[   32.195351] -(3)[842:AudioOut_D]SetIrqMcuSampleRate(), Irqmode 0, SampleRate 48000
+[   32.196319] -(3)[842:AudioOut_D]SetIrqMcuCounter(), Irqmode 0, Counter 1024
+[   32.197212] -(3)[842:AudioOut_D]SetIrqEnable(), Irqmode 0, bEnable 1
+[   32.217121] .(3)[218:read_poweroff_l][name:ipanic&]filp_open(/dev/block/platform/mtk-msdc.0/by-name/expdb) for aee failed (-2)
+[   32.261131] .(3)[137:display_idle_de]AEE_MONITOR_SET[status]: 0x1
+[   32.677240] .(3)[137:display_idle_de][name:primary_display&][LP] - enter: 43, flag:0,1
+[   32.710777] .(2)[137:display_idle_de][MMDVFS][name:mmdvfs_mgr&][pid=137]Set vol scen:21,step:0,final:0(0x0),CMD(0,0,0x0),INFO(0,0)
+[   32.710803] .(2)[137:display_idle_de][name:primary_display&][LP] end: 43, flag:1,0
+[   32.727069] .(0)[218:read_poweroff_l][name:ipanic&]filp_open(/dev/block/platform/mtk-msdc.0/by-name/expdb) for aee failed (-2)
+[   32.877244] .(1)[56:cfinteractive][name:mt_cpufreq&][Power/cpufreq] @_mt_cpufreq_set_locked(): Vproc = 1131mv, freq = 1170000 KHz
+[   32.975217] .(2)[1:init]init: avc:  denied  { set } for property=mtk.duraspeed.on pid=1004 uid=1000 gid=1000 scontext=u:r:system_server:s0 tcontext=u:object_r:default_prop:s0 tclass=property_service permissive=1
+[   32.977309] .(0)[56:cfinteractive][name:mt_cpufreq&][Power/cpufreq] @_mt_cpufreq_set_locked(): Vproc = 1162mv, freq = 1300000 KHz
+[   33.017277] .(2)[56:cfinteractive][name:mt_cpufreq&][Power/cpufreq] @_mt_cpufreq_set_locked(): Vproc = 1200mv, freq = 1443000 KHz
+[   33.237067] .(2)[218:read_poweroff_l][name:ipanic&]filp_open(/dev/block/platform/mtk-msdc.0/by-name/expdb) for aee failed (-2)
+[   33.261852] .(1)[1731:tx_thread]AEE_MONITOR_SET[status]: 0x1
+[   33.523163] .(1)[1731:tx_thread][name:wlan_gen2&][wlan]nicRxProcessEventPacket:(RX INFO) [F-L]FW Version: 0xA1.72.4  ConnectionStatus[1, 1]. CurrentTP Tx: 31 Kbps( 0 Mbps). Rx: 0 Kbps( 0 Mbps). g_fgPhoneSuspended 0. g_Hotspot 0  EB 0  MEM  30  I: 0  C: 0  W: 2032022 Gamemode 0 
+[   33.523163] 
+[   33.528369] -(3)[19:migration/3][name:ca53_timer&]arch_timer_teardown disable IRQ29 cpu #3
+[   33.528444] .(1)[98:hps_main]CPU3: shutdown
+[   33.530092] .(1)[98:hps_main][HPS] (0200)(4)action end(254)(247)(1)(1) (4)(4)(4)(4)(1) (0)(0)(0) (2010)(61)(5) (0)(247)(61)(0)(247) wifi_base(0)
+[   33.627066] -(0)[0:swapper/0][Power/swap]DP: No enter --- SODI: No enter --- 
+[   33.635936] -(0)[0:swapper/0][Power/swap]CNT(dpidle,rgidle): [0] = (0,31802), [1] = (0,27299), [2] = (0,19072), [3] = (0,15856), 
+[   33.637412] -(0)[0:swapper/0][Power/swap]dpidle_block_cnt: [by_cpu] = 93021, [by_clk] = 0, [by_tmr] = 0, [by_oth] = 0, [by_vtg] = 0, 
+[   33.638930] -(0)[0:swapper/0][Power/swap]dpidle_block_mask: 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 
+[   33.747040] .(2)[218:read_poweroff_l][name:ipanic&]filp_open(/dev/block/platform/mtk-msdc.0/by-name/expdb) for aee failed (-2)
+[   33.872247] .(0)[6:kworker/u8:0]binder: [name:binder&]binder_flush: 2195 woke 4 threads
+[   33.932164] -(3)[0:swapper/3]CPU3: Booted secondary processor
+[   33.932190] -(3)[0:swapper/3]Detected VIPT I-cache on CPU3
+[   33.932715] .(0)[98:hps_main][name:mtk_wdt&][mtk_wdt_cpu_callback]bind kicker thread[229] to cpu[3]
+[   33.932966] .(0)[98:hps_main][HPS] (0020)(3)action end(296)(650)(0)(4) (4)(4)(4)(4)(1) (499)(3)(1) (709)(3)(3) (1)(650)(4)(0)(650) wifi_base(0)
+[   34.042651] .(3)[1731:tx_thread][name:wlan_gen2&][wlan]scnFsmGenerateScanDoneMsg:(SCN INFO) Rcv Scan Done, NetIdx 0, Obss 0, Status 0, Seq 2 ,STA MAC:[00:08:22:3e:df:fb] FwVer: 0xa172.4 DriVer:11_70_00_20170104_1
+[   34.042674] .(3)[1731:tx_thread][name:wlan_gen2&][wlan]scnFsmSteps:(SCN STATE) [19] TRANSITION: [1] -> [0]
+[   34.042852] .(3)[1731:tx_thread][name:wlan_gen2&][wlan]aisFsmSteps:(AIS STATE) [13] TRANSITION: [2] -> [0]
+[   34.042865] .(3)[1731:tx_thread][name:wlan_gen2&][wlan]aisFsmGetNextRequest:(AIS INFO) aisFsmGetNextRequest
+[   34.042995] .(3)[1731:tx_thread][name:wlan_gen2&][wlan]nicRxProcessEventPacket:(RX INFO) [F-L](2) [SCAN]: TotalChNum 26, ToDriver 8, Bcn 13, ProbeRsp 15, [1,6],[2,3],[3,4],[4,10],[5,30],[6,98],[7,22],[8,7],[9,7],[10,5],[11,10],[12,1],[13,0],[36,11],[40,2],[44,2],[48,3],[52,1],[56,0],[60,0],[64,0],[149,0],[153,0],[157,4],[161,5],[165,7],
+[   34.042995] 
+[   34.043324] .(2)[1731:tx_thread][name:wlan_gen2&][wlan]nicRxProcessEventPacket:(RX INFO) [F-L][MAC]  OWN MAC Disable : 0 
+[   34.043324] 
+[   34.043418] .(2)[1731:tx_thread][name:wlan_gen2&][wlan]qmHandleEventBssAbsencePresence:(QM INFO) NAF=0,0,0
+[   34.133616] .(2)[273:logd.auditd]type=1400 audit(1553157271.000:12): avc: denied { read } for pid=2265 comm=4173796E635461736B202332 name="address" dev="sysfs" ino=17553 scontext=u:r:untrusted_app:s0:c512,c768 tcontext=u:object_r:sysfs:s0 tclass=file permissive=1
+[   34.137052] .(2)[273:logd.auditd]type=1400 audit(1553157271.000:13): avc: denied { open } for pid=2265 comm=4173796E635461736B202332 path="/sys/devices/soc/180f0000.wifi/net/wlan0/address" dev="sysfs" ino=17553 scontext=u:r:untrusted_app:s0:c512,c768 tcontext=u:object_r:sysfs:s0 tclass=file permissive=1
+[   34.140585] .(2)[273:logd.auditd]type=1400 audit(1553157271.000:14): avc: denied { getattr } for pid=2265 comm=4173796E635461736B202332 path="/sys/devices/soc/180f0000.wifi/net/wlan0/address" dev="sysfs" ino=17553 scontext=u:r:untrusted_app:s0:c512,c768 tcontext=u:object_r:sysfs:s0 tclass=file permissive=1
+[   34.258498] .(0)[218:read_poweroff_l][name:ipanic&]filp_open(/dev/block/platform/mtk-msdc.0/by-name/expdb) for aee failed (-2)
+[   34.262490] .(0)[1731:tx_thread]AEE_MONITOR_SET[status]: 0x1
+[   34.517882] .(0)[1731:tx_thread][name:wlan_gen2&][wlan]nicRxProcessEventPacket:(RX INFO) [F-L][MAC]  OWN MAC Disable : 0 
+[   34.517882] 
+[   34.517963] .(0)[1731:tx_thread][name:wlan_gen2&][wlan]qmHandleEventBssAbsencePresence:(QM INFO) NAF=1,0,0
+[   34.767049] .(2)[218:read_poweroff_l][name:ipanic&]filp_open(/dev/block/platform/mtk-msdc.0/by-name/expdb) for aee failed (-2)
+[   34.795103] .(2)[273:logd.auditd]type=1400 audit(1553157271.660:15): avc: denied { read } for pid=2195 comm=".qihoo.appstore" name="address" dev="sysfs" ino=17553 scontext=u:r:untrusted_app:s0:c512,c768 tcontext=u:object_r:sysfs:s0 tclass=file permissive=1
+[   34.798238] .(2)[273:logd.auditd]type=1400 audit(1553157271.660:16): avc: denied { open } for pid=2195 comm=".qihoo.appstore" path="/sys/devices/soc/180f0000.wifi/net/wlan0/address" dev="sysfs" ino=17553 scontext=u:r:untrusted_app:s0:c512,c768 tcontext=u:object_r:sysfs:s0 tclass=file permissive=1
+[   34.802108] .(2)[273:logd.auditd]type=1400 audit(1553157271.660:17): avc: denied { getattr } for pid=2195 comm=".qihoo.appstore" path="/sys/devices/soc/180f0000.wifi/net/wlan0/address" dev="sysfs" ino=17553 scontext=u:r:untrusted_app:s0:c512,c768 tcontext=u:object_r:sysfs:s0 tclass=file permissive=1
+[   34.919667] .(2)[1:init]init: Service 'p2p_supplicant' (pid 1751) exited with status 0
+[   35.102491] .(2)[419:batterywarning][Battery] show_BatteryNotify : 0
+[   35.200660] .(2)[1208:WifiStateMachin][name:wmt_chrdev_wifi&][MTK-WIFI] WIFI_open: major 153 minor 0 (pid 1208)
+[   35.200688] .(2)[1208:WifiStateMachin][name:wmt_chrdev_wifi&][MTK-WIFI] WIFI_write: WIFI_write 0
+[   35.200703] .(2)[1208:WifiStateMachin][name:wlan_gen2&][wlan]set_p2p_mode_handler:(INIT INFO) 0 0
+[   35.200718] .(2)[1208:WifiStateMachin][name:wlan_gen2&][wlan]p2pNetUnregister:(P2P INFO) P2P unregister_netdev 0xffffffc06791f000
+[   35.263211] .(0)[2410:pool-4-thread-1]AEE_MONITOR_SET[status]: 0x1
+[   35.276271] .(0)[2410:pool-4-thread-1]Dump cpuinfo
+[   35.277283] .(1)[218:read_poweroff_l][name:ipanic&]filp_open(/dev/block/platform/mtk-msdc.0/by-name/expdb) for aee failed (-2)
+[   35.287238] .(1)[51:kworker/1:1][name:psm_core&][STP-PSM] [I]_stp_psm_do_wait: STP is waiting state for ACT, i=1, state = 0
+[   35.288586] .(0)[308:mtk_wmtd][WMT-CORE][I]opfunc_therm_ctrl:Send WMT_THERM_CTRL_CMD command OK!
+[   35.290879] .(0)[308:mtk_wmtd][WMT-CORE][I]opfunc_therm_ctrl:Send WMT_THERM_READ_CMD command OK!
+[   35.297690] .(1)[308:mtk_wmtd][WMT-CORE][I]opfunc_therm_ctrl:Send WMT_THERM_CTRL_CMD command OK!
+[   35.299172] .(1)[51:kworker/1:1][HIF-SDIO][I]wmt_dev_tm_temp_query:[Thermal] current_temp = 0x21
+[   35.327229] .(0)[1731:tx_thread][name:wlan_gen2&][wlan]wlanoidSetP2pMode:(P2P INFO) Set P2P enable ffffffc05514bdb8 [0] mode[0]
+[   35.327245] .(0)[1731:tx_thread][name:wlan_gen2&][wlan]wlanoidSetP2pMode:(P2P INFO) p2pRemove
+[   35.327257] .(0)[1731:tx_thread][name:wlan_gen2&][wlan]p2pFsmUninit:(P2P INFO) ->p2pFsmUninit()
+[   35.333266] .(3)[1208:WifiStateMachin][name:wmt_chrdev_wifi&][MTK-WIFI] WIFI_write: Turn off p2p/ap mode
+[   35.333291] .(3)[1208:WifiStateMachin][HIF-SDIO][I]mtk_wcn_wmt_func_ctrl:wmt-exp: OPID(4) type(3) start
+[   35.335144] .(0)[1731:tx_thread][name:wlan_gen2&][wlan]qmHandleEventBssAbsencePresence:(QM INFO) NAF=1,0,0
+[   35.335377] .(0)[1731:tx_thread][name:wlan_gen2&][wlan]nicRxProcessEventPacket:(RX INFO) [F-L][MAC]  OWN MAC Disable : 0 
+[   35.335377] 
+[   35.335463] .(0)[1731:tx_thread][name:wlan_gen2&][wlan]qmHandleEventBssAbsencePresence:(QM INFO) NAF=1,0,0
+[   35.347059] .(2)[137:display_idle_de][name:primary_display&][LP] - enter: 44, flag:0,1
+[   35.357038] .(1)[1208:WifiStateMachin][name:psm_core&][STP-PSM] [I]_stp_psm_do_wait: STP is waiting state for ACT, i=1, state = 0
+[   35.357076] .(3)[308:mtk_wmtd][WMT-FUNC][W]wmt_func_wifi_off:WMT-FUNC: wmt wlan func on before wlan remove
+[   35.358320] .(3)[308:mtk_wmtd][name:wlan_gen2&][wlan]HifAhbRemove:(INIT INFO) HifAhbRemove()
+[   35.358334] .(3)[308:mtk_wmtd][name:wmt_chrdev_wifi&][MTK-WIFI] register_set_p2p_mode_handler: (pid 308) register set p2p mode handler           (null)
+[   35.358346] .(3)[308:mtk_wmtd][name:wlan_gen2&][wlan]kalPerMonDisable:(SW4 INFO) enter kalPerMonDisable
+[   35.358630] .(3)[308:mtk_wmtd][name:wlan_gen2&][wlan]glBusFreeIrq:(INIT INFO) WIFI-OF: get wifi irq(258)
+[   35.358678] .(3)[308:mtk_wmtd][name:wlan_gen2&][wlan]wlanRemove:(INIT INFO) down g_halt_sem...
+[   35.358722] .(2)[1731:tx_thread][name:wlan_gen2&][wlan]tx_thread:(INIT INFO) <1>tx_thread should stop now...
+[   35.358737] .(2)[1731:tx_thread][name:wlan_gen2&][wlan]wlanReleasePendingOid:(OID ERROR) OID Timeout! Releasing pending OIDs ..
+[   35.358752] .(2)[1731:tx_thread][name:wlan_gen2&][wlan]tx_thread:(INIT INFO) mtk_sdiod stops
+[   35.389624] .(1)[137:display_idle_de][MMDVFS][name:mmdvfs_mgr&][pid=137]Set vol scen:21,step:0,final:0(0x0),CMD(0,0,0x0),INFO(0,0)
+[   35.389651] .(1)[137:display_idle_de][name:primary_display&][LP] end: 44, flag:1,0
+[   35.483341] .(3)[308:mtk_wmtd][name:wlan_gen2&][wlan]aisFsmUninit:(SW1 INFO) ->aisFsmUninit()
+[   35.483362] .(3)[308:mtk_wmtd][name:wlan_gen2&][wlan]aisFsmGetNextRequest:(AIS INFO) aisFsmGetNextRequest
+[   35.483379] .(3)[308:mtk_wmtd][name:wlan_gen2&][wlan]scnUninit:(SCN INFO) ->scnUninit()
+[   35.483415] .(3)[308:mtk_wmtd][name:wlan_gen2&][wlan]aisFsmUninit:(SW1 INFO) ->aisFsmUninit()
+[   35.483428] .(3)[308:mtk_wmtd][name:wlan_gen2&][wlan]aisFsmGetNextRequest:(AIS INFO) aisFsmGetNextRequest
+[   35.483439] .(3)[308:mtk_wmtd][name:wlan_gen2&][wlan]scnUninit:(SCN INFO) ->scnUninit()
+[   35.483449] .(3)[308:mtk_wmtd]------------[ cut here ]------------
+[   35.484286] .(3)[308:mtk_wmtd]WARNING: CPU: 3 PID: 308 at /home/book/work/XY3701_N0/kernel-3.18/mm/vmalloc.c:1465 __vunmap+0x120/0x124()
+[   35.485839] .(3)[308:mtk_wmtd]Trying to vfree() nonexistent vm area (ffffff8006887000)
+[   35.486848] .(3)[308:mtk_wmtd]Modules linked in:
+[   35.487276] -(3)[308:mtk_wmtd]CPU: 3 PID: 308 Comm: mtk_wmtd Tainted: G        W      3.18.35 #1
+[   35.488394] -(3)[308:mtk_wmtd]Hardware name: MT6737T (DT)
+[   35.489095] -(3)[308:mtk_wmtd]Call trace:
+[   35.489629] -(3)[308:mtk_wmtd][<ffffffc00008a914>] dump_backtrace+0x0/0x15c
+[   35.490524] -(3)[308:mtk_wmtd][<ffffffc00008aa84>] show_stack+0x14/0x1c
+[   35.491377] -(3)[308:mtk_wmtd][<ffffffc000be39b4>] dump_stack+0x80/0xa4
+[   35.492242] -(3)[308:mtk_wmtd][<ffffffc0000a0d78>] warn_slowpath_fmt+0xb8/0xd8
+[   35.493172] -(3)[308:mtk_wmtd][<ffffffc0001a0af8>] __vunmap+0x120/0x124
+[   35.494021] -(3)[308:mtk_wmtd][<ffffffc0001a0b7c>] vfree+0x34/0xc4
+[   35.494820] -(3)[308:mtk_wmtd][<ffffffc0006c8f38>] scnUninit+0xa0/0x11c
+[   35.495672] -(3)[308:mtk_wmtd][<ffffffc00065c8f0>] nicUninitMGMT+0x34/0xa0
+[   35.496556] -(3)[308:mtk_wmtd][<ffffffc0006351bc>] wlanAdapterStop+0x4c/0x328
+[   35.497474] -(3)[308:mtk_wmtd][<ffffffc000675c14>] wlanRemove+0x298/0x708
+[   35.498347] -(3)[308:mtk_wmtd][<ffffffc0006a4220>] HifAhbRemove+0x34/0x64
+[   35.499232] -(3)[308:mtk_wmtd][<ffffffc0005eff28>] wmt_func_wifi_off+0x38/0x15c
+[   35.500184] -(3)[308:mtk_wmtd][<ffffffc0005eb028>] opfunc_func_off+0x1dc/0x390
+[   35.501113] -(3)[308:mtk_wmtd][<ffffffc0005e9348>] wmt_core_opid+0x30/0x9c
+[   35.501995] -(3)[308:mtk_wmtd][<ffffffc0005f37dc>] wmtd_thread+0x208/0x298
+[   35.502895] -(3)[308:mtk_wmtd][<ffffffc0000bf598>] kthread+0xdc/0xf0
+[   35.503814] .(3)[308:mtk_wmtd]---[ end trace 3a82bbbaeaeae778 ]---
+[   35.504616] .(3)[308:mtk_wmtd]------------[ cut here ]------------
+[   35.505425] .(3)[308:mtk_wmtd]WARNING: CPU: 3 PID: 308 at /home/book/work/XY3701_N0/kernel-3.18/mm/vmalloc.c:1465 __vunmap+0x120/0x124()
+[   35.507024] .(3)[308:mtk_wmtd]Trying to vfree() nonexistent vm area (ffffff8006889000)
+[   35.508035] .(3)[308:mtk_wmtd]Modules linked in:
+[   35.508414] -(3)[308:mtk_wmtd]CPU: 3 PID: 308 Comm: mtk_wmtd Tainted: G        W      3.18.35 #1
+[   35.509532] -(3)[308:mtk_wmtd]Hardware name: MT6737T (DT)
+[   35.510232] -(3)[308:mtk_wmtd]Call trace:
+[   35.510766] -(3)[308:mtk_wmtd][<ffffffc00008a914>] dump_backtrace+0x0/0x15c
+[   35.511660] -(3)[308:mtk_wmtd][<ffffffc00008aa84>] show_stack+0x14/0x1c
+[   35.512512] -(3)[308:mtk_wmtd][<ffffffc000be39b4>] dump_stack+0x80/0xa4
+[   35.513364] -(3)[308:mtk_wmtd][<ffffffc0000a0d78>] warn_slowpath_fmt+0xb8/0xd8
+[   35.514291] -(3)[308:mtk_wmtd][<ffffffc0001a0af8>] __vunmap+0x120/0x124
+[   35.515140] -(3)[308:mtk_wmtd][<ffffffc0001a0b7c>] vfree+0x34/0xc4
+[   35.515950] -(3)[308:mtk_wmtd][<ffffffc0006c8f44>] scnUninit+0xac/0x11c
+[   35.516800] -(3)[308:mtk_wmtd][<ffffffc00065c8f0>] nicUninitMGMT+0x34/0xa0
+[   35.517684] -(3)[308:mtk_wmtd][<ffffffc0006351bc>] wlanAdapterStop+0x4c/0x328
+[   35.518601] -(3)[308:mtk_wmtd][<ffffffc000675c14>] wlanRemove+0x298/0x708
+[   35.519474] -(3)[308:mtk_wmtd][<ffffffc0006a4220>] HifAhbRemove+0x34/0x64
+[   35.520347] -(3)[308:mtk_wmtd][<ffffffc0005eff28>] wmt_func_wifi_off+0x38/0x15c
+[   35.521284] -(3)[308:mtk_wmtd][<ffffffc0005eb028>] opfunc_func_off+0x1dc/0x390
+[   35.522209] -(3)[308:mtk_wmtd][<ffffffc0005e9348>] wmt_core_opid+0x30/0x9c
+[   35.523091] -(3)[308:mtk_wmtd][<ffffffc0005f37dc>] wmtd_thread+0x208/0x298
+[   35.523976] -(3)[308:mtk_wmtd][<ffffffc0000bf598>] kthread+0xdc/0xf0
+[   35.524827] .(3)[308:mtk_wmtd]---[ end trace 3a82bbbaeaeae779 ]---
+[   35.667088] .(3)[308:mtk_wmtd][name:wlan_gen2&][wlan]wlanNetUnregister:(INIT INFO) unregister wireless_dev(0xffffffc073ad9c00), ifindex=28
+[   35.667225] .(3)[308:mtk_wmtd][name:wlan_gen2&][wlan]wlanRemove:(INIT INFO) wlanRemove ok
+[   35.667264] .(3)[308:mtk_wmtd][name:mtk_wcn_consys_hw&][WMT-CONSYS-HW][I]mtk_wcn_consys_hw_wifi_paldo_ctrl:WMT do WIFI PMIC off
+[   35.667275] .(3)[308:mtk_wmtd][WMT-FUNC][W]wmt_func_wifi_off:WMT-FUNC: wmt call wlan remove ok
+[   35.668396] .(3)[308:mtk_wmtd][WMT-CORE][I]wmt_core_dump_func_state:[AF FUNC OFF]status(b:0 f:0 g:0 w:0 lpbk:2 coredump:0 wmt:2 ant:0 sd1:0 sd2:0 stp:0)
+[   35.670183] .(3)[1208:WifiStateMachin][HIF-SDIO][I]mtk_wcn_wmt_func_ctrl:OPID(4) type(3) ok
+[   35.671263] .(3)[1208:WifiStateMachin][name:wmt_chrdev_wifi&][MTK-WIFI] WIFI_write: WMT turn off WIFI OK!
+[   35.671292] .(3)[1208:WifiStateMachin][name:wmt_chrdev_wifi&][MTK-WIFI] WIFI_close: major 153 minor 0 (pid 1208)
+[   35.672377] .(2)[1208:WifiStateMachin][name:wmt_chrdev_wifi&][MTK-WIFI] WIFI_open: major 153 minor 0 (pid 1208)
+[   35.672402] .(2)[1208:WifiStateMachin][name:wmt_chrdev_wifi&][MTK-WIFI] WIFI_write: WIFI_write 1
+[   35.672416] .(2)[1208:WifiStateMachin][HIF-SDIO][I]mtk_wcn_wmt_func_ctrl:wmt-exp: OPID(3) type(3) start
+[   35.673703] .(1)[308:mtk_wmtd][WMT-CORE][E]opfunc_func_on(1213):not implemented yet hifType: 0x2, unspecified wifi_hif
+[   35.675084] .(1)[308:mtk_wmtd][WMT-FUNC][W]wmt_func_wifi_on:WMT-FUNC: wmt wlan func on before wlan probe
+[   35.676456] .(1)[308:mtk_wmtd][name:wlan_gen2&][wlan]HifAhbProbe:(INIT INFO) HifAhbProbe()
+[   35.676473] .(1)[308:mtk_wmtd]vcn33_wifi: unsupportable voltage range: 3300000-3300uV
+[   35.677941] .(1)[308:mtk_wmtd][name:mtk_wcn_consys_hw&][WMT-CONSYS-HW][I]mtk_wcn_consys_hw_wifi_paldo_ctrl:WMT do WIFI PMIC on
+[   35.678014] .(1)[308:mtk_wmtd][name:wlan_gen2&][wlan]wlanNetCreate:(INIT INFO) net_device prDev(0xffffffc048351800) allocated ifindex=0
+[   35.678039] .(1)[308:mtk_wmtd][name:wlan_gen2&][wlan]glSetHifInfo:(INIT INFO) [WiFi/HIF]HifInfo->HifRegBaseAddr=0xffffff800d8a4000, HifInfo->McuRegBaseAddr=0xffffff800d8a6000
+[   35.678054] .(1)[308:mtk_wmtd][name:wlan_gen2&][wlan]glSetHifInfo:(INIT INFO) [WiFi/HIF] ChipID = 0x6735
+[   35.679595] .(1)[308:mtk_wmtd][name:wlan_gen2&][wlan]glBusSetIrq:(INIT INFO) WIFI-OF: get wifi irq(258)
+[   35.681599] .(1)[308:mtk_wmtd][name:wlan_gen2&][wlan]kalFirmwareOpen:(INIT INFO) open file: /vendor/firmware/WIFI_RAM_CODE_6735
+[   35.681768] .(1)[308:mtk_wmtd][name:wlan_gen2&][wlan]kalFirmwareLoad:(INIT INFO) kalFirmwareLoad read start!
+[   35.682219] .(1)[308:mtk_wmtd][name:wlan_gen2&][wlan]nicAllocateAdapterMemory:(NIC INFO) Allocating 4096 bytes for COMMON MGMT MEMORY POOL.
+[   35.682806] .(1)[308:mtk_wmtd][name:wlan_gen2&][wlan]nicAllocateAdapterMemory:(NIC INFO) Allocating 431600 bytes for SW_RFB_T.
+[   35.682882] .(1)[308:mtk_wmtd][name:wlan_gen2&][wlan]nicAllocateAdapterMemory:(NIC INFO) Allocating 458752 bytes for MSDU_INFO_T.
+[   35.697651] .(1)[308:mtk_wmtd][name:wlan_gen2&][wlan]wlanAdapterStart:(INIT INFO) <wifi> Start to download firmware, time=4294702976
+[   35.697670] .(2)[218:read_poweroff_l][name:wlan_gen2&][wlan]wlanDumpMcuChipId:(INIT INFO) Offset:0x8, Value:0x00000321 
+[   35.787045] .(2)[218:read_poweroff_l][name:ipanic&]filp_open(/dev/block/platform/mtk-msdc.0/by-name/expdb) for aee failed (-2)
+[   35.787061] .(2)[218:read_poweroff_l]ram_console: open expdb partition error [-2]!
+[   36.263951] .(0)[2036:d.process.media]AEE_MONITOR_SET[status]: 0x1
+[   36.724626] .(0)[2036:d.process.media]mtp_open
+[   36.741549] .(2)[2564:MtpServer]MTP_QUEUE_DBG, <mtp_read(), 592> MtpServer........., skip_cnt:0
+[   36.870503] .(0)[842:AudioOut_D]Speaker_Amp_Set() value = 0
+[   36.870503]  
+[   36.870992] .(0)[842:AudioOut_D]turn off Speaker_Amp_Change
+[   36.871730] .(0)[842:AudioOut_D]Speaker_ClassAB_close
+[   36.872549] .(0)[842:AudioOut_D][name:mt_soc_codec_63xx&]TurnOffDacPower
+[   36.872941] -(0)[842:AudioOut_D]TopCkCount <0 =0
+[   36.872941]  
+[   36.873403] -(0)[842:AudioOut_D]mtk_pcm_I2S0dl1_stop
+[   36.874067] -(0)[842:AudioOut_D][name:mt_soc_afe_control&]irq_remove_user(), user ffffffc075f3d800, irq 0
+[   36.874077] -(0)[842:AudioOut_D]SetIrqEnable(), Irqmode 0, bEnable 0
+[   36.874892] -(0)[842:AudioOut_D]SetIrqMcuCounter(), Irqmode 0, Counter 0
+[   37.217058] .(0)[347:kworker/0:2][C2K MODEM] start heart beat timer 0
+[   37.217900] .(0)[347:kworker/0:2][name:c2k_sdio&][C2K] before wait tx done
+[   37.217911] .(0)[347:kworker/0:2][name:c2k_sdio&][C2K] after wait tx done
+[   37.224199] .(0)[347:kworker/0:2][name:c2k_sdio&][C2K SDIO] write ctrl channel start, len = 12
+[   37.224245] .(0)[347:kworker/0:2][name:c2k_sdio&][C2K SDIO] write ctrl channel done, len = 12
+[   37.235268] .(0)[738:ksdioirqd/mmc2][C2K MODEM] heart beat msg received 0
+[   37.264699] .(3)[308:mtk_wmtd]AEE_MONITOR_SET[status]: 0x1
+[   37.430098] .(3)[308:mtk_wmtd][name:wlan_gen2&][wlan]wlanAdapterStart:(INIT INFO) <wifi> send Wi-Fi Start command
+[   37.459693] .(3)[308:mtk_wmtd][name:stp_dbg&][STPDbg]stp_dbg_set_wifiver: wifiver(6571a172)
+[   37.459711] .(3)[308:mtk_wmtd][name:wlan_gen2&][wlan]wlanQueryNicCapability:(INIT INFO) <wifi> ProductID: 0x6571 FwVer: 0xa172.4 DriVer:11_70_00_20170104_1
+[   37.460500] .(3)[308:mtk_wmtd][name:wlan_gen2&][wlan]kalIndicateStatusAndComplete:(AIS INFO) [wifi] wlan%d netif_carrier_off
+[   37.460805] .(3)[308:mtk_wmtd][name:wlan_gen2&][wlan]scnInit:(SCN INFO) ->scnInit()
+[   37.461532] .(3)[308:mtk_wmtd][name:wlan_gen2&][wlan]wlanLoadManufactureData:(INIT INFO) NVRAM 5G Enable(1) SW_En(1) HW_Dis(0) CountryCode(0x0 0x0)
+[   37.461552] .(3)[308:mtk_wmtd][name:wlan_gen2&][wlan]rlmDomainGetDomainInfo:(RLM INFO) No matched country code, use the default regulatory domain
+[   37.461574] .(3)[308:mtk_wmtd][name:wlan_gen2&][wlan]rlmDomainSendPwrLimitCmd:(RLM INFO) Domain: ValidCC =0x0000, ucNum=0
+[   37.463407] .(1)[2659:tx_thread][name:wlan_gen2&][wlan]tx_thread:(INIT INFO) tx_thread starts running...
+[   37.466824] .(0)[308:mtk_wmtd][name:wlan_gen2&][wlan]wlanProbe:(INIT INFO) MAC address: 00:08:22:60:fe:fb 
+[   37.466936] .(0)[308:mtk_wmtd][name:wlan_gen2&][wlan]wlanFwFileCfg:(INIT INFO) read wifi_fw.cfg fail
+[   37.467076] .(2)[2659:tx_thread][name:wlan_gen2&][wlan]nicRxProcessEventPacket:(RX INFO) [F-L][RESTORE] 5G : CalVal : 0x0  ,  A2DP : 0  , SCO : 0  , CFG : 0  ,  CalValueFail : 0  
+[   37.467076] 
+[   37.467545] .(3)[308:mtk_wmtd][name:wlan_gen2&][wlan]wlanoidSetEnableDumpEMILog:(OID INFO) wlanoidSetEnableDumpEMILog: enable:1
+[   37.468609] .(3)[308:mtk_wmtd][name:wmt_chrdev_wifi&][MTK-WIFI] register_set_p2p_mode_handler: (pid 308) register set p2p mode handler ffffffc0006749ac
+[   37.468674] .(3)[308:mtk_wmtd][name:wlan_gen2&][wlan]kalPerMonInit:(SW4 INFO) enter kalPerMonInit
+[   37.468685] .(3)[308:mtk_wmtd][name:wlan_gen2&][wlan]kalPerMonInit:(SW4 INFO) exit kalPerMonInit
+[   37.468696] .(3)[308:mtk_wmtd][WMT-FUNC][W]wmt_func_wifi_on:WMT-FUNC: wmt call wlan probe ok
+[   37.469779] .(3)[308:mtk_wmtd][WMT-CORE][I]wmt_core_dump_func_state:[AF FUNC ON]status(b:0 f:0 g:0 w:2 lpbk:2 coredump:0 wmt:2 ant:0 sd1:0 sd2:0 stp:0)
+[   37.475000] .(2)[1208:WifiStateMachin][HIF-SDIO][I]mtk_wcn_wmt_func_ctrl:OPID(3) type(3) ok
+[   37.476078] .(2)[1208:WifiStateMachin][name:wmt_chrdev_wifi&][MTK-WIFI] WIFI_write: WMT turn on WIFI success!
+[   37.476103] .(2)[1208:WifiStateMachin][name:wmt_chrdev_wifi&][MTK-WIFI] WIFI_close: major 153 minor 0 (pid 1208)
+[   37.478588] .(0)[1177:Binder:494_2][name:wmt_chrdev_wifi&][MTK-WIFI] WIFI_open: major 153 minor 0 (pid 1177)
+[   37.478615] .(0)[1177:Binder:494_2][name:wmt_chrdev_wifi&][MTK-WIFI] WIFI_write: WIFI_write AP
+[   37.478629] .(0)[1177:Binder:494_2][name:wlan_gen2&][wlan]set_p2p_mode_handler:(INIT INFO) 1 1
+[   37.478866] .(0)[2659:tx_thread][name:wlan_gen2&][wlan]wlanoidSetP2pMode:(P2P INFO) Set P2P enable ffffffc05500fdb8 [1] mode[1]
+[   37.479523] .(0)[2659:tx_thread][name:wlan_gen2&][wlan]p2pFsmStateTransition:(P2P STATE) [22] TRANSITION: [0] -> [0]
+[   37.479607] .(3)[1177:Binder:494_2][name:wlan_gen2&][wlan]p2pInit:(P2P INFO) dev name=ap0
+[   37.480617] .(3)[1177:Binder:494_2][name:wmt_chrdev_wifi&][MTK-WIFI] WIFI_write: Set wlan mode 0 --> 1
+[   37.480649] .(3)[1177:Binder:494_2][name:wmt_chrdev_wifi&][MTK-WIFI] WIFI_close: major 153 minor 0 (pid 1177)
+[   37.495109] .(2)[1208:WifiStateMachin][name:wlan_gen2&][wlan]mtk_cfg80211_set_power_mgmt:(REQ INFO) --> mtk_cfg80211_set_power_mgmt()
+[   37.495664] .(3)[2659:tx_thread][name:wlan_gen2&][wlan]wlanoidSet802dot11PowerSaveProfile:(OID INFO) Set Wi-Fi PS mode to CAM (0)
+[   37.543681] .(3)[1208:WifiStateMachin]IPv6: ADDRCONF(NETDEV_UP): wlan0: link is not ready
+[   37.547251] .(3)[2659:tx_thread][name:wlan_gen2&][wlan]nicRxProcessEventPacket:(RX INFO) [F-L]Recv cmd hemCmdDriverDumpEmiLog Customize:0 DriverSupport:1 EXP_APMEM_CTRL_COS_DIRECT_TRACE_EN=0
+[   37.547251] 
+[   37.547269] .(3)[2659:tx_thread][name:wlan_gen2&][wlan]nicRxProcessEventPacket:(RX INFO) [F-L][MAC]  OWN MAC Enable : 1 
+[   37.547269] 
+[   37.553768] .(3)[1208:WifiStateMachin][name:wlan_gen2&][wlan]mtk_cfg80211_vendor_set_country_code:(REQ INFO) Set country code: CN, iftype=2
+[   37.553838] .(3)[2659:tx_thread][name:wlan_gen2&][wlan]rlmDomainSendPwrLimitCmd:(RLM INFO) Domain: ValidCC =CN, ChNum=41
+[   37.554317] .(3)[1208:WifiStateMachin][name:wlan_gen2&][wlan]mtk_cfg80211_vendor_get_channel_list:(REQ INFO) Get channel list for band: 2, num_channels=9
+[   37.621060] .(2)[2659:tx_thread][name:wlan_gen2&][wlan]nicRxProcessEventPacket:(RX INFO) [F-L][RESTORE] 5G : CalVal : 0x0  ,  A2DP : 0  , SCO : 0  , CFG : 0  ,  CalValueFail : 0  
+[   37.621060] 
+[   37.622230] .(0)[2659:tx_thread][name:wlan_gen2&][wlan]nicRxProcessEventPacket:(RX INFO) [F-L][RESTORE] 5G : CalVal : 0x0  ,  A2DP : 0  , SCO : 0  , CFG : 0  ,  CalValueFail : 0  
+[   37.622230] 
+[   37.641077] .(1)[185:kworker/u8:3]binder: [name:binder&]binder_flush: 494 woke 3 threads
+[   37.679817] .(2)[2665:hostapd][name:wlan_gen2&][wlan]mtk_p2p_cfg80211_scan:(P2P INFO) mtk_p2p_cfg80211_scan
+[   37.679837] .(2)[2665:hostapd][name:wlan_gen2&][wlan]mtk_p2p_cfg80211_scan:(P2P INFO) Requesting channel number:13.
+[   37.680080] .(1)[2659:tx_thread][name:wlan_gen2&][wlan]p2pFsmStateTransition:(P2P STATE) [22] TRANSITION: [0] -> [1]
+[   37.680108] .(1)[2659:tx_thread][name:wlan_gen2&][wlan]scnFsmSteps:(SCN STATE) [19] TRANSITION: [0] -> [1]
+[   37.680132] .(1)[2659:tx_thread][name:wlan_gen2&][wlan]scnSendScanReq:(SCN INFO) ScanReqV1: ScanType=1, SSIDType=1, Num=0, ChannelType=4, Num=13
+[   37.698945] .(1)[2659:tx_thread][name:wlan_gen2&][wlan]nicTxCmd:(TX INFO) ucCmdSeqNum =242, ucCID =30
+[   37.699832] .(1)[2659:tx_thread][name:wlan_gen2&][wlan]nicRxProcessEventPacket:(RX INFO) [F-L]FW receive Scan Cmd!! SeqNum 1, NT 1, ScanType 1, ChMinDT 0, ChDT 30,  ChType 4, ChNum 13 , SSIDType 1, SSIDLen 0, StrVer 0
+[   37.699832] 
+[   37.699852] .(1)[2659:tx_thread][name:wlan_gen2&][wlan]nicRxProcessEventPacket:(RX INFO) [F-L](1) SCAN_STATE_SCAN_START, ScanType 4, PscnFlag 0x0, PscnEn 0
+[   37.699852] 
+[   37.707127] .(1)[2659:tx_thread][name:wlan_gen2&][wlan]nicRxProcessEventPacket:(RX INFO) [F-L][RESTORE] 5G : CalVal : 0x0  ,  A2DP : 0  , SCO : 0  , CFG : 0  ,  CalValueFail : 0  
+[   37.707127] 
+[   37.778709] .(2)[2659:tx_thread][name:wlan_gen2&][wlan]nicRxProcessEventPacket:(RX INFO) [F-L][RESTORE] 5G : CalVal : 0x0  ,  A2DP : 0  , SCO : 0  , CFG : 0  ,  CalValueFail : 0  
+[   37.778709] 
+[   37.856845] .(3)[2659:tx_thread][name:wlan_gen2&][wlan]nicRxProcessEventPacket:(RX INFO) [F-L][RESTORE] 5G : CalVal : 0x0  ,  A2DP : 0  , SCO : 0  , CFG : 0  ,  CalValueFail : 0  
+[   37.856845] 
+[   37.877334] .(0)[1177:Binder:494_2][name:wlan_gen2&][wlan]netdev_event:(REQ INFO) netdev_event, addr=12ba8c0, notification=1, dev_name=ap0
+[   37.911009] .(0)[710:kworker/u8:4]binder: [name:binder&]binder_flush: 494 woke 3 threads
+[   37.937199] .(0)[2659:tx_thread][name:wlan_gen2&][wlan]nicRxProcessEventPacket:(RX INFO) [F-L][RESTORE] 5G : CalVal : 0x0  ,  A2DP : 0  , SCO : 0  , CFG : 0  ,  CalValueFail : 0  
+[   37.937199] 
+[   37.937503] .(0)[710:kworker/u8:4]binder: [name:binder&]binder_flush: 494 woke 3 threads
+[   37.967078] .(0)[137:display_idle_de][name:primary_display&][LP] - enter: 45, flag:0,1
+[   37.968311] .(0)[185:kworker/u8:3]binder: [name:binder&]binder_flush: 494 woke 3 threads
+[   37.995609] .(2)[137:display_idle_de][MMDVFS][name:mmdvfs_mgr&][pid=137]Set vol scen:21,step:0,final:0(0x0),CMD(0,0,0x0),INFO(0,0)
+[   37.995642] .(2)[137:display_idle_de][name:primary_display&][LP] end: 45, flag:1,0
+[   37.998807] .(2)[185:kworker/u8:3]binder: [name:binder&]binder_flush: 494 woke 3 threads
+[   38.013060] .(1)[2659:tx_thread][name:wlan_gen2&][wlan]nicRxProcessEventPacket:(RX INFO) [F-L][RESTORE] 5G : CalVal : 0x0  ,  A2DP : 0  , SCO : 0  , CFG : 0  ,  CalValueFail : 0  
+[   38.013060] 
+[   38.098931] .(0)[185:kworker/u8:3]binder: [name:binder&]binder_flush: 494 woke 3 threads
+[   38.227061] .(1)[137:display_idle_de][name:primary_display&][LP] - enter: 46, flag:0,1
+[   38.263897] .(1)[137:display_idle_de][MMDVFS][name:mmdvfs_mgr&][pid=137]Set vol scen:21,step:0,final:0(0x0),CMD(0,0,0x0),INFO(0,0)
+[   38.263922] .(1)[137:display_idle_de][name:primary_display&][LP] end: 46, flag:1,0
+[   38.265421] -(0)[1027:Binder:1004_1]AEE_MONITOR_SET[status]: 0x1
+[   38.282735] -(0)[1027:Binder:1004_1][name:mtprof&][signal][1027:Binder:1004_1] send death sig 9 to [1921:ndroid.keychain:R]
+[   38.363940] -(3)[1027:Binder:1004_1][name:mtprof&][signal][1027:Binder:1004_1] send death sig 9 to [2135:.quicksearchbox:R]
+[   38.396057] .(2)[2659:tx_thread][name:wlan_gen2&][wlan]scnFsmGenerateScanDoneMsg:(SCN INFO) Rcv Scan Done, NetIdx 1, Obss 0, Status 0, Seq 1 ,STA MAC:[00:08:22:60:fe:fb] FwVer: 0xa172.4 DriVer:11_70_00_20170104_1
+[   38.396088] .(2)[2659:tx_thread][name:wlan_gen2&][wlan]scnFsmSteps:(SCN STATE) [19] TRANSITION: [1] -> [0]
+[   38.396135] .(2)[2659:tx_thread][name:wlan_gen2&][wlan]p2pFsmStateTransition:(P2P STATE) [22] TRANSITION: [1] -> [0]
+[   38.396217] .(2)[2659:tx_thread][name:wlan_gen2&][wlan]nicRxProcessEventPacket:(RX INFO) [F-L](1) [SCAN]: TotalChNum 13, ToDriver 7, Bcn 5, ProbeRsp 23, [1,2],[2,0],[3,0],[4,0],[5,8],[6,28],[7,15],[8,6],[9,2],[10,3],[11,23],[12,2],[13,0],
+[   38.396217] 
+[   38.396634] .(1)[2665:hostapd][name:wlan_gen2&][wlan]mtk_p2p_cfg80211_testmode_cmd:(P2P INFO) --> mtk_p2p_cfg80211_testmode_cmd()
+[   38.396651] .(1)[2665:hostapd][name:wlan_gen2&][wlan]mtk_p2p_cfg80211_testmode_get_best_channel:(P2P INFO) --> mtk_p2p_cfg80211_testmode_get_best_channel()
+[   38.396668] .(1)[2665:hostapd][name:wlan_gen2&][wlan]mtk_p2p_cfg80211_testmode_get_best_channel:(P2P INFO) [ACS]channel=1, AP num=1, score=4
+[   38.396679] .(1)[2665:hostapd][name:wlan_gen2&][wlan]mtk_p2p_cfg80211_testmode_get_best_channel:(P2P INFO) [ACS]channel=2, AP num=0, score=3
+[   38.396689] .(1)[2665:hostapd][name:wlan_gen2&][wlan]mtk_p2p_cfg80211_testmode_get_best_channel:(P2P INFO) [ACS]channel=3, AP num=0, score=6
+[   38.396700] .(1)[2665:hostapd][name:wlan_gen2&][wlan]mtk_p2p_cfg80211_testmode_get_best_channel:(P2P INFO) [ACS]channel=4, AP num=0, score=9
+[   38.396711] .(1)[2665:hostapd][name:wlan_gen2&][wlan]mtk_p2p_cfg80211_testmode_get_best_channel:(P2P INFO) [ACS]channel=5, AP num=0, score=13
+[   38.396721] .(1)[2665:hostapd][name:wlan_gen2&][wlan]mtk_p2p_cfg80211_testmode_get_best_channel:(P2P INFO) [ACS]channel=6, AP num=4, score=18
+[   38.396731] .(1)[2665:hostapd][name:wlan_gen2&][wlan]mtk_p2p_cfg80211_testmode_get_best_channel:(P2P INFO) [ACS]channel=7, AP num=0, score=15
+[   38.396742] .(1)[2665:hostapd][name:wlan_gen2&][wlan]mtk_p2p_cfg80211_testmode_get_best_channel:(P2P INFO) [ACS]channel=8, AP num=1, score=13
+[   38.396752] .(1)[2665:hostapd][name:wlan_gen2&][wlan]mtk_p2p_cfg80211_testmode_get_best_channel:(P2P INFO) [ACS]channel=9, AP num=0, score=9
+[   38.396762] .(1)[2665:hostapd][name:wlan_gen2&][wlan]mtk_p2p_cfg80211_testmode_get_best_channel:(P2P INFO) [ACS]channel=10, AP num=0, score=5
+[   38.396772] .(1)[2665:hostapd][name:wlan_gen2&][wlan]mtk_p2p_cfg80211_testmode_get_best_channel:(P2P INFO) [ACS]channel=11, AP num=1, score=5
+[   38.396782] .(1)[2665:hostapd][name:wlan_gen2&][wlan]mtk_p2p_cfg80211_testmode_get_best_channel:(P2P INFO) [ACS]channel=12, AP num=0, score=3
+[   38.396792] .(1)[2665:hostapd][name:wlan_gen2&][wlan]mtk_p2p_cfg80211_testmode_get_best_channel:(P2P INFO) [ACS]channel=13, AP num=0, score=2
+[   38.396844] .(0)[2659:tx_thread][name:wlan_gen2&][wlan]wlanoidQueryLteSafeChannel:(P2P INFO) [ACS]Get LTE safe channels
+[   38.397579] .(1)[2659:tx_thread][name:wlan_gen2&][wlan]nicCmdEventQueryLteSafeChn:(P2P INFO) [ACS]LTE safe channels[0]=0x00007ffe
+[   38.397596] .(1)[2659:tx_thread][name:wlan_gen2&][wlan]nicCmdEventQueryLteSafeChn:(P2P INFO) [ACS]LTE safe channels[1]=0x00000000
+[   38.397606] .(1)[2659:tx_thread][name:wlan_gen2&][wlan]nicCmdEventQueryLteSafeChn:(P2P INFO) [ACS]LTE safe channels[2]=0x00000000
+[   38.397617] .(1)[2659:tx_thread][name:wlan_gen2&][wlan]nicCmdEventQueryLteSafeChn:(P2P INFO) [ACS]LTE safe channels[3]=0x00000000
+[   38.397627] .(1)[2659:tx_thread][name:wlan_gen2&][wlan]nicCmdEventQueryLteSafeChn:(P2P INFO) [ACS]LTE safe channels[4]=0x00000000
+[   38.397684] .(0)[2665:hostapd][name:wlan_gen2&][wlan]mtk_p2p_cfg80211_testmode_get_best_channel:(P2P INFO) [ACS]Relpy u4AcsChnReport[2G_BASE_1]=0x80001000
+[   38.397930] .(0)[2665:hostapd][name:wlan_gen2&][wlan]mtk_p2p_cfg80211_del_station:(P2P INFO) mtk_p2p_cfg80211_del_station ReasonCode = 3
+[   38.397963] .(1)[2659:tx_thread][name:wlan_gen2&][wlan]Warning at p2pFsmRunEventConnectionAbort:1383 (FALSE)
+[   38.397987] .(0)[2665:hostapd][name:wlan_gen2&][wlan]mtk_p2p_cfg80211_del_station:(P2P INFO) mtk_p2p_cfg80211_del_station ReasonCode = 3
+[   38.398027] .(1)[2659:tx_thread][name:wlan_gen2&][wlan]Warning at p2pFsmRunEventConnectionAbort:1383 (FALSE)
+[   38.400405] .(0)[2665:hostapd][name:wlan_gen2&][wlan]mtk_p2p_cfg80211_del_key:(P2P INFO) --> mtk_p2p_cfg80211_del_key()
+[   38.400709] .(0)[2665:hostapd][name:wlan_gen2&][wlan]mtk_p2p_cfg80211_del_key:(P2P INFO) --> mtk_p2p_cfg80211_del_key()
+[   38.400949] .(3)[2665:hostapd][name:wlan_gen2&][wlan]mtk_p2p_cfg80211_del_key:(P2P INFO) --> mtk_p2p_cfg80211_del_key()
+[   38.401159] .(2)[2665:hostapd][name:wlan_gen2&][wlan]mtk_p2p_cfg80211_del_key:(P2P INFO) --> mtk_p2p_cfg80211_del_key()
+[   38.403693] .(0)[2665:hostapd][name:wlan_gen2&][wlan]mtk_p2p_cfg80211_start_ap:(P2P INFO) mtk_p2p_cfg80211_start_ap.
+[   38.403712] .(0)[2665:hostapd][name:wlan_gen2&][wlan]mtk_p2p_cfg80211_set_channel:(P2P INFO) mtk_p2p_cfg80211_set_channel.
+[   38.403723] .(0)[2665:hostapd][name:wlan_gen2&][wlan]mtk_p2p_cfg80211func_channel_format_switch:(P2P INFO) --> mtk_p2p_cfg80211func_channel_format_switch()
+[   38.403805] .(3)[2659:tx_thread][name:wlan_gen2&][wlan]p2pFsmRunEventStartAP:(P2P INFO) NFC:p2pFsmRunEventStartAP,fgIsGOInitialDone[0]
+[   38.403814] .(0)[2665:hostapd][name:wlan_gen2&][wlan]mtk_p2p_cfg80211_change_bss:(P2P INFO) --> mtk_p2p_cfg80211_change_bss()
+[   38.403824] .(3)[2659:tx_thread][name:wlan_gen2&][wlan]p2pFsmRunEventStartAP:(P2P INFO) p2pFsmRunEventStartAP GO Scan
+[   38.403841] .(3)[2659:tx_thread][name:wlan_gen2&][wlan]p2pFsmStateTransition:(P2P STATE) [22] TRANSITION: [0] -> [1]
+[   38.403860] .(3)[2659:tx_thread][name:wlan_gen2&][wlan]scnFsmSteps:(SCN STATE) [19] TRANSITION: [0] -> [1]
+[   38.403877] .(3)[2659:tx_thread][name:wlan_gen2&][wlan]scnSendScanReq:(P2P INFO) Channel number 1 for 70ms
+[   38.403888] .(3)[2659:tx_thread][name:wlan_gen2&][wlan]scnSendScanReq:(SCN INFO) ScanReqV1: ScanType=1, SSIDType=1, Num=0, ChannelType=4, Num=1
+[   38.403916] .(3)[2659:tx_thread][name:wlan_gen2&][wlan]nicTxCmd:(TX INFO) ucCmdSeqNum =249, ucCID =30
+[   38.404736] .(2)[2659:tx_thread][name:wlan_gen2&][wlan]nicRxProcessEventPacket:(RX INFO) [F-L]FW receive Scan Cmd!! SeqNum 2, NT 1, ScanType 1, ChMinDT 0, ChDT 70,  ChType 4, ChNum 1 , SSIDType 1, SSIDLen 0, StrVer 0
+[   38.404736] 
+[   38.404812] .(2)[2659:tx_thread][name:wlan_gen2&][wlan]nicRxProcessEventPacket:(RX INFO) [F-L](2) SCAN_STATE_SCAN_START, ScanType 4, PscnFlag 0x0, PscnEn 0
+[   38.404812] 
+[   38.404827] .(0)[2665:hostapd][name:wlan_gen2&][wlan]mtk_p2p_cfg80211_add_key:(P2P INFO) --> mtk_p2p_cfg80211_add_key()
+[   38.404888] .(1)[2659:tx_thread][name:wlan_gen2&][wlan]wlanoidSetAddP2PKey:(REQ INFO) 
+[   38.478632] .(2)[2659:tx_thread][name:wlan_gen2&][wlan]scnFsmGenerateScanDoneMsg:(SCN INFO) Rcv Scan Done, NetIdx 1, Obss 0, Status 0, Seq 2 ,STA MAC:[00:08:22:60:fe:fb] FwVer: 0xa172.4 DriVer:11_70_00_20170104_1
+[   38.478656] .(2)[2659:tx_thread][name:wlan_gen2&][wlan]scnFsmSteps:(SCN STATE) [19] TRANSITION: [1] -> [0]
+[   38.478728] .(2)[2659:tx_thread][name:wlan_gen2&][wlan]nicRxProcessEventPacket:(RX INFO) [F-L](2) [SCAN]: TotalChNum 1, ToDriver 0, Bcn 0, ProbeRsp 0, [13,3],
+[   38.478728] 
+[   38.478759] .(2)[2659:tx_thread][name:wlan_gen2&][wlan]p2pFsmStateTransition:(P2P STATE) [22] TRANSITION: [1] -> [0]
+[   38.478771] .(2)[2659:tx_thread][name:wlan_gen2&][wlan]p2pStateInit_IDLE:(P2P INFO) p2pStateInit_IDLE GO Scan
+[   38.478781] .(2)[2659:tx_thread][name:wlan_gen2&][wlan]p2pFsmStateTransition:(P2P STATE) [22] TRANSITION: [0] -> [3]
+[   38.478799] .(2)[2659:tx_thread][name:wlan_gen2&][wlan]cnmChMngrRequestPrivilege:(CNM INFO) ChReq net=1 token=1 b=1 c=13 s=0
+[   38.478909] .(2)[2659:tx_thread][name:wlan_gen2&][wlan]nicRxProcessEventPacket:(RX INFO) [F-L]g_ScnNoAPCnt 1, g_bAlreadyReK 0, g_AutoReCal 0
+[   38.478909] 
+[   38.479263] .(2)[2659:tx_thread][name:wlan_gen2&][wlan]cnmChMngrHandleChEvent:(CNM INFO) ChGrant net=1 token=1 ch=13 sco=0
+[   38.479297] .(2)[2659:tx_thread][name:wlan_gen2&][wlan]Warning at p2pFuncStartGO:305 (prBssInfo->eCurrentOPMode == OP_MODE_ACCESS_POINT)
+[   38.479308] .(2)[2659:tx_thread][name:wlan_gen2&][wlan]p2pFuncStartGO:(P2P INFO) p2pFuncStartGO:NFC Done[1]
+[   38.479328] .(2)[2659:tx_thread][name:wlan_gen2&][wlan]bssInitForAP:(BSS INFO) Bcast: eAci = 0, ACM = 0, Aifsn = 3, CWmin = 15, CWmax = 1023, TxopLimit = 0
+[   38.479339] .(2)[2659:tx_thread][name:wlan_gen2&][wlan]bssInitForAP:(BSS INFO) Bcast: eAci = 1, ACM = 0, Aifsn = 7, CWmin = 15, CWmax = 1023, TxopLimit = 0
+[   38.479351] .(2)[2659:tx_thread][name:wlan_gen2&][wlan]bssInitForAP:(BSS INFO) Bcast: eAci = 2, ACM = 0, Aifsn = 2, CWmin = 7, CWmax = 15, TxopLimit = 94
+[   38.479362] .(2)[2659:tx_thread][name:wlan_gen2&][wlan]bssInitForAP:(BSS INFO) Bcast: eAci = 3, ACM = 0, Aifsn = 2, CWmin = 3, CWmax = 7, TxopLimit = 47
+[   38.479373] .(2)[2659:tx_thread][name:wlan_gen2&][wlan]bssInitForAP:(BSS INFO) eAci = 0, ACM = 0, Aifsn = 3, CWmin = 15, CWmax = 127, TxopLimit = 0
+[   38.479385] .(2)[2659:tx_thread][name:wlan_gen2&][wlan]bssInitForAP:(BSS INFO) eAci = 1, ACM = 0, Aifsn = 7, CWmin = 15, CWmax = 1023, TxopLimit = 0
+[   38.479396] .(2)[2659:tx_thread][name:wlan_gen2&][wlan]bssInitForAP:(BSS INFO) eAci = 2, ACM = 0, Aifsn = 1, CWmin = 7, CWmax = 15, TxopLimit = 94
+[   38.479407] .(2)[2659:tx_thread][name:wlan_gen2&][wlan]bssInitForAP:(BSS INFO) eAci = 3, ACM = 0, Aifsn = 1, CWmin = 3, CWmax = 7, TxopLimit = 47
+[   38.479422] .(2)[2659:tx_thread][name:wlan_gen2&][wlan]rlmBssInitForAP:(RLM INFO) WLAN AP SCO=0
+[   38.479435] .(2)[2659:tx_thread][name:wlan_gen2&][wlan]rlmFillSyncCmdParam:(RLM INFO) N=1 b=1 c=13 s=0 e=0 h=0 I=0x00 l=1 p=1
+[   38.479479] .(2)[2659:tx_thread][name:wlan_gen2&][wlan]p2pFsmStateTransition:(P2P STATE) [22] TRANSITION: [3] -> [0]
+[   38.486475] .(0)[2659:tx_thread][name:wlan_gen2&][wlan]qmHandleEventBssAbsencePresence:(QM INFO) NAF=1,0,0
+[   38.546974] -(1)[1027:Binder:1004_1][name:mtprof&][signal][1027:Binder:1004_1] send death sig 9 to [2153:iatek.duraspeed:R]
+[   38.618907] .(2)[1242:PhotonicModulat][name:leds&][LED]Set Backlight directly 101 at time 4294941156, mapping level is 101
+[   38.618925] .(2)[1242:PhotonicModulat][name:ddp_aal&]disp_aal_notify_backlight_changed: 405/1023
+[   38.618936] .(2)[1242:PhotonicModulat][AAL] led_mode=5 , aal_need_lock=0
+[   38.642336] .(2)[1242:PhotonicModulat][name:leds&][LED]Set Backlight directly 96 at time 4294941158, mapping level is 96
+[   38.642356] .(2)[1242:PhotonicModulat][AAL] led_mode=5 , aal_need_lock=0
+[   38.652885] .(1)[502:AALServiceMain][name:ddp_pwm&][PWM] (latest= 8):   332( 268, 274)  331( 268, 323)  330( 268, 396)  332( 268, 420)  331( 268, 469)  330( 268, 542)  329( 268, 591)  317( 275, 532)
+[   38.666690] .(2)[1242:PhotonicModulat][name:leds&][LED]Set Backlight directly 91 at time 4294941160, mapping level is 91
+[   38.666711] .(2)[1242:PhotonicModulat][AAL] led_mode=5 , aal_need_lock=0
+[   38.691095] .(0)[1242:PhotonicModulat][name:leds&][LED]Set Backlight directly 87 at time 4294941163, mapping level is 87
+[   38.691116] .(0)[1242:PhotonicModulat][AAL] led_mode=5 , aal_need_lock=0
+[   38.715373] .(0)[1242:PhotonicModulat][name:leds&][LED]Set Backlight directly 82 at time 4294941165, mapping level is 82
+[   38.715394] .(0)[1242:PhotonicModulat][name:ddp_aal&]disp_aal_notify_backlight_changed 385/1023 075.521, 365/1023 075.546, 349/1023 075.570, 329/1023 075.594
+[   38.715406] .(0)[1242:PhotonicModulat][AAL] led_mode=5 , aal_need_lock=0
+[   38.729706] .(0)[2773:.thermalmanager]mtk_cooler_shutdown: [name:mtk_cooler_shutdown&]thermal/cooler/shutdown _mtk_cl_sd_rst_write 1 = 0
+[   38.739922] .(0)[1242:PhotonicModulat][name:leds&][LED]Set Backlight directly 77 at time 4294941168, mapping level is 77
+[   38.739943] .(0)[1242:PhotonicModulat][AAL] led_mode=5 , aal_need_lock=0
+[   38.755399] -(0)[1028:Binder:1004_2][name:mtprof&][signal][1028:Binder:1004_2] send death sig 9 to [2318:iatek.mtklogger:R]
+[   38.764424] .(1)[1242:PhotonicModulat][name:leds&][LED]Set Backlight directly 72 at time 4294941170, mapping level is 72
+[   38.764446] .(1)[1242:PhotonicModulat][AAL] led_mode=5 , aal_need_lock=0
+[   38.788394] .(3)[1242:PhotonicModulat][name:leds&][LED]Set Backlight directly 67 at time 4294941173, mapping level is 67
+[   38.788414] .(3)[1242:PhotonicModulat][AAL] led_mode=5 , aal_need_lock=0
+[   38.812997] .(2)[1242:PhotonicModulat][name:leds&][LED]Set Backlight directly 62 at time 4294941175, mapping level is 62
+[   38.813017] .(2)[1242:PhotonicModulat][name:ddp_aal&]disp_aal_notify_backlight_changed 309/1023 075.619, 289/1023 075.643, 269/1023 075.667, 249/1023 075.692
+[   38.813029] .(2)[1242:PhotonicModulat][AAL] led_mode=5 , aal_need_lock=0
+[   38.838331] .(1)[1242:PhotonicModulat][name:leds&][LED]Set Backlight directly 57 at time 4294941178, mapping level is 57
+[   38.838353] .(1)[1242:PhotonicModulat][AAL] led_mode=5 , aal_need_lock=0
+[   38.847735] .(2)[502:AALServiceMain][name:ddp_pwm&][PWM] (latest= 8):   307( 275, 556)  296( 275, 580)  284( 275, 605)  273( 275, 629)  262( 275, 653)  251( 275, 678)  239( 275, 702)  228( 275, 727)
+[   38.862317] .(1)[1242:PhotonicModulat][name:leds&][LED]Set Backlight directly 52 at time 4294941180, mapping level is 52
+[   38.862340] .(1)[1242:PhotonicModulat][AAL] led_mode=5 , aal_need_lock=0
+[   38.886183] .(1)[1242:PhotonicModulat][name:leds&][LED]Set Backlight directly 48 at time 4294941182, mapping level is 48
+[   38.886206] .(1)[1242:PhotonicModulat][AAL] led_mode=5 , aal_need_lock=0
+[   38.902804] -(2)[1027:Binder:1004_1][name:mtprof&][signal][1027:Binder:1004_1] send death sig 9 to [2331:d.carrierconfig:R]
+[   38.910920] .(1)[1242:PhotonicModulat][name:leds&][LED]Set Backlight directly 43 at time 4294941185, mapping level is 43
+[   38.910940] .(1)[1242:PhotonicModulat][name:ddp_aal&]disp_aal_notify_backlight_changed 229/1023 075.717, 209/1023 075.741, 193/1023 075.765, 173/1023 075.790
+[   38.910952] .(1)[1242:PhotonicModulat][AAL] led_mode=5 , aal_need_lock=0
+[   38.935840] .(1)[1242:PhotonicModulat][name:leds&][LED]Set Backlight directly 38 at time 4294941187, mapping level is 38
+[   38.935862] .(1)[1242:PhotonicModulat][AAL] led_mode=5 , aal_need_lock=0
+[   38.959485] .(1)[1242:PhotonicModulat][name:leds&][LED]Set Backlight directly 33 at time 4294941190, mapping level is 33
+[   38.959507] .(1)[1242:PhotonicModulat][AAL] led_mode=5 , aal_need_lock=0
+[   38.983168] .(2)[1242:PhotonicModulat][name:leds&][LED]Set Backlight directly 28 at time 4294941192, mapping level is 28
+[   38.983201] .(2)[1242:PhotonicModulat][AAL] led_mode=5 , aal_need_lock=0
+[   39.007992] .(1)[1242:PhotonicModulat][name:leds&][LED]Set Backlight directly 23 at time 4294941195, mapping level is 23
+[   39.008014] .(1)[1242:PhotonicModulat][name:ddp_aal&]disp_aal_notify_backlight_changed 152/1023 075.815, 132/1023 075.838, 112/1023 075.862, 92/1023 075.887
+[   39.008025] .(1)[1242:PhotonicModulat][AAL] led_mode=5 , aal_need_lock=0
+[   39.031755] .(3)[1242:PhotonicModulat][name:leds&][LED]Set Backlight directly 18 at time 4294941197, mapping level is 18
+[   39.031776] .(3)[1242:PhotonicModulat][AAL] led_mode=5 , aal_need_lock=0
+[   39.042557] .(1)[502:AALServiceMain][name:ddp_pwm&][PWM] (latest= 8):   217( 275, 751)  205( 275, 775)  194( 275, 800)  182( 275, 824)  171( 275, 848)  159( 275, 873)  147( 275, 897)  135( 275, 921)
+[   39.056350] .(1)[1242:PhotonicModulat][name:leds&][LED]Set Backlight directly 13 at time 4294941199, mapping level is 13
+[   39.056372] .(1)[1242:PhotonicModulat][AAL] led_mode=5 , aal_need_lock=0
+[   39.081064] .(0)[1242:PhotonicModulat][name:leds&][LED]Set Backlight directly 10 at time 4294941202, mapping level is 10
+[   39.081085] .(0)[1242:PhotonicModulat][AAL] led_mode=5 , aal_need_lock=0
+[   39.145766] .(1)[6:kworker/u8:0]binder: [name:binder&]binder_flush: 2819 woke 2 threads
+[   39.237379] .(1)[502:AALServiceMain][name:ddp_pwm&][PWM] (latest= 8):   123( 275, 946)  112( 275, 971)  100( 275, 994)   89( 276,  19)   77( 276,  43)   65( 276,  67)   53( 276,  92)   41( 276, 116)
+[   39.266172] .(2)[223:bat_thread_kthr]AEE_MONITOR_SET[status]: 0x1
+[   39.367462] .(2)[223:bat_thread_kthr][FGADC] 1,9441,4,4013,85,100,100,2500,2500,-259,0,0,1000,4272,1000,0,0,104,103
+[   39.369540] .(3)[223:bat_thread_kthr]AvgVbat=(4296,4272),AvgI=(384,0),VChr=5033,AvgT=(25,25),SOC=(100,100),UI_SOC=100,ZCV=4013,CHR_Type=1 bcct:0:0 I:65000 Ibat:949
+[   39.371951] .(3)[223:bat_thread_kthr]v=4272,i=0,t=25,soc=100,bcct:0:0 I:65000 Ibat:949
+[   39.376580] .(2)[223:bat_thread_kthr][name:charging_hw_fan5405&][chr_control_interface]UNSUPPORT Function: 48
+[   39.376594] .(2)[223:bat_thread_kthr][BATTERY] Battery full !!
+[   39.376594] 
+[   39.377126] .(2)[223:bat_thread_kthr][name:charging_hw_fan5405&][chr_control_interface]UNSUPPORT Function: 44
+[   39.383366] .(1)[223:bat_thread_kthr][100percent], UI_SOC(100), reset(0) bat_full(1) ever100(1)
+[   39.384499] .(1)[223:bat_thread_kthr][recharging] UI_SOC=100, SOC=100
+[   39.385330] .(1)[223:bat_thread_kthr]UI_SOC=(100), resetBatteryMeter=(0)
+[   39.386265] .(1)[223:bat_thread_kthr]mtk_rtc_common: set_rtc_spare_fg_value, 100
+[   39.387345] .(1)[223:bat_thread_kthr][DLPT_POWER_OFF_EN] run
+[   39.397071] .(3)[137:display_idle_de][name:primary_display&][LP] - enter: 47, flag:0,1
+[   39.432362] .(0)[137:display_idle_de][MMDVFS][name:mmdvfs_mgr&][pid=137]Set vol scen:21,step:0,final:0(0x0),CMD(0,0,0x0),INFO(0,0)
+[   39.432484] .(0)[137:display_idle_de][name:primary_display&][LP] end: 47, flag:1,0
+[   39.505829] .(3)[2659:tx_thread][name:wlan_gen2&][wlan]nicRxProcessEventPacket:(RX INFO) [F-L]FW Version: 0xA1.72.4  ConnectionStatus[1, 1]. CurrentTP Tx: 9 Kbps( 0 Mbps). Rx: 0 Kbps( 0 Mbps). g_fgPhoneSuspended 0. g_Hotspot 1  EB 0  MEM  32  I: 0  C: 0  W: 2063807 Gamemode 0 
+[   39.505829] 
+[   39.524449] .(0)[710:kworker/u8:4]binder: [name:binder&]binder_flush: 2819 woke 2 threads
+[   39.548809] .(0)[6:kworker/u8:0]binder: [name:binder&]binder_flush: 2819 woke 2 threads
+[   39.572770] .(1)[185:kworker/u8:3]binder: [name:binder&]binder_flush: 2819 woke 2 threads
+[   39.596799] .(1)[710:kworker/u8:4]binder: [name:binder&]binder_flush: 2819 woke 3 threads
+[   39.622370] .(3)[710:kworker/u8:4]binder: [name:binder&]binder_flush: 2819 woke 4 threads
+[   39.646694] .(2)[6:kworker/u8:0]binder: [name:binder&]binder_flush: 2819 woke 4 threads
+[   39.670111] .(0)[185:kworker/u8:3]binder: [name:binder&]binder_flush: 2819 woke 4 threads
+[   39.693854] .(3)[6:kworker/u8:0]binder: [name:binder&]binder_flush: 2819 woke 4 threads
+[   39.717435] .(1)[6:kworker/u8:0]binder: [name:binder&]binder_flush: 2819 woke 4 threads
+[   39.741456] .(2)[710:kworker/u8:4]binder: [name:binder&]binder_flush: 2819 woke 4 threads
+[   39.764538] .(1)[710:kworker/u8:4]binder: [name:binder&]binder_flush: 2819 woke 4 threads
+[   39.788814] .(2)[6:kworker/u8:0]binder: [name:binder&]binder_flush: 2819 woke 4 threads
+[   39.812963] .(2)[6:kworker/u8:0]binder: [name:binder&]binder_flush: 2819 woke 4 threads
+[   39.829027] .(3)[2234:apk_update_thre]Dump cpuinfo
+[   39.836849] .(1)[710:kworker/u8:4]binder: [name:binder&]binder_flush: 2819 woke 4 threads
+[   39.861118] .(0)[710:kworker/u8:4]binder: [name:binder&]binder_flush: 2819 woke 4 threads
+[   39.884770] .(1)[6:kworker/u8:0]binder: [name:binder&]binder_flush: 2819 woke 4 threads
+[   39.906518] .(1)[185:kworker/u8:3]binder: [name:binder&]binder_flush: 2819 woke 4 threads
+[   39.929871] .(2)[710:kworker/u8:4]binder: [name:binder&]binder_flush: 2819 woke 4 threads
+[   39.953681] .(3)[6:kworker/u8:0]binder: [name:binder&]binder_flush: 2819 woke 4 threads
+[   39.977077] .(0)[710:kworker/u8:4]binder: [name:binder&]binder_flush: 2819 woke 4 threads
+[   40.001128] .(0)[6:kworker/u8:0]binder: [name:binder&]binder_flush: 2819 woke 4 threads
+[   40.023972] .(1)[185:kworker/u8:3]binder: [name:binder&]binder_flush: 2819 woke 4 threads
+[   40.047687] .(2)[185:kworker/u8:3]binder: [name:binder&]binder_flush: 2819 woke 4 threads
+[   40.070479] .(2)[185:kworker/u8:3]binder: [name:binder&]binder_flush: 2819 woke 4 threads
+[   40.094345] .(1)[185:kworker/u8:3]binder: [name:binder&]binder_flush: 2819 woke 4 threads
+[   40.150353] .(3)[710:kworker/u8:4]binder: [name:binder&]binder_flush: 2819 woke 4 threads
+[   40.266857] .(0)[137:display_idle_de]AEE_MONITOR_SET[status]: 0x1
+[   40.267049] .(0)[137:display_idle_de][name:primary_display&][LP] - enter: 48, flag:0,1
+[   40.309041] .(1)[137:display_idle_de][MMDVFS][name:mmdvfs_mgr&][pid=137]Set vol scen:21,step:0,final:0(0x0),CMD(0,0,0x0),INFO(0,0)
+[   40.309078] .(1)[137:display_idle_de][name:primary_display&][LP] end: 48, flag:1,0
+[   40.727053] .(3)[137:display_idle_de][name:primary_display&][LP] - enter: 49, flag:0,1
+[   40.771707] .(1)[137:display_idle_de][MMDVFS][name:mmdvfs_mgr&][pid=137]Set vol scen:21,step:0,final:0(0x0),CMD(0,0,0x0),INFO(0,0)
+[   40.771730] .(1)[137:display_idle_de][name:primary_display&][LP] end: 49, flag:1,0
+[   40.901180] -(2)[1575:Binder:1004_6][name:mtprof&][signal][1575:Binder:1004_6] send death sig 9 to [2479:gedprovisioning:R]
+[   40.937141] .(3)[55:dlpt_notify_thr][name:pmic&][dlpt] get_dlpt_imix_charging 6256 4282 3100 170
+[   40.939319] .(3)[55:dlpt_notify_thr][PBM] [ma_to_mw] 4282(mV) * 5500(mA) = 23551(mW)
+[   40.940335] .(3)[55:dlpt_notify_thr][name:pmic&][exec_dlpt_callback] g_dlpt_val=5500
+[   40.940349] .(3)[55:dlpt_notify_thr][name:pmic&][DLPT_final] 5500,0,100,100,5500
+[   41.054582] .(1)[6:kworker/u8:0]binder: [name:binder&]binder_flush: 2168 woke 5 threads
+[   41.094389] -(1)[1027:Binder:1004_1][name:mtprof&][signal][1027:Binder:1004_1] send death sig 9 to [1894:id.printspooler:R]
+[   41.125793] -(3)[2985:app_process32][name:mtprof&][signal][2985:app_process32] send death sig 13 to [2985:app_process32:R]
+[   41.127208] .(2)[1:init]init: Untracked pid 2985 killed by signal 13
+[   41.151490] .(3)[2194:PTF-BackgroundE]Dump cpuinfo
+[   41.178789] .(0)[710:kworker/u8:4]binder: [name:binder&]binder_flush: 2168 woke 5 threads
+[   41.203526] .(0)[1242:PhotonicModulat][name:leds&][LED]Set Backlight directly 0 at time 4294941414, mapping level is 0
+[   41.203546] .(0)[1242:PhotonicModulat][name:ddp_aal&]disp_aal_notify_backlight_changed 72/1023 075.911, 52/1023 075.935, 40/1023 075.960, 0/1023 078.082
+[   41.203566] .(0)[1242:PhotonicModulat][name:ddp_pwm&][PWM] (latest= 2):    32( 276, 141)    0( 278,  82)
+[   41.203576] .(0)[1242:PhotonicModulat][PWM] disp_pwm_set_backlight_cmdq(id = 0x1, level_1024 = 0), old = 32
+[   41.204832] .(0)[1242:PhotonicModulat][AAL] led_mode=5 , aal_need_lock=0
+[   41.206374] .(2)[1141:PowerManagerSer]<HWMSEN> hwmsen_enable 607 : the sensor (0) is not attached!!
+[   41.209231] .(2)[2006:Binder:1004_A]<HWMSEN> hwmsen_enable 607 : the sensor (7) is not attached!!
+[   41.210068] .(3)[502:AALServiceMain][name:ddp_pwm&][PWM] (latest= 1):     0( 278,  89)
+[   41.210073] .(3)[502:AALServiceMain][PWM] disp_pwm_set_backlight_cmdq(id = 0x1, level_1024 = 0), old = 0
+[   41.219976] .(1)[2940:pool-1-thread-1]Dump cpuinfo
+[   41.236807] .(1)[302:surfaceflinger][name:mtk_extd_mgr&][EXTD-MGR]:[fb_notifier_callback] - blank_mode:4
+[   41.287984] -(3)[1575:Binder:1004_6][name:mtprof&][signal][1575:Binder:1004_6] send death sig 9 to [2449:ndroid.exchange:R]
+[   41.707123] .(0)[302:surfaceflinger][PWM] backlight is off, ddp_pwm power:(0)
+[   41.712482] .(0)[302:surfaceflinger][MMDVFS][name:mmdvfs_mgr&][pid=302]Set vol scen:21,step:0,final:0(0x0),CMD(0,0,0x0),INFO(0,0)
+[   41.712502] .(0)[302:surfaceflinger][SMI][name:smi_common&][pid=302]backup fail!!
+[   41.712552] .(0)[302:surfaceflinger][ION]ion_fb_event: + screen-off +
+[   41.712559] .(0)[302:surfaceflinger][ION]ion_fb_event: - screen-off -
+[   41.712564] .(0)[302:surfaceflinger][Power/cpufreq] @_mt_cpufreq_lcm_status_switch: LCM is off
+[   41.712679] -(3)[502:AALServiceMain][name:devapc&][DEVAPC] Device Access Permission Read Violation - Process:AALServiceMain PID:502 Vio Addr:0x1400d000 , Bus ID:0x6 , Dom ID:0x0
+[   41.712688] -(3)[502:AALServiceMain][name:devapc&][DEVAPC] VIO_STA 0:0x0, 1:0x0, 2:0x800000, 3:0x2400000, 4:0x0
+[   41.712789] .(0)[302:surfaceflinger][name:mt_cpufreq&][Power/cpufreq] @_mt_cpufreq_set_locked(): Vproc = 1093mv, freq = 1040000 KHz
+[   41.712818] .(0)[302:surfaceflinger][VcoreFS] [name:mt_vcore_dvfs_1&]feature_en: 1(6), recover_en: 1, kicker: 2, new_opp: -1(0)
+[   41.712825] .(0)[302:surfaceflinger][VcoreFS] [name:mt_vcore_dvfs_1&][-1, -1, -1, -1, 0, -1]
+[   41.712832] .(0)[302:surfaceflinger][VcoreFS] [name:mt_vcore_dvfs_1&]kicker: 2, opp: 0, curr_opp: 0(0)
+[   41.712844] .(0)[302:surfaceflinger][VcoreFS] [name:mt_vcore_dvfs_1&]opp: 0, vcore: 1150000(1150000) 
+[   41.712854] .(0)[302:surfaceflinger][VcoreFS] [name:mt_vcore_dvfs_1&][-1, -1, -1, -1, 0, -1]
+[   41.712862] .(0)[302:surfaceflinger][VcoreFS] [name:mt_vcore_dvfs_1&]opp: 0, faxi: 218000(218000), fvenc: 300000(300000) 
+[   41.712878] .(0)[302:surfaceflinger][VcoreFS] [name:mt_vcore_dvfs_1&]opp: 0, fddr: 1466000(1466000) 
+[   41.712883] .(0)[302:surfaceflinger]
+[   41.712883] <<SOC DVFS FLIPER>> Early Suspend and flip to E(0)
+[   41.712887] .(0)[302:surfaceflinger]fliper disable ---
+[   41.712895] .(0)[302:surfaceflinger][HIF-SDIO][W]wmt_fb_notifier_callback:@@@@@@@@@@wmt enter early POWERDOWN @@@@@@@@@@@@@@
+[   41.717953] .(0)[347:kworker/0:2][HIF-SDIO][I]mtk_wcn_wmt_func_ctrl:wmt-exp: OPID(4) type(9) start
+[   41.747078] .(0)[347:kworker/0:2][name:psm_core&][STP-PSM] [I]_stp_psm_do_wait: STP is waiting state for ACT, i=1, state = 0
+[   41.747128] .(3)[308:mtk_wmtd][WMT-CORE][I]wmt_core_dump_func_state:[AF FUNC OFF]status(b:0 f:0 g:0 w:2 lpbk:0 coredump:0 wmt:2 ant:0 sd1:0 sd2:0 stp:0)
+[   41.748957] .(0)[347:kworker/0:2][HIF-SDIO][I]mtk_wcn_wmt_func_ctrl:OPID(4) type(9) ok
+[   41.915013] .(1)[273:logd.auditd]type=1400 audit(1553157278.780:18): avc: denied { read } for pid=3020 comm="pool-9-thread-1" name="idVendor" dev="sysfs" ino=16476 scontext=u:r:untrusted_app:s0:c512,c768 tcontext=u:object_r:sysfs:s0 tclass=file permissive=1
+[   41.918695] .(1)[273:logd.auditd]type=1400 audit(1553157278.780:19): avc: denied { open } for pid=3020 comm="pool-9-thread-1" path="/sys/devices/virtual/android_usb/android0/idVendor" dev="sysfs" ino=16476 scontext=u:r:untrusted_app:s0:c512,c768 tcontext=u:object_r:sysfs:s0 tclass=file permissive=1
+[   41.922502] .(1)[273:logd.auditd]type=1400 audit(1553157278.780:20): avc: denied { getattr } for pid=3020 comm="pool-9-thread-1" path="/sys/devices/virtual/android_usb/android0/idVendor" dev="sysfs" ino=16476 scontext=u:r:untrusted_app:s0:c512,c768 tcontext=u:object_r:sysfs:s0 tclass=file permissive=1
+[   42.341762] -(3)[19:migration/3][name:ca53_timer&]arch_timer_teardown disable IRQ29 cpu #3
+[   42.341867] .(1)[98:hps_main]CPU3: shutdown
+[   42.343764] .(1)[98:hps_main][HPS] (0200)(4)action end(32)(33)(0)(0) (4)(4)(4)(4)(1) (0)(0)(0) (1880)(84)(4) (0)(33)(84)(0)(33) wifi_base(0)
+[   43.146636] -(2)[15:migration/2][name:ca53_timer&]arch_timer_teardown disable IRQ29 cpu #2
+[   43.146746] .(1)[98:hps_main]CPU2: shutdown
+[   43.148717] .(1)[98:hps_main][name:teei&]cpu down prepare ************************
+[   43.148743] .(1)[98:hps_main][name:teei&]change cpu id from [1] to [0]
+[   43.149398] -(1)[11:migration/1][name:ca53_timer&]arch_timer_teardown disable IRQ29 cpu #1
+[   43.149470] .(0)[98:hps_main]CPU1: shutdown
+[   43.151120] .(0)[98:hps_main][name:teei&]cpu down success ***********************
+[   43.151495] .(0)[98:hps_main][HPS] (0200)(3)action end(19)(20)(0)(0) (4)(4)(4)(4)(1) (32)(8)(0) (82)(8)(0) (0)(20)(8)(0)(20) wifi_base(0)
+[   43.497125] .(0)[2659:tx_thread][name:wlan_gen2&][wlan]cnmChMngrAbortPrivilege:(CNM INFO) ChAbort net=1 token=1
+[   43.653594] -(1)[0:swapper/1]CPU1: Booted secondary processor
+[   43.653624] -(1)[0:swapper/1]Detected VIPT I-cache on CPU1
+[   43.654134] .(0)[98:hps_main][name:mtk_wdt&][mtk_wdt_cpu_callback]bind kicker thread[227] to cpu[1]
+[   43.654543] -(2)[0:swapper/2]CPU2: Booted secondary processor
+[   43.654563] -(2)[0:swapper/2]Detected VIPT I-cache on CPU2
+[   43.655048] .(0)[98:hps_main][name:mtk_wdt&][mtk_wdt_cpu_callback]bind kicker thread[228] to cpu[2]
+[   43.655446] -(0)[0:swapper/0][Power/swap]DP: No enter --- SODI: No enter --- 
+[   43.655463] -(3)[0:swapper/3]CPU3: Booted secondary processor
+[   43.655471] -(3)[0:swapper/3]Detected VIPT I-cache on CPU3
+[   43.658369] .(0)[98:hps_main][name:mtk_wdt&][mtk_wdt_cpu_callback]bind kicker thread[229] to cpu[3]
+[   43.658651] .(0)[98:hps_main][HPS] (0020)(1)action end(100)(346)(0)(1) (4)(4)(4)(4)(1) (114)(4)(0) (0)(0)(0) (1)(346)(5)(0)(346) wifi_base(0)
+[   44.309119] -(1)[0:swapper/1][PTP] ptp_set_ptp_volt(): cur_temp = 37600, valid = 1
+[   44.334272] -(1)[0:swapper/1][PTP] ptp_set_ptp_volt(): cur_temp = 37600, valid = 1
+[   44.417025] .(2)[228:wdtk-2][name:wd_common_drv&][WDK],local_bit:0x4,cpu:2,check bit0x:f,3,1,43655300026,RT[44417010489]
+[   44.417052] .(2)[228:wdtk-2][name:wd_common_drv&][thread:228][RT:44417041874] 2019-03-21 08:34:41.296387 UTC;android time 2019-03-21 16:34:41.296387
+[   44.417070] .(1)[227:wdtk-1][name:wd_common_drv&][WDK],local_bit:0x6,cpu:1,check bit0x:f,3,1,43655300026,RT[44417061643]
+[   44.427022] .(0)[226:wdtk-0][name:wd_common_drv&][WDK],local_bit:0x7,cpu:0,check bit0x:f,3,1,43655300026,RT[44427013951]
+[   44.427042] .(3)[229:wdtk-3][name:wd_common_drv&][WDK],local_bit:0xf,cpu:3,check bit0x:f,3,1,43655300026,RT[44427033258]
+[   44.427055] .(3)[229:wdtk-3][WDK]: kick Ex WDT,RT[44427051720]
+[   44.461523] -(3)[19:migration/3][name:ca53_timer&]arch_timer_teardown disable IRQ29 cpu #3
+[   44.461626] .(0)[98:hps_main]CPU3: shutdown
+[   44.464108] -(2)[15:migration/2][name:ca53_timer&]arch_timer_teardown disable IRQ29 cpu #2
+[   44.464205] .(1)[98:hps_main]CPU2: shutdown
+[   44.466528] -(1)[11:migration/1][name:ca53_timer&]arch_timer_teardown disable IRQ29 cpu #1
+[   44.466590] .(0)[98:hps_main]CPU1: shutdown
+[   44.468205] .(0)[98:hps_main][HPS] (0200)(4)action end(5)(5)(0)(0) (4)(4)(4)(4)(1) (0)(0)(0) (376)(8)(0) (0)(5)(8)(0)(5) wifi_base(0)
+[   45.103614] .(0)[419:batterywarning][Battery] show_BatteryNotify : 0
+[   45.347019] .(0)[347:kworker/0:2][name:psm_core&][STP-PSM] [I]_stp_psm_do_wait: STP is waiting state for ACT, i=1, state = 0
+[   45.347334] .(0)[308:mtk_wmtd][WMT-CORE][I]opfunc_therm_ctrl:Send WMT_THERM_CTRL_CMD command OK!
+[   45.348788] .(0)[308:mtk_wmtd][WMT-CORE][I]opfunc_therm_ctrl:Send WMT_THERM_READ_CMD command OK!
+[   45.350236] .(0)[308:mtk_wmtd][WMT-CORE][I]opfunc_therm_ctrl:Send WMT_THERM_CTRL_CMD command OK!
+[   45.351384] .(0)[347:kworker/0:2][HIF-SDIO][I]wmt_dev_tm_temp_query:[Thermal] current_temp = 0x21
+[   47.687015] .(0)[0:swapper/0]IPv6: [mtk_net][vzw]RA init Fail
+[   47.687786] .(0)[0:swapper/0]IPv6: [VzW]ap0: no IPv6 routers present
+[   47.971735] -(1)[0:swapper/1]CPU1: Booted secondary processor
+[   47.971762] -(1)[0:swapper/1]Detected VIPT I-cache on CPU1
+[   47.972248] .(0)[98:hps_main][name:mtk_wdt&][mtk_wdt_cpu_callback]bind kicker thread[227] to cpu[1]
+[   47.972668] -(2)[0:swapper/2]CPU2: Booted secondary processor
+[   47.972693] -(2)[0:swapper/2]Detected VIPT I-cache on CPU2
+[   47.973207] .(0)[98:hps_main][name:mtk_wdt&][mtk_wdt_cpu_callback]bind kicker thread[228] to cpu[2]
+[   47.973628] -(3)[0:swapper/3]CPU3: Booted secondary processor
+[   47.973649] -(3)[0:swapper/3]Detected VIPT I-cache on CPU3
+[   47.974192] .(0)[98:hps_main][name:mtk_wdt&][mtk_wdt_cpu_callback]bind kicker thread[229] to cpu[3]
+[   47.974458] .(0)[98:hps_main][HPS] (0020)(1)action end(100)(318)(0)(1) (4)(4)(4)(4)(1) (23)(34)(0) (0)(0)(0) (1)(318)(35)(0)(318) wifi_base(0)
+[   48.733097] -(2)[1575:Binder:1004_6][name:mtprof&][signal][1575:Binder:1004_6] send death sig 9 to [2510:timeinitializer:R]
+[   48.777286] -(3)[19:migration/3][name:ca53_timer&]arch_timer_teardown disable IRQ29 cpu #3
+[   48.777388] .(0)[98:hps_main]CPU3: shutdown
+[   48.779677] -(2)[15:migration/2][name:ca53_timer&]arch_timer_teardown disable IRQ29 cpu #2
+[   48.779772] .(1)[98:hps_main]CPU2: shutdown
+[   48.781922] -(1)[11:migration/1][name:ca53_timer&]arch_timer_teardown disable IRQ29 cpu #1
+[   48.781985] .(0)[98:hps_main]CPU1: shutdown
+[   48.783467] .(0)[98:hps_main][HPS] (0200)(4)action end(55)(68)(0)(0) (4)(4)(4)(4)(1) (0)(0)(0) (80)(8)(0) (0)(68)(8)(0)(68) wifi_base(0)
+[   49.380617] .(0)[223:bat_thread_kthr][FGADC] 1,8228,6,4103,94,100,100,2500,2500,-214,0,0,1000,4317,1000,0,0,104,103
+[   49.382673] .(0)[223:bat_thread_kthr]AvgVbat=(4296,4317),AvgI=(368,14),VChr=5033,AvgT=(25,25),SOC=(100,100),UI_SOC=100,ZCV=4103,CHR_Type=1 bcct:0:0 I:65000 Ibat:825
+[   49.385025] .(0)[223:bat_thread_kthr]v=4317,i=14,t=25,soc=100,bcct:0:0 I:65000 Ibat:825
+[   49.387973] .(0)[223:bat_thread_kthr][name:charging_hw_fan5405&][chr_control_interface]UNSUPPORT Function: 48
+[   49.387985] .(0)[223:bat_thread_kthr][BATTERY] Battery full !!
+[   49.387985] 
+[   49.388446] .(0)[223:bat_thread_kthr][name:charging_hw_fan5405&][chr_control_interface]UNSUPPORT Function: 44
+[   49.393783] .(0)[223:bat_thread_kthr][100percent], UI_SOC(100), reset(0) bat_full(1) ever100(1)
+[   49.394891] .(0)[223:bat_thread_kthr][recharging] UI_SOC=100, SOC=100
+[   49.395720] .(0)[223:bat_thread_kthr]UI_SOC=(100), resetBatteryMeter=(0)
+[   49.396666] .(0)[223:bat_thread_kthr]mtk_rtc_common: set_rtc_spare_fg_value, 100
+[   49.398795] .(0)[223:bat_thread_kthr][DLPT_POWER_OFF_EN] run
+[   50.944570] .(0)[55:dlpt_notify_thr][name:pmic&][dlpt] get_dlpt_imix_charging 6436 4316 3100 170
+[   50.946721] .(0)[55:dlpt_notify_thr][PBM] [ma_to_mw] 4317(mV) * 5500(mA) = 23743(mW)
+[   50.947744] .(0)[55:dlpt_notify_thr][name:pmic&][exec_dlpt_callback] g_dlpt_val=5500
+[   50.947759] .(0)[55:dlpt_notify_thr][name:pmic&][DLPT_final] 5500,0,100,100,5500
+[   52.215111] -(0)[1395:Binder:1004_5][name:mtprof&][signal][1395:Binder:1004_5] send death sig 9 to [2565:.batterywarning:R]
+[   52.257021] .(0)[347:kworker/0:2][C2K MODEM] start heart beat timer 1
+[   52.257864] .(0)[347:kworker/0:2][name:c2k_sdio&][C2K] before wait tx done
+[   52.257877] .(0)[347:kworker/0:2][name:c2k_sdio&][C2K] after wait tx done
+[   52.264206] .(0)[347:kworker/0:2][name:c2k_sdio&][C2K SDIO] write ctrl channel start, len = 12
+[   52.264257] .(0)[347:kworker/0:2][name:c2k_sdio&][C2K SDIO] write ctrl channel done, len = 12
+[   52.281329] .(0)[738:ksdioirqd/mmc2][C2K MODEM] heart beat msg received 1
+[   53.657033] -(0)[0:swapper/0][Power/swap]DP: No enter --- SODI: No enter --- 
+[   55.104620] .(0)[419:batterywarning][Battery] show_BatteryNotify : 0
+[   55.407013] .(0)[347:kworker/0:2][name:psm_core&][STP-PSM] [I]_stp_psm_do_wait: STP is waiting state for ACT, i=1, state = 0
+[   55.407323] .(0)[308:mtk_wmtd][WMT-CORE][I]opfunc_therm_ctrl:Send WMT_THERM_CTRL_CMD command OK!
+[   55.408775] .(0)[308:mtk_wmtd][WMT-CORE][I]opfunc_therm_ctrl:Send WMT_THERM_READ_CMD command OK!
+[   55.410224] .(0)[308:mtk_wmtd][WMT-CORE][I]opfunc_therm_ctrl:Send WMT_THERM_CTRL_CMD command OK!
+[   55.411372] .(0)[347:kworker/0:2][HIF-SDIO][I]wmt_dev_tm_temp_query:[Thermal] current_temp = 0x1f
+[   57.146754] .(0)[273:logd.auditd]type=1400 audit(1553157294.010:21): avc: denied { getattr } for pid=3052 comm="sh" path="/nvdata" dev="mmcblk0p18" ino=2 scontext=u:r:shell:s0 tcontext=u:object_r:nvdata_file:s0 tclass=dir permissive=1
+[   57.410820] .(0)[273:logd.auditd]type=1400 audit(1553157294.280:22): avc: denied { search } for pid=3052 comm="sh" name="/" dev="mmcblk0p18" ino=2 scontext=u:r:shell:s0 tcontext=u:object_r:nvdata_file:s0 tclass=dir permissive=1
+[   58.264906] .(0)[1495:watchdog]AEEIOCTL_RT_MON_Kick ( 300)
+[   58.265624] .(0)[1495:watchdog][Hang_Detect] hang_detect enabled 10
+[   59.380298] .(0)[223:bat_thread_kthr][FGADC] 1,7096,8,4136,98,100,100,2500,2500,-180,0,0,1000,4316,1000,0,0,104,103
+[   59.382351] .(0)[223:bat_thread_kthr]AvgVbat=(4297,4316),AvgI=(351,0),VChr=5033,AvgT=(25,25),SOC=(100,100),UI_SOC=100,ZCV=4136,CHR_Type=1 bcct:0:0 I:65000 Ibat:709
+[   59.384692] .(0)[223:bat_thread_kthr]v=4316,i=0,t=25,soc=100,bcct:0:0 I:65000 Ibat:709
+[   59.387485] .(0)[223:bat_thread_kthr][name:charging_hw_fan5405&][chr_control_interface]UNSUPPORT Function: 48
+[   59.387497] .(0)[223:bat_thread_kthr][BATTERY] Battery full !!
+[   59.387497] 
+[   59.387958] .(0)[223:bat_thread_kthr][name:charging_hw_fan5405&][chr_control_interface]UNSUPPORT Function: 44
+[   59.393301] .(0)[223:bat_thread_kthr][100percent], UI_SOC(100), reset(0) bat_full(1) ever100(1)
+[   59.394409] .(0)[223:bat_thread_kthr][recharging] UI_SOC=100, SOC=100
+[   59.395237] .(0)[223:bat_thread_kthr]UI_SOC=(100), resetBatteryMeter=(0)
+[   59.396172] .(0)[223:bat_thread_kthr]mtk_rtc_common: set_rtc_spare_fg_value, 100
+[   59.397870] .(0)[223:bat_thread_kthr][DLPT_POWER_OFF_EN] run
+[   59.399591] .(0)[291:healthd]healthd: Unknown battery status '3'
+[   59.400840] .(0)[291:healthd]healthd: battery l=100 v=4297 t=25.0 h=2 st=5 chg=u
+[   59.401796] .(0)[291:healthd]healthd: battery l=100 v=4297 t=25.0 h=2 st=5 chg=u
+[   59.402801] .(0)[291:healthd]healthd: send_already = 0
+[   59.437513] -(0)[2006:Binder:1004_A][name:mtprof&][signal][2006:Binder:1004_A] send death sig 9 to [2282:.android.dialer:R]
+[   59.438061] -(0)[2006:Binder:1004_A][name:mtprof&][signal][2006:Binder:1004_A] send death sig 9 to [2618:ek.connectivity:R]
+[   59.438410] -(0)[2006:Binder:1004_A][name:mtprof&][signal][2006:Binder:1004_A] send death sig 9 to [2601:mediatek.camera:R]
+[   59.591432] -(1)[0:swapper/1]CPU1: Booted secondary processor
+[   59.591459] -(1)[0:swapper/1]Detected VIPT I-cache on CPU1
+[   59.591970] .(0)[98:hps_main][name:mtk_wdt&][mtk_wdt_cpu_callback]bind kicker thread[227] to cpu[1]
+[   59.592379] -(2)[0:swapper/2]CPU2: Booted secondary processor
+[   59.592400] -(2)[0:swapper/2]Detected VIPT I-cache on CPU2
+[   59.592888] .(0)[98:hps_main][name:mtk_wdt&][mtk_wdt_cpu_callback]bind kicker thread[228] to cpu[2]
+[   59.593300] -(3)[0:swapper/3]CPU3: Booted secondary processor
+[   59.593322] -(3)[0:swapper/3]Detected VIPT I-cache on CPU3
+[   59.593861] .(0)[98:hps_main][name:mtk_wdt&][mtk_wdt_cpu_callback]bind kicker thread[229] to cpu[3]
+[   59.594126] .(0)[98:hps_main][HPS] (0020)(1)action end(100)(2200)(0)(2) (4)(4)(4)(4)(1) (108)(107)(1) (0)(0)(0) (1)(2200)(108)(0)(2200) wifi_base(0)
+[   60.397102] -(3)[19:migration/3][name:ca53_timer&]arch_timer_teardown disable IRQ29 cpu #3
+[   60.397197] .(0)[98:hps_main]CPU3: shutdown
+[   60.399467] -(2)[15:migration/2][name:ca53_timer&]arch_timer_teardown disable IRQ29 cpu #2
+[   60.399531] .(1)[98:hps_main]CPU2: shutdown
+[   60.401740] -(1)[11:migration/1][name:ca53_timer&]arch_timer_teardown disable IRQ29 cpu #1
+[   60.401803] .(0)[98:hps_main]CPU1: shutdown
+[   60.403376] .(0)[98:hps_main][HPS] (0200)(4)action end(0)(1)(0)(0) (4)(4)(4)(4)(1) (0)(0)(0) (323)(8)(0) (0)(1)(8)(0)(1) wifi_base(0)
+[   60.949957] .(0)[55:dlpt_notify_thr][name:pmic&][dlpt] get_dlpt_imix_charging 6436 4316 3100 170
+[   60.954134] .(0)[55:dlpt_notify_thr][PBM] [ma_to_mw] 4317(mV) * 5500(mA) = 23743(mW)
+[   60.955127] .(0)[55:dlpt_notify_thr][name:pmic&][exec_dlpt_callback] g_dlpt_val=5500
+[   60.955141] .(0)[55:dlpt_notify_thr][name:pmic&][DLPT_final] 5500,0,100,100,5500
+[   61.877017] .(0)[169:hang_detect][Hang_Detect] init found pid:1.
+[   61.877876] .(0)[169:hang_detect][Hang_Detect] mmcqd/0 found pid:178.
+[   61.878750] .(0)[169:hang_detect][Hang_Detect] surfaceflinger found pid:302.
+[   61.879684] .(0)[169:hang_detect][Hang_Detect] debuggerd found pid:575.
+[   61.880531] .(0)[169:hang_detect][Hang_Detect] debuggerd64 found pid:576.
+[   61.881423] .(0)[169:hang_detect][Hang_Detect] system_server found pid:1004.
+[   61.882327] .(0)[169:hang_detect][Hang_Detect] ndroid.systemui found pid:1257.
+[   61.883285] .(0)[169:hang_detect][Hang_Detect] hang_detect thread counts down 10:10.
+[   63.654326] -(0)[0:swapper/0][Power/swap]CNT(dpidle,rgidle): [0] = (0,35551), [1] = (0,30967), [2] = (0,22557), [3] = (0,18592), 
+[   63.655813] -(0)[0:swapper/0][Power/swap]dpidle_block_cnt: [by_cpu] = 13471, [by_clk] = 1430, [by_tmr] = 0, [by_oth] = 0, [by_vtg] = 0, 
+[   63.657366] -(0)[0:swapper/0][Power/swap]dpidle_block_mask: 0x00000000, 0x00000400, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 
+[   63.659702] -(0)[0:swapper/0][Power/swap]DP: No enter --- SODI: No enter --- 
+[   64.437028] .(0)[226:wdtk-0][name:wd_common_drv&][WDK],local_bit:0x1,cpu:0,check bit0x:1,1,0,60402517143,RT[64437009922]
+[   64.437046] .(0)[226:wdtk-0][WDK]: kick Ex WDT,RT[64437042460]
+[   64.437229] .(0)[226:wdtk-0][name:wd_common_drv&][thread:226][RT:64437218075] 2019-03-21 08:35:01.316563 UTC;android time 2019-03-21 16:35:01.316563
+[   65.105661] .(0)[419:batterywarning][Battery] show_BatteryNotify : 0
+[   65.417016] .(0)[347:kworker/0:2][HIF-SDIO][I]wmt_dev_tra_poll:**poll_during_time = 4294732696 > 3000, during_count = 5460 > 200, query
+[   65.418565] .(0)[347:kworker/0:2][HIF-SDIO][I]wmt_dev_tm_temp_query:traffic , we must query temperature..
+[   65.447056] .(0)[347:kworker/0:2][name:psm_core&][STP-PSM] [I]_stp_psm_do_wait: STP is waiting state for ACT, i=1, state = 0
+[   65.447362] .(0)[308:mtk_wmtd][WMT-CORE][I]opfunc_therm_ctrl:Send WMT_THERM_CTRL_CMD command OK!
+[   65.448828] .(0)[308:mtk_wmtd][WMT-CORE][I]opfunc_therm_ctrl:Send WMT_THERM_READ_CMD command OK!
+[   65.450528] .(0)[308:mtk_wmtd][WMT-CORE][I]opfunc_therm_ctrl:Send WMT_THERM_CTRL_CMD command OK!
+[   65.451687] .(0)[347:kworker/0:2][HIF-SDIO][I]wmt_dev_tm_temp_query:[Thermal] current_temp = 0x1f
+[   67.297014] .(0)[347:kworker/0:2][C2K MODEM] start heart beat timer 2
+[   67.297854] .(0)[347:kworker/0:2][name:c2k_sdio&][C2K] before wait tx done
+[   67.297868] .(0)[347:kworker/0:2][name:c2k_sdio&][C2K] after wait tx done
+[   67.304217] .(0)[347:kworker/0:2][name:c2k_sdio&][C2K SDIO] write ctrl channel start, len = 12
+[   67.304262] .(0)[347:kworker/0:2][name:c2k_sdio&][C2K SDIO] write ctrl channel done, len = 12
+[   67.315819] .(0)[738:ksdioirqd/mmc2][C2K MODEM] heart beat msg received 2
+[   69.379582] .(0)[223:bat_thread_kthr][FGADC] 1,7616,10,4127,97,100,100,2500,2500,-191,0,0,1000,4318,1000,0,0,104,103
+[   69.381642] .(0)[223:bat_thread_kthr]AvgVbat=(4298,4318),AvgI=(335,14),VChr=5033,AvgT=(25,25),SOC=(100,100),UI_SOC=100,ZCV=4127,CHR_Type=1 bcct:0:0 I:65000 Ibat:760
+[   69.383993] .(0)[223:bat_thread_kthr]v=4318,i=14,t=25,soc=100,bcct:0:0 I:65000 Ibat:760
+[   69.386457] .(0)[223:bat_thread_kthr][name:charging_hw_fan5405&][chr_control_interface]UNSUPPORT Function: 48
+[   69.386469] .(0)[223:bat_thread_kthr][BATTERY] Battery full !!
+[   69.386469] 
+[   69.386929] .(0)[223:bat_thread_kthr][name:charging_hw_fan5405&][chr_control_interface]UNSUPPORT Function: 44
+[   69.392579] .(0)[223:bat_thread_kthr][100percent], UI_SOC(100), reset(0) bat_full(1) ever100(1)
+[   69.393689] .(0)[223:bat_thread_kthr][recharging] UI_SOC=100, SOC=100
+[   69.394517] .(0)[223:bat_thread_kthr]UI_SOC=(100), resetBatteryMeter=(0)
+[   69.395454] .(0)[223:bat_thread_kthr]mtk_rtc_common: set_rtc_spare_fg_value, 100
+[   69.396399] .(0)[223:bat_thread_kthr][DLPT_POWER_OFF_EN] run
+[   70.510352] -(1)[0:swapper/1]CPU1: Booted secondary processor
+[   70.510379] -(1)[0:swapper/1]Detected VIPT I-cache on CPU1
+[   70.510874] .(0)[98:hps_main][name:mtk_wdt&][mtk_wdt_cpu_callback]bind kicker thread[227] to cpu[1]
+[   70.511283] -(2)[0:swapper/2]CPU2: Booted secondary processor
+[   70.511304] -(2)[0:swapper/2]Detected VIPT I-cache on CPU2
+[   70.511781] .(0)[98:hps_main][name:mtk_wdt&][mtk_wdt_cpu_callback]bind kicker thread[228] to cpu[2]
+[   70.512024] .(0)[98:hps_main][HPS] (0020)(1)action end(100)(223)(0)(2) (4)(4)(4)(4)(1) (60)(100)(0) (0)(0)(0) (1)(223)(101)(0)(223) wifi_base(0)
+[   70.959335] .(1)[55:dlpt_notify_thr][name:pmic&][dlpt] get_dlpt_imix_charging 6426 4314 3100 170
+[   70.961484] .(1)[55:dlpt_notify_thr][PBM] [ma_to_mw] 4315(mV) * 5500(mA) = 23732(mW)
+[   70.962482] .(1)[55:dlpt_notify_thr][name:pmic&][exec_dlpt_callback] g_dlpt_val=5500
+[   70.962496] .(1)[55:dlpt_notify_thr][name:pmic&][DLPT_final] 5500,0,100,100,5500
+[   71.314849] -(2)[15:migration/2][name:ca53_timer&]arch_timer_teardown disable IRQ29 cpu #2
+[   71.314954] .(0)[98:hps_main]CPU2: shutdown
+[   71.317023] -(1)[11:migration/1][name:ca53_timer&]arch_timer_teardown disable IRQ29 cpu #1
+[   71.317127] .(0)[98:hps_main]CPU1: shutdown
+[   71.318559] .(0)[98:hps_main][HPS] (0200)(3)action end(0)(0)(0)(0) (4)(4)(4)(4)(1) (1)(8)(0) (81)(8)(0) (0)(0)(8)(0)(0) wifi_base(0)
+[   73.664712] -(0)[0:swapper/0][Power/swap]DP: No enter --- SODI: No enter --- 
+[   75.106676] .(0)[419:batterywarning][Battery] show_BatteryNotify : 0
+[   79.376090] .(0)[223:bat_thread_kthr][FGADC] 1,7635,12,4124,97,100,100,2500,2500,-192,0,0,1000,4316,1000,0,0,104,103
+[   79.378178] .(0)[223:bat_thread_kthr]AvgVbat=(4298,4316),AvgI=(319,14),VChr=5033,AvgT=(25,25),SOC=(100,100),UI_SOC=100,ZCV=4124,CHR_Type=1 bcct:0:0 I:65000 Ibat:763
+[   79.380529] .(0)[223:bat_thread_kthr]v=4316,i=14,t=25,soc=100,bcct:0:0 I:65000 Ibat:763
+[   79.382993] .(0)[223:bat_thread_kthr][name:charging_hw_fan5405&][chr_control_interface]UNSUPPORT Function: 48
+[   79.383004] .(0)[223:bat_thread_kthr][BATTERY] Battery full !!
+[   79.383004] 
+[   79.383465] .(0)[223:bat_thread_kthr][name:charging_hw_fan5405&][chr_control_interface]UNSUPPORT Function: 44
+[   79.389229] .(0)[223:bat_thread_kthr][100percent], UI_SOC(100), reset(0) bat_full(1) ever100(1)
+[   79.390338] .(0)[223:bat_thread_kthr][recharging] UI_SOC=100, SOC=100
+[   79.391166] .(0)[223:bat_thread_kthr]UI_SOC=(100), resetBatteryMeter=(0)
+[   79.392115] .(0)[223:bat_thread_kthr]mtk_rtc_common: set_rtc_spare_fg_value, 100
+[   79.393060] .(0)[223:bat_thread_kthr][DLPT_POWER_OFF_EN] run
+[   80.964695] .(0)[55:dlpt_notify_thr][name:pmic&][dlpt] get_dlpt_imix_charging 6436 4316 3100 170
+[   80.968872] .(0)[55:dlpt_notify_thr][PBM] [ma_to_mw] 4317(mV) * 5500(mA) = 23743(mW)
+[   80.969918] .(0)[55:dlpt_notify_thr][name:pmic&][exec_dlpt_callback] g_dlpt_val=5500
+[   80.969933] .(0)[55:dlpt_notify_thr][name:pmic&][DLPT_final] 5500,0,100,100,5500
+[   82.337016] .(0)[347:kworker/0:2][C2K MODEM] start heart beat timer 3
+[   82.337857] .(0)[347:kworker/0:2][name:c2k_sdio&][C2K] before wait tx done
+[   82.337870] .(0)[347:kworker/0:2][name:c2k_sdio&][C2K] after wait tx done
+[   82.344144] .(0)[347:kworker/0:2][name:c2k_sdio&][C2K SDIO] write ctrl channel start, len = 12
+[   82.344190] .(0)[347:kworker/0:2][name:c2k_sdio&][C2K SDIO] write ctrl channel done, len = 12
+[   82.357206] .(0)[738:ksdioirqd/mmc2][C2K MODEM] heart beat msg received 3
+[   83.675120] -(0)[0:swapper/0][Power/swap]DP: No enter --- SODI: No enter --- 
+[   84.447022] .(0)[226:wdtk-0][name:wd_common_drv&][WDK],local_bit:0x1,cpu:0,check bit0x:1,1,0,71317855323,RT[84447004508]
+[   84.447041] .(0)[226:wdtk-0][WDK]: kick Ex WDT,RT[84447037123]
+[   84.447219] .(0)[226:wdtk-0][name:wd_common_drv&][thread:226][RT:84447207508] 2019-03-21 08:35:21.326553 UTC;android time 2019-03-21 16:35:21.326553
+[   85.107706] .(0)[419:batterywarning][Battery] show_BatteryNotify : 0
+[   86.973843] -(0)[1004:system_server][name:mtprof&][signal][1004:system_server] send death sig 9 to [2347:d.process.acore:R]
+[   86.977850] -(0)[1004:system_server][name:mtprof&][signal][1004:system_server] send death sig 9 to [2773:.thermalmanager:R]
+[   86.978246] -(0)[1004:system_server][name:mtprof&][signal][1004:system_server] send death sig 9 to [2688:.mediatek.omacp:R]
+[   87.127939] -(1)[0:swapper/1]CPU1: Booted secondary processor
+[   87.127967] -(1)[0:swapper/1]Detected VIPT I-cache on CPU1
+[   87.128482] .(0)[98:hps_main][name:mtk_wdt&][mtk_wdt_cpu_callback]bind kicker thread[227] to cpu[1]
+[   87.128911] -(2)[0:swapper/2]CPU2: Booted secondary processor
+[   87.128935] -(2)[0:swapper/2]Detected VIPT I-cache on CPU2
+[   87.129448] .(0)[98:hps_main][name:mtk_wdt&][mtk_wdt_cpu_callback]bind kicker thread[228] to cpu[2]
+[   87.129882] -(3)[0:swapper/3]CPU3: Booted secondary processor
+[   87.129907] -(3)[0:swapper/3]Detected VIPT I-cache on CPU3
+[   87.130533] .(0)[98:hps_main][name:mtk_wdt&][mtk_wdt_cpu_callback]bind kicker thread[229] to cpu[3]
+[   87.130834] .(0)[98:hps_main][HPS] (0020)(1)action end(100)(1940)(0)(2) (4)(4)(4)(4)(1) (62)(157)(1) (0)(0)(0) (1)(1940)(158)(0)(1940) wifi_base(0)
+[   87.933838] -(3)[19:migration/3][name:ca53_timer&]arch_timer_teardown disable IRQ29 cpu #3
+[   87.933954] .(1)[98:hps_main]CPU3: shutdown
+[   87.936394] -(2)[15:migration/2][name:ca53_timer&]arch_timer_teardown disable IRQ29 cpu #2
+[   87.936489] .(0)[98:hps_main]CPU2: shutdown
+[   87.938902] -(1)[11:migration/1][name:ca53_timer&]arch_timer_teardown disable IRQ29 cpu #1
+[   87.938981] .(0)[98:hps_main]CPU1: shutdown
+[   87.940579] .(0)[98:hps_main][HPS] (0200)(4)action end(55)(56)(0)(0) (4)(4)(4)(4)(1) (0)(0)(0) (657)(8)(0) (0)(56)(8)(0)(56) wifi_base(0)
+[   88.267124] .(0)[1495:watchdog]AEEIOCTL_RT_MON_Kick ( 300)
+[   88.267842] .(0)[1495:watchdog][Hang_Detect] hang_detect enabled 10
+[   89.381077] .(0)[223:bat_thread_kthr][FGADC] 1,9416,14,4052,88,100,100,2500,2500,-264,0,0,1000,4316,1000,0,0,104,103
+[   89.383128] .(0)[223:bat_thread_kthr]AvgVbat=(4299,4316),AvgI=(302,0),VChr=5024,AvgT=(25,25),SOC=(100,100),UI_SOC=100,ZCV=4052,CHR_Type=1 bcct:0:0 I:65000 Ibat:941
+[   89.385469] .(0)[223:bat_thread_kthr]v=4316,i=0,t=25,soc=100,bcct:0:0 I:65000 Ibat:941
+[   89.388298] .(0)[223:bat_thread_kthr][name:charging_hw_fan5405&][chr_control_interface]UNSUPPORT Function: 48
+[   89.388310] .(0)[223:bat_thread_kthr][BATTERY] Battery full !!
+[   89.388310] 
+[   89.388772] .(0)[223:bat_thread_kthr][name:charging_hw_fan5405&][chr_control_interface]UNSUPPORT Function: 44
+[   89.394106] .(0)[223:bat_thread_kthr][100percent], UI_SOC(100), reset(0) bat_full(1) ever100(1)
+[   89.395214] .(0)[223:bat_thread_kthr][recharging] UI_SOC=100, SOC=100
+[   89.396043] .(0)[223:bat_thread_kthr]UI_SOC=(100), resetBatteryMeter=(0)
+[   89.397674] .(0)[223:bat_thread_kthr]mtk_rtc_common: set_rtc_spare_fg_value, 100
+[   89.398621] .(0)[223:bat_thread_kthr][DLPT_POWER_OFF_EN] run
+[   90.972136] .(0)[55:dlpt_notify_thr][name:pmic&][dlpt] get_dlpt_imix_charging 6436 4316 3100 170
+[   90.974286] .(0)[55:dlpt_notify_thr][PBM] [ma_to_mw] 4317(mV) * 5500(mA) = 23743(mW)
+[   90.975279] .(0)[55:dlpt_notify_thr][name:pmic&][exec_dlpt_callback] g_dlpt_val=5500
+[   90.975293] .(0)[55:dlpt_notify_thr][name:pmic&][DLPT_final] 5500,0,100,100,5500
+[   91.887019] .(0)[169:hang_detect][Hang_Detect] init found pid:1.
+[   91.887876] .(0)[169:hang_detect][Hang_Detect] mmcqd/0 found pid:178.
+[   91.888751] .(0)[169:hang_detect][Hang_Detect] surfaceflinger found pid:302.
+[   91.889684] .(0)[169:hang_detect][Hang_Detect] debuggerd found pid:575.
+[   91.890531] .(0)[169:hang_detect][Hang_Detect] debuggerd64 found pid:576.
+[   91.891423] .(0)[169:hang_detect][Hang_Detect] system_server found pid:1004.
+[   91.892328] .(0)[169:hang_detect][Hang_Detect] ndroid.systemui found pid:1257.
+[   91.893283] .(0)[169:hang_detect][Hang_Detect] hang_detect thread counts down 10:10.
+[   93.679852] -(0)[0:swapper/0][Power/swap]DP: No enter --- SODI: No enter --- 
+[   93.680788] -(0)[0:swapper/0][Power/swap]CNT(dpidle,rgidle): [0] = (0,36139), [1] = (0,31291), [2] = (0,22905), [3] = (0,18914), 
+[   93.682265] -(0)[0:swapper/0][Power/swap]dpidle_block_cnt: [by_cpu] = 1414, [by_clk] = 1713, [by_tmr] = 0, [by_oth] = 0, [by_vtg] = 0, 
+[   93.683807] -(0)[0:swapper/0][Power/swap]dpidle_block_mask: 0x00000000, 0x00000400, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 
+[   95.108711] .(0)[419:batterywarning][Battery] show_BatteryNotify : 0
+[   97.377018] .(0)[347:kworker/0:2][C2K MODEM] start heart beat timer 4
+[   97.377858] .(0)[347:kworker/0:2][name:c2k_sdio&][C2K] before wait tx done
+[   97.377872] .(0)[347:kworker/0:2][name:c2k_sdio&][C2K] after wait tx done
+[   97.384216] .(0)[347:kworker/0:2][name:c2k_sdio&][C2K SDIO] write ctrl channel start, len = 12
+[   97.384264] .(0)[347:kworker/0:2][name:c2k_sdio&][C2K SDIO] write ctrl channel done, len = 12
+[   97.401003] .(0)[738:ksdioirqd/mmc2][C2K MODEM] heart beat msg received 4
+[   99.375324] .(0)[223:bat_thread_kthr][FGADC] 1,8648,16,4092,93,100,100,2500,2500,-224,0,0,1000,4316,1000,0,0,104,103
+[   99.377382] .(0)[223:bat_thread_kthr]AvgVbat=(4299,4316),AvgI=(286,14),VChr=5024,AvgT=(25,25),SOC=(100,100),UI_SOC=100,ZCV=4092,CHR_Type=1 bcct:0:0 I:65000 Ibat:865
+[   99.379737] .(0)[223:bat_thread_kthr]v=4316,i=14,t=25,soc=100,bcct:0:0 I:65000 Ibat:865
+[   99.382204] .(0)[223:bat_thread_kthr][name:charging_hw_fan5405&][chr_control_interface]UNSUPPORT Function: 48
+[   99.382215] .(0)[223:bat_thread_kthr][BATTERY] Battery full !!
+[   99.382215] 
+[   99.382675] .(0)[223:bat_thread_kthr][name:charging_hw_fan5405&][chr_control_interface]UNSUPPORT Function: 44
+[   99.388600] .(0)[223:bat_thread_kthr][100percent], UI_SOC(100), reset(0) bat_full(1) ever100(1)
+[   99.389709] .(0)[223:bat_thread_kthr][recharging] UI_SOC=100, SOC=100
+[   99.390538] .(0)[223:bat_thread_kthr]UI_SOC=(100), resetBatteryMeter=(0)
+[   99.391473] .(0)[223:bat_thread_kthr]mtk_rtc_common: set_rtc_spare_fg_value, 100
+[   99.392418] .(0)[223:bat_thread_kthr][DLPT_POWER_OFF_EN] run
+[   99.394050] .(0)[291:healthd]healthd: Unknown battery status '3'
+[   99.395300] .(0)[291:healthd]healthd: battery l=100 v=4299 t=25.0 h=2 st=5 chg=u
+[   99.396256] .(0)[291:healthd]healthd: battery l=100 v=4299 t=25.0 h=2 st=5 chg=u
+[   99.398637] .(0)[291:healthd]healthd: send_already = 0
+[  100.688638] .(0)[3069:service 43][MUSB]musb_gadget_pullup 2129: is_on=0, softconnect=1 ++
+[  100.689691] .(0)[3069:service 43][MUSB]musb_gadget_pullup 2139: is_on=0, softconnect=1 ++
+[  100.690745] .(0)[3069:service 43][MUSB]usb_cable_connected 594: usb_cable_connected vbus_exist=1 type=1
+[  100.691939] .(0)[3069:service 43][MUSB]usb_cable_connected 616: usb_cable_connected, connected:1, cable_mode:1
+[  100.693258] -(0)[3069:service 43][MUSB]musb_pullup 2072: MUSB: gadget pull up 0 start, musb->power:1
+[  100.694419] -(0)[3069:service 43][MUSB]musb_pullup 2092: MUSB: gadget pull up 0 end
+[  100.695405] -(0)[3069:service 43][MUSB]nuke 261: nuke: ep1in: abort DMA --> 0
+[  100.696332] -(0)[3069:service 43][MUSB]nuke 261: nuke: ep1out: abort DMA --> 0
+[  100.697266] -(0)[3069:service 43][MUSB]nuke 270: call musb_g_giveback on function nuke ep is ep1out
+[  100.698421] -(0)[3069:service 43][MUSB]nuke 261: nuke: ep2out: abort DMA --> 0
+[  100.699347] -(0)[3069:service 43][MUSB]nuke 261: nuke: ep3in: abort DMA --> 0
+[  100.700333] .(0)[2564:MtpServer]mtp_release
+[  100.702112] .(0)[3069:service 43]android_usb gadget: unbind function 'mtp'/ffffffc075b02800
+[  100.703213] .(0)[3069:service 43]android_usb gadget: unbind function 'Function FS Gadget'/ffffffc075bd1138
+[  100.704447] .(0)[3069:service 43]android_usb gadget: unbind config 'android'/ffffffc00126e8d0
+[  100.711376] .(0)[1:init]init: Untracked pid 3052 exited with status 1
+[  100.712539] .(0)[1:init]init: Service 'adbd' (pid 316) exited with status 1
+[  100.713449] .(0)[1:init]init: Service 'adbd' (pid 316) killing any children in process group
+[  100.715483] .(0)[1:init]init: Starting service 'adbd'...
+[  100.726742] .(0)[3071:usb ffs open]read descriptors
+[  100.727631] .(0)[3071:usb ffs open]skip os descriptor, os_descs_count:1, len:35 all to 0
+[  100.728670] .(0)[3071:usb ffs open]read strings
+[  100.729286] .(0)[3071:usb ffs open][g_android][USB]bind_config function 'mtp'/ffffffc00126f9a8
+[  100.730382] .(0)[3071:usb ffs open]mtp_bind_config
+[  100.731040] .(0)[3071:usb ffs open][g_android][USB]bind_config function 'ffs'/ffffffc00126e9b0
+[  100.732154] .(0)[3071:usb ffs open]android_usb gadget: cfg 1/ffffffc00126e8d0 speeds: super high full
+[  100.733329] .(0)[3071:usb ffs open][MUSB]musb_gadget_pullup 2129: is_on=1, softconnect=0 ++
+[  100.734392] .(0)[3071:usb ffs open][MUSB]musb_gadget_pullup 2139: is_on=1, softconnect=0 ++
+[  100.735469] .(0)[3071:usb ffs open][MUSB]usb_cable_connected 594: usb_cable_connected vbus_exist=1 type=1
+[  100.736685] .(0)[3071:usb ffs open][MUSB]usb_cable_connected 616: usb_cable_connected, connected:1, cable_mode:1
+[  100.739580] -(0)[3071:usb ffs open][MUSB]musb_pullup 2072: MUSB: gadget pull up 1 start, musb->power:1
+[  100.740767] -(0)[3071:usb ffs open][MUSB]musb_pullup 2092: MUSB: gadget pull up 1 end
+[  100.796224] -(0)[0:swapper/0][MUSB]musb_stage0_irq 937: SUSPEND (b_peripheral) devctl 99
+[  100.797268] -(0)[0:swapper/0][MUSB]musb_g_suspend 2498: devctl 99
+[  100.798054] -(0)[0:swapper/0][MUSB]musb_sync_with_bat 657: BATTERY_SetUSBState, state=0
+[  100.799074] -(0)[0:swapper/0][BATTERY] BAT_SetUSBState Success! Set 0
+[  100.800200] .(0)[223:bat_thread_kthr][BATTERY] Charger plug in/out, Call battery_meter_reset. (100)
+[  100.895235] -(0)[0:swapper/0][MUSB]musb_stage0_irq 1143: MUSB_INTR_RESET (b_peripheral)
+[  100.896267] -(0)[0:swapper/0][MUSB]musb_sync_with_bat 657: BATTERY_SetUSBState, state=1
+[  100.897287] -(0)[0:swapper/0][BATTERY] BAT_SetUSBState Success! Set 1
+[  100.898143] -(0)[0:swapper/0][g_android][USB]android_disconnect: dev->connected = 0
+[  100.899123] -(0)[0:swapper/0]android_usb gadget: [COM]composite_disconnect: reassign the complete function!!
+[  100.900423] .(0)[347:kworker/0:2][MUSB]usb_cable_connected 594: usb_cable_connected vbus_exist=1 type=1
+[  100.901619] .(0)[347:kworker/0:2][MUSB]usb_cable_connected 616: usb_cable_connected, connected:1, cable_mode:1
+[  100.902888] .(0)[347:kworker/0:2][g_android][USB]android_work: is_hwconnected=1
+[  100.906624] .(0)[347:kworker/0:2][g_android]android_work: sent uevent USB_STATE=DISCONNECTED
+[  100.939969] .(0)[223:bat_thread_kthr]AvgVbat=(4300,4316),AvgI=(269,0),VChr=5033,AvgT=(25,25),SOC=(100,100),UI_SOC=100,ZCV=4092,CHR_Type=1 bcct:0:0 I:65000 Ibat:691
+[  100.942315] .(0)[223:bat_thread_kthr]v=4316,i=0,t=25,soc=100,bcct:0:0 I:65000 Ibat:691
+[  100.944770] .(0)[223:bat_thread_kthr][name:charging_hw_fan5405&][chr_control_interface]UNSUPPORT Function: 48
+[  100.944781] .(0)[223:bat_thread_kthr][BATTERY] Battery full !!
+[  100.944781] 
+[  100.945242] .(0)[223:bat_thread_kthr][name:charging_hw_fan5405&][chr_control_interface]UNSUPPORT Function: 44
+[  100.951098] .(0)[223:bat_thread_kthr][100percent], UI_SOC(100), reset(0) bat_full(1) ever100(1)
+[  100.952207] .(0)[223:bat_thread_kthr][recharging] UI_SOC=100, SOC=100
+[  100.953035] .(0)[223:bat_thread_kthr]UI_SOC=(100), resetBatteryMeter=(0)
+[  100.953964] .(0)[223:bat_thread_kthr]mtk_rtc_common: set_rtc_spare_fg_value, 100
+[  100.954909] .(0)[223:bat_thread_kthr][DLPT_POWER_OFF_EN] run
+[  100.955866] .(0)[223:bat_thread_kthr][BATTERY] Charger plug in/out, Call battery_meter_reset. (100)
+[  100.978612] .(0)[55:dlpt_notify_thr][name:pmic&][dlpt] get_dlpt_imix_charging 6442 4317 3100 170
+[  100.982788] .(0)[55:dlpt_notify_thr][PBM] [ma_to_mw] 4316(mV) * 5500(mA) = 23738(mW)
+[  100.983838] .(0)[55:dlpt_notify_thr][name:pmic&][exec_dlpt_callback] g_dlpt_val=5500
+[  100.983852] .(0)[55:dlpt_notify_thr][name:pmic&][DLPT_final] 5500,0,100,100,5500
+[  100.983887] .(0)[347:kworker/0:2][MUSB]usb_cable_connected 594: usb_cable_connected vbus_exist=1 type=1
+[  100.985093] .(0)[347:kworker/0:2][MUSB]usb_cable_connected 616: usb_cable_connected, connected:1, cable_mode:1
+[  100.986372] .(0)[347:kworker/0:2][g_android][USB]android_work: is_hwconnected=1
+[  101.015913] -(0)[2640:ek.engineermode]android_usb gadget: high-speed config #1: android
+[  101.016954] -(0)[2640:ek.engineermode][MUSB]fifo_setup 1237: musb type=BULK
+[  101.017848] -(0)[2640:ek.engineermode][MUSB]check_musb_dbuffer_avail 1195: <check_musb_dbuffer_avail, 1195>, got bulk ep:81 in function :mtp
+[  101.019440] -(0)[2640:ek.engineermode][MUSB]is_saving_mode 864: 0
+[  101.020225] -(0)[2640:ek.engineermode][MUSB]fifo_setup 1266: EP1 supports DBBUF
+[  101.021164] -(0)[2640:ek.engineermode][MUSB]fifo_setup 1278: fifo size is 22 after 512, fifo address is 512, epnum 1,hwepnum 1
+[  101.022609] -(0)[2640:ek.engineermode][MUSB]musb_gadget_enable 1475: musb-hdrc periph: enabled ep1in for bulk IN, dma, maxpacket 512
+[  101.024115] -(0)[2640:ek.engineermode][MUSB]fifo_setup 1237: musb type=BULK
+[  101.025008] -(0)[2640:ek.engineermode][MUSB]check_musb_dbuffer_avail 1195: <check_musb_dbuffer_avail, 1195>, got bulk ep:1 in function :mtp
+[  101.026590] -(0)[2640:ek.engineermode][MUSB]is_saving_mode 864: 0
+[  101.027375] -(0)[2640:ek.engineermode][MUSB]fifo_setup 1266: EP1 supports DBBUF
+[  101.028314] -(0)[2640:ek.engineermode][MUSB]fifo_setup 1278: fifo size is 22 after 512, fifo address is 1536, epnum 1,hwepnum 1
+[  101.029769] -(0)[2640:ek.engineermode][MUSB]musb_gadget_enable 1475: musb-hdrc periph: enabled ep1out for bulk OUT, dma, maxpacket 512
+[  101.031299] -(0)[2640:ek.engineermode][MUSB]fifo_setup 1237: musb type=INT
+[  101.032180] -(0)[2640:ek.engineermode][MUSB]fifo_setup 1278: fifo size is 6 after 512, fifo address is 2560, epnum 2,hwepnum 2
+[  101.033624] -(0)[2640:ek.engineermode][MUSB]musb_gadget_enable 1475: musb-hdrc periph: enabled ep2in for int IN, maxpacket 28
+[  101.035058] -(0)[2640:ek.engineermode][MUSB]fifo_setup 1237: musb type=BULK
+[  101.035951] -(0)[2640:ek.engineermode][MUSB]fifo_setup 1278: fifo size is 6 after 512, fifo address is 3072, epnum 2,hwepnum 2
+[  101.037393] -(0)[2640:ek.engineermode][MUSB]musb_gadget_enable 1475: musb-hdrc periph: enabled ep2out for bulk OUT, dma, maxpacket 512
+[  101.038934] -(0)[2640:ek.engineermode][MUSB]fifo_setup 1237: musb type=BULK
+[  101.039826] -(0)[2640:ek.engineermode][MUSB]fifo_setup 1278: fifo size is 6 after 512, fifo address is 3584, epnum 3,hwepnum 3
+[  101.041269] -(0)[2640:ek.engineermode][MUSB]musb_gadget_enable 1475: musb-hdrc periph: enabled ep3in for bulk IN, dma, maxpacket 512
+[  101.042778] -(0)[2640:ek.engineermode]android_usb gadget: [COM]USB_REQ_SET_CONFIGURATION: value=0
+[  101.043910] -(0)[2640:ek.engineermode][MUSB]musb_sync_with_bat 657: BATTERY_SetUSBState, state=2
+[  101.045027] -(0)[2640:ek.engineermode][BATTERY] BAT_SetUSBState Success! Set 2
+[  101.051155] .(0)[347:kworker/0:2][g_android]android_work: sent uevent USB_STATE=CONNECTED
+[  101.052234] .(0)[347:kworker/0:2][MUSB]usb_cable_connected 594: usb_cable_connected vbus_exist=1 type=1
+[  101.053429] .(0)[347:kworker/0:2][MUSB]usb_cable_connected 616: usb_cable_connected, connected:1, cable_mode:1
+[  101.054697] .(0)[347:kworker/0:2][g_android][USB]android_work: is_hwconnected=1
+[  101.068211] .(0)[347:kworker/0:2][g_android]android_work: sent uevent USB_STATE=CONFIGURED
+[  101.148891] -(1)[0:swapper/1]CPU1: Booted secondary processor
+[  101.148918] -(1)[0:swapper/1]Detected VIPT I-cache on CPU1
+[  101.149413] .(0)[98:hps_main][name:mtk_wdt&][mtk_wdt_cpu_callback]bind kicker thread[227] to cpu[1]
+[  101.149848] -(2)[0:swapper/2]CPU2: Booted secondary processor
+[  101.149870] -(2)[0:swapper/2]Detected VIPT I-cache on CPU2
+[  101.150373] .(0)[98:hps_main][name:mtk_wdt&][mtk_wdt_cpu_callback]bind kicker thread[228] to cpu[2]
+[  101.150785] -(3)[0:swapper/3]CPU3: Booted secondary processor
+[  101.150808] -(3)[0:swapper/3]Detected VIPT I-cache on CPU3
+[  101.151369] .(1)[98:hps_main][name:mtk_wdt&][mtk_wdt_cpu_callback]bind kicker thread[229] to cpu[3]
+[  101.151646] .(1)[98:hps_main][HPS] (0020)(1)action end(100)(489)(0)(2) (4)(4)(4)(4)(1) (95)(131)(1) (0)(0)(0) (1)(489)(132)(0)(489) wifi_base(0)
+[  101.172084] .(2)[223:bat_thread_kthr]AvgVbat=(4300,4316),AvgI=(253,0),VChr=5033,AvgT=(25,25),SOC=(100,100),UI_SOC=100,ZCV=4092,CHR_Type=1 bcct:0:0 I:65000 Ibat:725
+[  101.174451] .(2)[223:bat_thread_kthr]v=4316,i=0,t=25,soc=100,bcct:0:0 I:65000 Ibat:725
+[  101.176940] .(2)[223:bat_thread_kthr][name:charging_hw_fan5405&][chr_control_interface]UNSUPPORT Function: 48
+[  101.176955] .(2)[223:bat_thread_kthr][BATTERY] Battery full !!
+[  101.176955] 
+[  101.177445] .(2)[223:bat_thread_kthr][name:charging_hw_fan5405&][chr_control_interface]UNSUPPORT Function: 44
+[  101.178645] .(3)[2036:d.process.media]mtp_open
+[  101.183267] .(2)[223:bat_thread_kthr][100percent], UI_SOC(100), reset(0) bat_full(1) ever100(1)
+[  101.183298] .(1)[3077:MtpServer]MTP_QUEUE_DBG, <mtp_read(), 592> MtpServer........., skip_cnt:0
+[  101.185492] .(2)[223:bat_thread_kthr][recharging] UI_SOC=100, SOC=100
+[  101.186319] .(2)[223:bat_thread_kthr]UI_SOC=(100), resetBatteryMeter=(0)
+[  101.187292] .(2)[223:bat_thread_kthr]mtk_rtc_common: set_rtc_spare_fg_value, 100
+[  101.188242] .(2)[223:bat_thread_kthr][DLPT_POWER_OFF_EN] run
+[  101.189227] .(2)[223:bat_thread_kthr][BATTERY] Charger plug in/out, Call battery_meter_reset. (100)
+[  101.323512] .(1)[223:bat_thread_kthr]AvgVbat=(4300,4306),AvgI=(237,14),VChr=5024,AvgT=(25,25),SOC=(100,100),UI_SOC=100,ZCV=4092,CHR_Type=1 bcct:0:0 I:65000 Ibat:757
+[  101.325877] .(1)[223:bat_thread_kthr]v=4306,i=14,t=25,soc=100,bcct:0:0 I:65000 Ibat:757
+[  101.328398] .(1)[223:bat_thread_kthr][name:charging_hw_fan5405&][chr_control_interface]UNSUPPORT Function: 48
+[  101.328409] .(1)[223:bat_thread_kthr][BATTERY] Battery full !!
+[  101.328409] 
+[  101.328870] .(1)[223:bat_thread_kthr][name:charging_hw_fan5405&][chr_control_interface]UNSUPPORT Function: 44
+[  101.334264] .(1)[223:bat_thread_kthr][100percent], UI_SOC(100), reset(0) bat_full(1) ever100(1)
+[  101.335373] .(1)[223:bat_thread_kthr][recharging] UI_SOC=100, SOC=100
+[  101.336201] .(1)[223:bat_thread_kthr]UI_SOC=(100), resetBatteryMeter=(0)
+[  101.337161] .(1)[223:bat_thread_kthr]mtk_rtc_common: set_rtc_spare_fg_value, 100
+[  101.338106] .(1)[223:bat_thread_kthr][DLPT_POWER_OFF_EN] run
+[  101.954483] -(3)[19:migration/3][name:ca53_timer&]arch_timer_teardown disable IRQ29 cpu #3
+[  101.954586] .(1)[98:hps_main]CPU3: shutdown
+[  101.956771] -(2)[15:migration/2][name:ca53_timer&]arch_timer_teardown disable IRQ29 cpu #2
+[  101.956867] .(1)[98:hps_main]CPU2: shutdown
+[  101.958948] -(1)[11:migration/1][name:ca53_timer&]arch_timer_teardown disable IRQ29 cpu #1
+[  101.959011] .(0)[98:hps_main]CPU1: shutdown
+[  101.960435] .(0)[98:hps_main][HPS] (0200)(4)action end(0)(0)(0)(0) (4)(4)(4)(4)(1) (0)(0)(0) (151)(8)(0) (0)(0)(8)(0)(0) wifi_base(0)
+[  102.384215] .(0)[3078:service 59]EXT4-fs (mmcblk0p20): warning: maximal mount count reached, running e2fsck is recommended
+[  102.386252] .(0)[3078:service 59]EXT4-fs (mmcblk0p20): re-mounted. Opts: (null)
+[  103.696378] -(0)[0:swapper/0][Power/swap]DP: No enter --- SODI: No enter --- 
+[  104.457036] .(0)[226:wdtk-0][name:wd_common_drv&][WDK],local_bit:0x1,cpu:0,check bit0x:1,1,0,101959730703,RT[104457019940]
+[  104.457053] .(0)[226:wdtk-0][WDK]: kick Ex WDT,RT[104457049863]
+[  104.457224] .(0)[226:wdtk-0][name:wd_common_drv&][thread:226][RT:104457212940] 2019-03-21 08:35:41.336558 UTC;android time 2019-03-21 16:35:41.336558
+[  105.109722] .(0)[419:batterywarning][Battery] show_BatteryNotify : 0
+[  110.986055] .(0)[55:dlpt_notify_thr][name:pmic&][dlpt] get_dlpt_imix_charging 6432 4315 3100 170
+[  110.988210] .(0)[55:dlpt_notify_thr][PBM] [ma_to_mw] 4296(mV) * 5500(mA) = 23628(mW)
+[  110.989214] .(0)[55:dlpt_notify_thr][name:pmic&][exec_dlpt_callback] g_dlpt_val=5500
+[  110.989228] .(0)[55:dlpt_notify_thr][name:pmic&][DLPT_final] 5500,0,100,100,5500
+[  111.323250] .(0)[223:bat_thread_kthr][FGADC] 1,6957,2,4135,98,100,100,2500,2500,-176,0,0,1000,4311,1000,0,0,104,103
+[  111.325310] .(0)[223:bat_thread_kthr]AvgVbat=(4301,4311),AvgI=(220,14),VChr=5033,AvgT=(25,25),SOC=(100,100),UI_SOC=100,ZCV=4135,CHR_Type=1 bcct:0:0 I:65000 Ibat:695
+[  111.328065] .(0)[223:bat_thread_kthr]v=4311,i=14,t=25,soc=100,bcct:0:0 I:65000 Ibat:695
+[  111.330533] .(0)[223:bat_thread_kthr][name:charging_hw_fan5405&][chr_control_interface]UNSUPPORT Function: 48
+[  111.330544] .(0)[223:bat_thread_kthr][BATTERY] Battery full !!
+[  111.330544] 
+[  111.331005] .(0)[223:bat_thread_kthr][name:charging_hw_fan5405&][chr_control_interface]UNSUPPORT Function: 44
+[  111.336340] .(0)[223:bat_thread_kthr][100percent], UI_SOC(100), reset(0) bat_full(1) ever100(1)
+[  111.338012] .(0)[223:bat_thread_kthr][recharging] UI_SOC=100, SOC=100
+[  111.338840] .(0)[223:bat_thread_kthr]UI_SOC=(100), resetBatteryMeter=(0)
+[  111.339769] .(0)[223:bat_thread_kthr]mtk_rtc_common: set_rtc_spare_fg_value, 100
+[  111.340714] .(0)[223:bat_thread_kthr][DLPT_POWER_OFF_EN] run
+[  111.342226] .(0)[291:healthd]healthd: Unknown battery status '3'
+[  111.343479] .(0)[291:healthd]healthd: battery l=100 v=4301 t=25.0 h=2 st=5 chg=u
+[  111.344435] .(0)[291:healthd]healthd: battery l=100 v=4301 t=25.0 h=2 st=5 chg=u
+[  111.345439] .(0)[291:healthd]healthd: send_already = 0
+[  112.417019] .(0)[347:kworker/0:2][C2K MODEM] start heart beat timer 5
+[  112.417860] .(0)[347:kworker/0:2][name:c2k_sdio&][C2K] before wait tx done
+[  112.417873] .(0)[347:kworker/0:2][name:c2k_sdio&][C2K] after wait tx done
+[  112.424219] .(0)[347:kworker/0:2][name:c2k_sdio&][C2K SDIO] write ctrl channel start, len = 12
+[  112.424266] .(0)[347:kworker/0:2][name:c2k_sdio&][C2K SDIO] write ctrl channel done, len = 12
+[  112.442086] .(0)[738:ksdioirqd/mmc2][C2K MODEM] heart beat msg received 5
+[  113.706751] -(0)[0:swapper/0][Power/swap]DP: No enter --- SODI: No enter --- 
+[  115.110742] .(0)[419:batterywarning][Battery] show_BatteryNotify : 0

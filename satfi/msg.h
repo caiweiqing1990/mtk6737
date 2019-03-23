@@ -153,6 +153,9 @@
 #define ADD_FAMILY_PHONE			0x0061
 #define REMOVE_FAMILY_PHONE			0x0062
 
+#define SOS_INFO					0x0063
+
+
 #pragma pack (1)
 
 typedef struct _msg_header
@@ -387,7 +390,7 @@ typedef struct _app_get_message_rsp
 	unsigned short Type;
 	unsigned int ID;
 	char Date[8];
-	char message[0];
+	char message[1024];
 }MsgGetMessageRsp;
 
 /*NOTIFY_CMD*/
@@ -1021,6 +1024,17 @@ typedef struct _app_remove_family_phone
 	char MsID[21];
 	char Phone[21];
 } MsgRemovePamilyPhone;
+
+//SOS_INFO
+typedef struct _app_sos_info
+{
+	MsgHeader header;
+	char MsID[21];
+	char Phone[21];
+	unsigned short interval;
+	unsigned short boolcallphone;
+	char Message[0];
+} MsgSosInfo;
 
 #pragma pack ()
 

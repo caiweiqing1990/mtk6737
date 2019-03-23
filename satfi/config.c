@@ -45,7 +45,7 @@ int SetKeyInt(char *appName, char *keyName, char *profile, int Value)
 //SetKeyString("server", "KEEPALIVE", "/etc/config.ini",NULL,"123");
 int SetKeyString(char *appName, char *keyName, char *profile, char *keyValOld, char *keyValNew)
 {
-  char appname[32]={0},keyname[32]={0},keyvalold[32]={0};
+  char appname[KEYVALLEN]={0},keyname[KEYVALLEN]={0},keyvalold[KEYVALLEN]={0};
   char *buf,*c;
   char buf_i[KEYVALLEN]={0},buf_o[KEYVALLEN]={0};
   char ucFileNameBak[128]={0};
@@ -70,7 +70,6 @@ int SetKeyString(char *appName, char *keyName, char *profile, char *keyValOld, c
 	}
   }
 
-
   fseek(fp, 0, SEEK_SET);
   memset(appname, 0, sizeof(appname));
   sprintf(appname, "[%s]", appName);
@@ -92,6 +91,7 @@ int SetKeyString(char *appName, char *keyName, char *profile, char *keyValOld, c
         addflag = linecount;
         continue;
       }
+	  
     }
     else if(found==1)
     {
@@ -108,7 +108,7 @@ int SetKeyString(char *appName, char *keyName, char *profile, char *keyValOld, c
         if(strcmp(keyname,keyName)==0)
         {
          sscanf(++c,"%[^\n]",keyvalold);
-         char *keyVal_o = (char *)malloc(strlen(keyvalold)+1);
+         char *keyVal_o = (char *)malloc(sizeof(keyvalold)+1);
           if(keyVal_o!=NULL)
           {
             memset(keyVal_o,0,sizeof(keyVal_o));

@@ -83,6 +83,7 @@ adb push Y:\satfi\bin\pppd.sh /system/bin/
 adb push Y:\satfi\bin\busybox /system/bin/
 adb push Y:\satfi\bin\config.ini /storage/self/primary/
 adb push Y:\satfi\bin\configSat.ini /storage/self/primary/
+adb push Y:\pcm_module\pcm_master_gpio.ko /storage/self/primary/
 adb push Z:\XY3701_N0\out\target\product\len6737t_66_sh_n\symbols\system\vendor\bin\mnld /system/vendor/bin/mnld
 
 adb push Z:\out\target\product\len6737t_66_sh_n\system\bin\tinymix /system/bin/
@@ -603,5 +604,5 @@ echo -w=86:3 1 0 0 1 1 1 > /sys/devices/virtual/misc/mtgpio/pin
 adb push Y:\satfi\bin\satfi
 
 AT^PCMMODE=0,1,0,0,2,0,0
-AT^SYSMODE=2,0,1,0,0,1,0,0
+mytest /dev/ttyMT1 921600 AT^SYSMODE=2,0,1,0,0,2,0,0
 
