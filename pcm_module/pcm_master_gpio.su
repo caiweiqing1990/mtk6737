@@ -1,8 +1,0 @@
-pcm_master_gpio.c:341:13:pcm_master_stop	32	static
-pcm_master_gpio.c:404:12:pcm_master_release	16	static
-pcm_master_gpio.c:118:13:gpio_set_out.part.0	0	static
-pcm_master_gpio.c:372:13:pcm_master_ioctl	112	static
-pcm_master_gpio.c:146:6:DELAY	16	static
-pcm_master_gpio.c:200:12:pcm_master_kthread	112	static
-pcm_master_gpio.c:423:12:pcm_master_init	32	static
-pcm_master_gpio.c:448:13:pcm_master_exit	32	static
