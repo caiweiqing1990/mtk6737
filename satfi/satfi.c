@@ -8063,7 +8063,7 @@ void *SystemServer(void *p)
 
 						if(boolcallphone == 1)
 						{
-							StartCallUp(toPhone);							
+							//StartCallUp(toPhone);							
 						}
 					}
 				}
