@@ -390,7 +390,7 @@ typedef struct _app_get_message_rsp
 	unsigned short Type;
 	unsigned int ID;
 	char Date[8];
-	char message[1024];
+	char message[0];
 }MsgGetMessageRsp;
 
 /*NOTIFY_CMD*/

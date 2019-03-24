@@ -268,7 +268,7 @@ size_t iconv(iconv_t cd, char **in, size_t *inb, char **out, size_t *outb)
 	const unsigned char *map = 0;
 	char tmp[MB_LEN_MAX];
 	wchar_t c, d;
-	size_t k, l;
+	size_t k, l;df
 	int err;
 
 	if (!in || !*in || !*inb) return 0;
