@@ -770,13 +770,11 @@ int code_convert_for_recvmsg(char tocode[], char fromcode[], char inbuf[], size_
 		satfi_log("code_convert %s\n", strerror(errno));
 	}
 	/* 由于iconv()函数会修改指针，所以要保存源指针 */
-	char tmpoutbuf[2048] = {0};
 	size_t inbytesleft = inlen;	
 	size_t outbytesleft = outlen;
 	char *tmpin = inbuf;
-	char *tmpout = tmpoutbuf;
+	char *tmpout = outbuf;
 	size_t ret = iconv(cd, &tmpin, &inbytesleft, &tmpout, &outbytesleft);
-	strcpy(outbuf, tmpoutbuf);
 	iconv_close(cd);
 	return 0;
 }
@@ -9120,7 +9118,7 @@ static void *recvfrom_app_voice_udp(void *p)
 		FD_ZERO(&fds);/* 每次循环都需要清空 */
 		FD_SET(sock, &fds); /* 添加描述符 */
 		maxfd = sock;
-		tout.tv_sec = 10;
+		tout.tv_sec = 3;
 		tout.tv_usec = 0;
 		
 		switch(select(maxfd+1,&fds,NULL,NULL,&tout))
@@ -9474,12 +9472,12 @@ void main_thread_loop(void)
 				}
 
 				if(base.sat.sat_phone > 0 && FD_ISSET(base.sat.sat_phone, &fds)) {
-					satfi_log("base.sat.sat_phone=%d\n", base.sat.sat_phone);
+					//satfi_log("base.sat.sat_phone=%d\n", base.sat.sat_phone);
 					handle_sat_data(&base.sat.sat_phone, SatDataBuf[1], &SatDataOfs[1]);//卫星模块数据
 				}
 
 				if(base.sat.sat_message > 0 && FD_ISSET(base.sat.sat_message, &fds)) {
-					satfi_log("base.sat.sat_message=%d\n", base.sat.sat_message);
+					//satfi_log("base.sat.sat_message=%d\n", base.sat.sat_message);
 					handle_sat_data(&base.sat.sat_message, SatDataBuf[2], &SatDataOfs[2]);//卫星模块数据
 				}
 
