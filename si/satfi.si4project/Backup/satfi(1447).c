@@ -854,6 +854,12 @@ void CheckisHaveMessageAndTriggerSend(int Serialfd)
 	if(MessagesHead != NULL)
 	{
 		//没有短信正在发送
+		if(base.sat.sat_state != SAT_STATE_CGACT_SCCUSS)
+		{
+			base.sat.sat_state = SAT_STATE_CGACT;
+			sleep(5);
+		}
+
 		satfi_log("CheckisHaveMessageAndTriggerSend %d\n", base.sat.sat_status);
 		if(Serialfd > 0)
 		{
@@ -7967,18 +7973,8 @@ void *SystemServer(void *p)
 		{
 			if(base->sat.sat_msg_sending == 0)
 			{
-				if(MessagesHead != NULL)
-				{
-					if(base->sat.sat_state != SAT_STATE_CGACT_SCCUSS)
-					{
-						if(base->sat.sat_state != SAT_STATE_CGACT_W) base->sat.sat_state = SAT_STATE_CGACT;
-					}
-					else
-					{
-						CheckisHaveMessageAndTriggerSend(base->sat.sat_message);
-						msg_send_timeout=0;
-					}
-				}
+				CheckisHaveMessageAndTriggerSend(base->sat.sat_message);
+				msg_send_timeout=0;
 			}
 			else
 			{
@@ -8066,10 +8062,6 @@ void *SystemServer(void *p)
 					
 					satfi_log("pppd call sat-dailer passed\n");
 					base->sat.sat_state = SAT_STATE_CSQ;
-				}
-				else
-				{
-					if(base->sat.sat_state != SAT_STATE_CGACT_W) base->sat.sat_state = SAT_STATE_CGACT;				
 				}
 			}
 			stat = pin_stat;
@@ -8305,23 +8297,6 @@ int AppCallUpRsp(int socket, short sat_state_phone)
 	return 0;
 }
 
- 
-int AppCallUpRspForce(int socket, short sat_state_phone)
-{	
-	satfi_log("AppCallUpRspForce socket=%d sat_state_phone=%d\n",socket, sat_state_phone);
-	MsgAppCallUpRsp rsp;
-	rsp.header.length = sizeof(MsgAppCallUpRsp);
-	rsp.header.mclass = CALLUP_RSP;
-	rsp.result = sat_state_phone;
-	if(socket>0)
-	{
-		int n = write(socket, &rsp, rsp.header.length);
-		if(n<0) satfi_log("write return error: errno=%d (%s) %d %d %d\n", errno, strerror(errno),socket,__LINE__,sat_state_phone);
-	}
-	return 0;
-}
-
-
 int AppRingUpRsp(int socket, char* called_number)
 {
 	if(socket <= 0 || called_number == NULL)
@@ -8396,7 +8371,7 @@ static void *CallUpThread(void *p)
 	int atdwaitcnt=0,clcccnt=0,ringcnt=0,dialcnt=0,dialfailecnt=0;
 	if(base->sat.sat_state != SAT_STATE_CGACT_SCCUSS)
 	{
-		if(base->sat.sat_state != SAT_STATE_CGACT_W) base->sat.sat_state = SAT_STATE_CGACT;
+		base->sat.sat_state = SAT_STATE_CGACT;
 		sleep(5);
 	}
 	
@@ -9163,21 +9138,6 @@ static void *recvfrom_app_voice_udp(void *p)
 				if(base->sat.sat_calling == 1)
 				{
 					satfi_log("clientAddr timeout\n");
-					if(base->sat.sat_state_phone == SAT_STATE_PHONE_DIALING_RING)
-					{
-						if(ntohs(clientAddr1->sin_port) == 0)
-						{
-							AppCallUpRspForce(base->sat.socket, SAT_STATE_PHONE_DIALING_RING);
-						}
-					}
-					else if(base->sat.sat_state_phone == SAT_STATE_PHONE_ONLINE)
-					{
-						if(ntohs(clientAddr1->sin_port) == 0)
-						{
-							AppCallUpRspForce(base->sat.socket, SAT_STATE_PHONE_DIALING_RING);
-							AppCallUpRspForce(base->sat.socket, SAT_STATE_PHONE_ONLINE);
-						}
-					}
 					break;
 				}
 			

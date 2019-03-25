@@ -1,9 +1,9 @@
----- SAT_STATE_PHONE_DIALING Matches (8 in 1 files) ----
-SAT_STATE_PHONE in satfi.c (Y:\satfi) :   SAT_STATE_PHONE_DIALING,		//电话拨号中 9
-get_sat_dailstatus in satfi.c (Y:\satfi) :   else if(base.sat.sat_state_phone == SAT_STATE_PHONE_DIALING ||
-handle_sat_data in satfi.c (Y:\satfi) : 							if(base.sat.sat_state_phone != SAT_STATE_PHONE_DIALING_ATH_W)base.sat.sat_state_phone = SAT_STATE_PHONE_DIALING;
-handle_sat_data in satfi.c (Y:\satfi) : 						else if(base.sat.sat_state_phone == SAT_STATE_PHONE_DIALING)
-SystemServer in satfi.c (Y:\satfi) : 		//if(base->sat.sat_state_phone != SAT_STATE_PHONE_DIALING)
-CallUpThread in satfi.c (Y:\satfi) : 			case SAT_STATE_PHONE_DIALING:
-CallUpThread in satfi.c (Y:\satfi) : 		if(base->sat.sat_state_phone == SAT_STATE_PHONE_DIALING)
-CallUpThread in satfi.c (Y:\satfi) : 				satfi_log("SAT_STATE_PHONE_DIALING too much ATH %d\n",base->sat.sat_state_phone);
+---- SAT_STATE_CGACT Matches (8 in 1 files) ----
+SAT_STATE in satfi.c (Y:\satfi) :   SAT_STATE_CGACT,
+func_y in satfi.c (Y:\satfi) : 					base->sat.sat_state = SAT_STATE_CGACT;
+func_y in satfi.c (Y:\satfi) : 				case SAT_STATE_CGACT:
+func_y in satfi.c (Y:\satfi) : 					//satfi_log("SAT_STATE_CGACT %d\n", base->sat.sat_state);
+SystemServer in satfi.c (Y:\satfi) : 					if(base->sat.sat_state != SAT_STATE_CGACT_W) base->sat.sat_state = SAT_STATE_CGACT;
+SystemServer in satfi.c (Y:\satfi) : 							base->sat.sat_state = SAT_STATE_CGACT;
+SystemServer in satfi.c (Y:\satfi) : 					if(base->sat.sat_state != SAT_STATE_CGACT_W) base->sat.sat_state = SAT_STATE_CGACT;				
+CallUpThread in satfi.c (Y:\satfi) : 		if(base->sat.sat_state != SAT_STATE_CGACT_W) base->sat.sat_state = SAT_STATE_CGACT;
