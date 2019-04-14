@@ -224,6 +224,10 @@ int main(int argc, char **argv)
 		//ALOGE("readLen = %d", readLen);
 		track->write(inBuffer, readLen);
 	}
+	
+	record->stop();
+	track->stop();
+	
 	return 0;
 }
 
