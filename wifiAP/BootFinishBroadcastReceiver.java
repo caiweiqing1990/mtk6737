@@ -7,6 +7,8 @@ import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiManager;
 import android.provider.Settings;
 import android.util.Log;
+import android.text.TextUtils;
+import com.mediatek.sim.IMEIUtils;
 
 public class BootFinishBroadcastReceiver extends BroadcastReceiver {
 	private WifiManager mWifiManager;
@@ -21,8 +23,10 @@ public class BootFinishBroadcastReceiver extends BroadcastReceiver {
 
 			mWifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
 			mWifiConfig = mWifiManager.getWifiApConfiguration();
+			
+			IMEIUtils.getInstance().Init(context);
 
-			mWifiConfig.SSID = "SatFi-MTK6737";
+			mWifiConfig.SSID = "SatFi-"+getLastFourIMEI();
 			mWifiConfig.preSharedKey ="12345678";
 			mWifiConfig.apBand = 0;
 			mWifiConfig.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.WPA2_PSK);
@@ -43,5 +47,14 @@ public class BootFinishBroadcastReceiver extends BroadcastReceiver {
 			mWifiManager.setWifiApEnabled(mWifiConfig, true);
 
 		}
+	}
+	
+	//获取IMEI号最后4位
+	private String getLastFourIMEI(){
+		String imeiUtils = IMEIUtils.getInstance().getIMEI();
+		if (!TextUtils.isEmpty(imeiUtils) && imeiUtils.length()>=4){
+			return imeiUtils.substring(imeiUtils.length()-4,imeiUtils.length());
+		}
+		return "MTK6737";
 	}
 }

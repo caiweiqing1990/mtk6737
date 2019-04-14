@@ -36,8 +36,10 @@
 #include "config.h"
 #include "gpio_exp.h"
 #include "data_coder.h"
+#include "websocket/websocket.h"
+#include "cJSON/cJSON.h"
 
-int appsocket_init(int port);
+int socket_init(int port);
 int uart_send(int fd, char *data, int datalen);
 int Data_To_Tsc(void *data, int len);
 int BcdToStr(unsigned char *str, const char *bcd, int bcdlen);
@@ -157,6 +159,9 @@ typedef  struct _n3g
 typedef struct _sat
 {
   int sat_fd;                //SAT模块文件
+  int qos1;					//u/a
+  int qos2;					//384/64
+  int qos3;					//384/64
   int sat_phone;
   int sat_message;
   int sat_pcmdata;
@@ -353,7 +358,7 @@ int bTscConnected = 0;
 int bGetGpsData = 0;
 int sock_tsc = -1;
 int sock_udp = -1;
-
+int web_socketfd = -1;
 int mtgpiofd = -1;
 
 int VoltageVal = 0;
@@ -2458,49 +2463,6 @@ void msm01a_reset(void)
 }
 
 #define SERIAL_PORT		"/dev/ttyMT1"
-void CMUX_init(int serialfd)
-{
-#define N_GSM0710		21	/* GSM 0710 Mux */
-
-	satfi_log("CMUX_init\n");
-
-	int ldisc = N_GSM0710;
-	struct gsm_config c;
-	/* open the serial port connected to the modem */
-	//int fd;
-	//init_serial(&fd, SERIAL_PORT, DEFAULT_SPEED);
-
-	/* configure the serial port : speed, flow control ... */
-
-	/* send the AT commands to switch the modem to CMUX mode
-	   and check that it's successful (should return OK) */
-	//write(fd, "AT+CMUX=0,0,5,1600\r\n", 20);
-
-	/* experience showed that some modems need some time before
-	   being able to answer to the first MUX packet so a delay
-	   may be needed here in some case */
-	//sleep(3);
-
-	/* use n_gsm line discipline */
-	ioctl(serialfd, TIOCSETD, &ldisc);
-
-	/* get n_gsm configuration */
-	ioctl(serialfd, GSMIOC_GETCONF, &c);
-	/* we are initiator and need encoding 0 (basic) */
-	c.initiator = 1;
-	c.encapsulation = 0;
-	/* our modem defaults to a maximum size of 127 bytes */
-	c.mru = 127;
-	c.mtu = 127;
-	/* set the new configuration */
-	ioctl(serialfd, GSMIOC_SETCONF, &c);
-
-	/* and wait for ever to keep the line discipline enabled */
-	//daemon(0,0);
-	//pause();
-
-	//close(fd);
-}
 
 /* 卫星模块线程
  *
@@ -2517,6 +2479,11 @@ static void *func_y(void *p)
 	satfi_log("power_mode msm01a on\n");
 	msm01a_on();
 	sleep(10);
+	ioctl(mtgpiofd, GPIO_IOCSDATALOW, HW_GPIO82);
+
+	char cmd[32] = {0};
+	sprintf(cmd, "AT+CGEQREQ=4,%d,%d,%d,%d,%d\r\n", base->sat.qos1, base->sat.qos2, base->sat.qos3, base->sat.qos2, base->sat.qos3);
+	satfi_log("%s\n", cmd);
 
 	while(1)
 	{
@@ -2525,29 +2492,35 @@ static void *func_y(void *p)
 		{
 			if(checkroute("ppp0", NULL, 0) == 0)
 			{
-				if(mtgpiofd > 0)
-				{
-					ioctl(mtgpiofd, GPIO_IOCSDATAHIGH, HW_GPIO79);
-					sleep(1);
-					ioctl(mtgpiofd, GPIO_IOCSDATALOW, HW_GPIO79);
-					sleep(1);
-				}
-
 				if(base->sat.sat_state == SAT_STATE_CGACT_W)
 				{
 					base->sat.sat_state = SAT_STATE_CGACT;
+				}
+
+				base->sat.sat_available = 1;
+				
+				if(mtgpiofd > 0)
+				{
+					ioctl(mtgpiofd, GPIO_IOCSDATALOW, HW_GPIO78);
+					sleep(1);
+					ioctl(mtgpiofd, GPIO_IOCSDATAHIGH, HW_GPIO78);
+					sleep(1);
+				}
+				else
+				{
+					sleep(2);
 				}
 			}
 			else
 			{
 				if(base->sat.sat_state == SAT_STATE_CGACT_W)
 				{
+					base->sat.sat_available = 0;
 					base->sat.sat_state = SAT_STATE_CGACT_SCCUSS;
 					satfi_log("SAT_STATE_CGACT_SCCUSS\n");
+					ioctl(mtgpiofd, GPIO_IOCSDATALOW, HW_GPIO78);
 				}
-				
-				//satfi_log("ppp0 no exist\n");
-				sleep(5);
+				sleep(2);
 			}			
 		}
 		else
@@ -2555,6 +2528,26 @@ static void *func_y(void *p)
 			if(checkroute("ppp0", NULL, 0) == 0)
 			{
 				base->sat.sat_dialing = 1;
+			}
+			
+			if(base->sat.sat_csq_value == 0)
+			{
+				ioctl(mtgpiofd, GPIO_IOCSDATALOW, HW_GPIO82);
+				sleep(1);
+				ioctl(mtgpiofd, GPIO_IOCSDATAHIGH, HW_GPIO82);
+				sleep(1);
+			}
+			else if(base->sat.sat_csq_value > 0)
+			{
+				ioctl(mtgpiofd, GPIO_IOCSDATAHIGH, HW_GPIO82);
+				ioctl(mtgpiofd, GPIO_IOCSDATAHIGH, HW_GPIO83);
+				ioctl(mtgpiofd, GPIO_IOCSDATAHIGH, HW_GPIO81);
+				ioctl(mtgpiofd, GPIO_IOCSDATAHIGH, HW_GPIO80);
+				sleep(2);
+			}
+			else
+			{
+				sleep(1);
 			}
 		}
 
@@ -2609,7 +2602,7 @@ static void *func_y(void *p)
 				case SAT_STATE_AT:
 					if(cmux == 0)
 					{
-						satfi_log("func_y:send AT+CMUX=0,0,5,1600 to SAT Module\n");
+						satfi_log("func_y:send AT+CMUX=0,0,5,1600 to SAT Module1\n");
 						uart_send(base->sat.sat_fd, "AT+CMUX=0,0,5,1600\r\n", strlen("AT+CMUX=0,0,5,1600\r\n"));						
 					}
 					else
@@ -2623,7 +2616,7 @@ static void *func_y(void *p)
 				case SAT_STATE_AT_W:
 					if(cmux == 0)
 					{
-						satfi_log("func_y:send AT+CMUX=0,0,5,1600 to SAT Module\n");
+						satfi_log("func_y:send AT+CMUX=0,0,5,1600 to SAT Module2\n");
 						uart_send(base->sat.sat_fd, "AT+CMUX=0,0,5,1600\r\n", strlen("AT+CMUX=0,0,5,1600\r\n"));
 					}
 					else
@@ -2642,9 +2635,9 @@ static void *func_y(void *p)
 					break;
 				case SAT_STATE_SIM_ACTIVE:
 				case SAT_STATE_SIM_ACTIVE_W:
-					//satfi_log("func_y:send AT^LOGSWITCH=1 to SAT Module\n");
-					//uart_send(base->sat.sat_fd, "AT^LOGSWITCH=1\r\n", strlen("AT^LOGSWITCH=1\r\n"));
-					//sleep(3);
+					satfi_log("func_y:send %s to SAT Module\n", cmd);
+					uart_send(base->sat.sat_fd, cmd, strlen(cmd));
+					sleep(3);
 					satfi_log("func_y:send AT+CFUN=1 to SAT Module\n");
 					uart_send(base->sat.sat_fd, "AT+CFUN=1\r\n", 11);
 					base->sat.sat_state = SAT_STATE_SIM_ACTIVE_W;
@@ -2669,9 +2662,9 @@ static void *func_y(void *p)
 					satfi_log("func_y:send AT+CIMI to SAT Module\n");
 					uart_send(base->sat.sat_fd, "AT+CIMI\r\n", 9);
 					base->sat.sat_state = SAT_STATE_IMSI_W;
-					//sleep(3);
-					//satfi_log("func_y:send AT^LOGSWITCH=1 to SAT Module\n");
-					//uart_send(base->sat.sat_fd, "AT^LOGSWITCH=1\r\n", strlen("AT^LOGSWITCH=1\r\n"));
+					sleep(3);
+					satfi_log("func_y:send %s to SAT Module\n", cmd);
+					uart_send(base->sat.sat_fd, cmd, strlen(cmd));
 					uart_send(base->sat.sat_phone, "AT\r\n", 4);
 					uart_send(base->sat.sat_message, "AT\r\n", 4);
 					break;
@@ -2756,7 +2749,6 @@ static void *func_y(void *p)
 			}
 		}
 		
-		sleep(1);
 	}
 }
 
@@ -3921,7 +3913,7 @@ int handle_app_msg_tcp(int socket, char *pack, char *tscbuf)
 				rsp->sat_status = get_sat_status();
 				strncpy(rsp->sat_imei, base.sat.sat_imei, IMSI_LEN);
 				strncpy(rsp->sat_imsi, base.sat.sat_imsi, IMSI_LEN);
-				make_csq(rsp->sat_csq,(time_t *)&base.sat.sat_csq_ltime, base.sat.sat_csq_value);
+				make_csq(rsp->sat_csq,(time_t *)&base.sat.sat_csq_ltime, base.sat.sat_csq_value-127);
 				strncpy(rsp->sat_gps, base.sat.sat_gps, 127);
 				strncpy(rsp->bd_gps, base.gps.gps_bd, 127);
 				strncpy(rsp->version, satfi_version, 32);
@@ -5600,6 +5592,270 @@ int App_Fd_Set(fd_set *set, int TimeOut, int *maxfd)
 	return 0;
 }
 
+void Date_Parse(char *data)
+{
+	cJSON *root,*jstmp;
+	char *out;
+
+	char type[32]={0};
+	
+	root = cJSON_Parse(data);
+	if(root)
+	{
+		jstmp = cJSON_GetObjectItem(root,"type");
+		if(jstmp == NULL)
+		{
+			satfi_log("cJSON_GetErrorPtr=%d\n", __LINE__);
+			return;
+		}
+		
+		satfi_log("type=%s\n", jstmp->valuestring);
+		strncpy(type, jstmp->valuestring, 32);
+		if(strcmp(type, "state") == 0)
+		{
+			//{"type":"state"}
+			//time_t t=time(NULL);
+			jstmp=cJSON_CreateObject();
+			cJSON_AddStringToObject(jstmp,"type", "state");	
+			cJSON_AddStringToObject(jstmp,"operator", "电信运营商");			
+			cJSON_AddNumberToObject(jstmp,"date", time(NULL)*1000);
+			cJSON_AddStringToObject(jstmp,"imei", base.sat.sat_imei);
+			cJSON_AddStringToObject(jstmp,"imsi", base.sat.sat_imsi);
+			cJSON_AddNumberToObject(jstmp,"csq", base.sat.sat_csq_value-127);
+
+			if(SAT_STATE_AT_W == base.sat.sat_state)
+			{
+				cJSON_AddNumberToObject(jstmp,"net", -1);
+				cJSON_AddNumberToObject(jstmp,"active", -1);
+			}
+			else
+			{
+				cJSON_AddNumberToObject(jstmp,"net", base.sat.sat_status);
+				cJSON_AddNumberToObject(jstmp,"active", base.sat.sat_available);
+			}
+			cJSON_AddNumberToObject(jstmp,"battery", 75);
+			out=cJSON_Print(jstmp);
+			cJSON_Delete(jstmp);
+			response(web_socketfd, out);
+			free(out);
+		}
+		else if(strcmp(type, "wifi") == 0)
+		{
+			static char ssid[64] = "SatFi-MTK6737";
+			static char passwd[64] = "12345678";
+			
+			jstmp = cJSON_GetObjectItem(root,"ssid");
+			if(jstmp)
+			{
+				strcpy(ssid, jstmp->valuestring);
+			}
+			jstmp = cJSON_GetObjectItem(root,"passwd");
+			if(jstmp)
+			{
+				strcpy(passwd, jstmp->valuestring);
+			}
+
+			if(!jstmp)
+			{
+				jstmp=cJSON_CreateObject();
+				cJSON_AddStringToObject(jstmp,"type", "wifi");
+				cJSON_AddStringToObject(jstmp,"ssid", ssid);
+				cJSON_AddStringToObject(jstmp,"passwd", passwd);
+				out=cJSON_Print(jstmp);
+				cJSON_Delete(jstmp);
+				response(web_socketfd, out);
+				free(out);
+			}
+			else
+			{
+				jstmp=cJSON_CreateObject();
+				cJSON_AddStringToObject(jstmp,"type", "wifi");
+				cJSON_AddStringToObject(jstmp,"state", "OK");
+				out=cJSON_Print(jstmp);
+				cJSON_Delete(jstmp);
+				response(web_socketfd, out);
+				free(out);		
+			}
+		}
+		else if(strcmp(type, "sos") == 0)
+		{
+			char phone[512] = {0};
+			char msg[512] = {0};
+			
+			jstmp = cJSON_GetObjectItem(root,"phone");
+			if(jstmp)
+			{
+				strcpy(phone, jstmp->valuestring);
+				SetKeyString("SOS", "PHONE", SOS_FILE, NULL, phone);
+			}
+			jstmp = cJSON_GetObjectItem(root,"msg");
+			if(jstmp)
+			{
+				strcpy(msg, jstmp->valuestring);
+				SetKeyString("SOS", "MESSAGE", SOS_FILE, NULL, msg);
+			}
+
+			if(!jstmp)
+			{
+				GetIniKeyString("SOS","PHONE",SOS_FILE, phone);
+				GetIniKeyString("SOS","MESSAGE",SOS_FILE, msg);
+				jstmp=cJSON_CreateObject();
+				cJSON_AddStringToObject(jstmp,"type", "sos");
+				cJSON_AddStringToObject(jstmp,"phone", phone);
+				cJSON_AddStringToObject(jstmp,"msg", msg);
+				out=cJSON_Print(jstmp);
+				cJSON_Delete(jstmp);
+				response(web_socketfd, out);
+				free(out);
+			}
+			else
+			{
+				jstmp=cJSON_CreateObject();
+				cJSON_AddStringToObject(jstmp,"type", "sos");
+				cJSON_AddStringToObject(jstmp,"state", "OK");
+				out=cJSON_Print(jstmp);
+				cJSON_Delete(jstmp);
+				response(web_socketfd, out);
+				free(out);		
+			}
+		}
+		else if(strcmp(type, "message") == 0)
+		{
+			jstmp = cJSON_GetObjectItem(root,"phone");
+			satfi_log("phone=%s\n", jstmp->valuestring);
+			jstmp = cJSON_GetObjectItem(root,"msg");
+			satfi_log("msg=%s\n", jstmp->valuestring);
+		}
+		else if(strcmp(type, "qos1") == 0)
+		{
+			jstmp = cJSON_GetObjectItem(root,"value");
+			satfi_log("qos1=%d\n", jstmp->valueint);
+			if(jstmp->valueint == 1 || jstmp->valueint == 3)SetKeyInt("satellite", "QOS1", CONFIG_FILE, jstmp->valueint);
+			jstmp=cJSON_CreateObject();
+			cJSON_AddStringToObject(jstmp,"type", "qos1");
+			cJSON_AddStringToObject(jstmp,"state", "OK");
+			out=cJSON_Print(jstmp);
+			cJSON_Delete(jstmp);
+			response(web_socketfd, out);
+			free(out);		
+		}
+		else if(strcmp(type, "qos2") == 0)
+		{
+			jstmp = cJSON_GetObjectItem(root,"value");
+			satfi_log("qos2=%d\n", jstmp->valueint);
+			if(jstmp->valueint == 384 || jstmp->valueint == 64)SetKeyInt("satellite", "QOS2", CONFIG_FILE, jstmp->valueint);
+			jstmp=cJSON_CreateObject();
+			cJSON_AddStringToObject(jstmp,"type", "qos2");
+			cJSON_AddStringToObject(jstmp,"state", "OK");
+			out=cJSON_Print(jstmp);
+			cJSON_Delete(jstmp);
+			response(web_socketfd, out);
+			free(out);		
+		}
+		else if(strcmp(type, "qos3") == 0)
+		{
+			jstmp = cJSON_GetObjectItem(root,"value");
+			satfi_log("qos3=%d\n", jstmp->valueint);
+			if(jstmp->valueint == 384 || jstmp->valueint == 64)SetKeyInt("satellite", "QOS3", CONFIG_FILE, jstmp->valueint);
+			//base.sat.qos3 = GetIniKeyInt("satellite","QOS3",CONFIG_FILE);
+			jstmp=cJSON_CreateObject();
+			cJSON_AddStringToObject(jstmp,"type", "qos3");
+			cJSON_AddStringToObject(jstmp,"state", "OK");
+			out=cJSON_Print(jstmp);
+			cJSON_Delete(jstmp);
+			response(web_socketfd, out);
+			free(out);		
+		}
+		else if(strcmp(type, "qos") == 0)
+		{
+			jstmp=cJSON_CreateObject();
+			cJSON_AddStringToObject(jstmp,"type", "qos");
+			cJSON_AddNumberToObject(jstmp,"qos1", GetIniKeyInt("satellite","QOS1",CONFIG_FILE));
+			cJSON_AddNumberToObject(jstmp,"qos2", GetIniKeyInt("satellite","QOS2",CONFIG_FILE));
+			cJSON_AddNumberToObject(jstmp,"qos3", GetIniKeyInt("satellite","QOS3",CONFIG_FILE));
+			out=cJSON_Print(jstmp);
+			cJSON_Delete(jstmp);
+			response(web_socketfd, out);
+			free(out);
+		}
+		else if(strcmp(type, "reboot") == 0)
+		{
+			ioctl(mtgpiofd, GPIO_IOCSDATALOW, HW_GPIO2);
+			ioctl(mtgpiofd, GPIO_IOCSDATALOW, HW_GPIO6);
+			ioctl(mtgpiofd, GPIO_IOCSDATALOW, HW_GPIO5);
+			ioctl(mtgpiofd, GPIO_IOCSDATALOW, HW_GPIO82);
+			ioctl(mtgpiofd, GPIO_IOCSDATALOW, HW_GPIO83);
+			ioctl(mtgpiofd, GPIO_IOCSDATALOW, HW_GPIO81);
+			ioctl(mtgpiofd, GPIO_IOCSDATALOW, HW_GPIO80);
+			ioctl(mtgpiofd, GPIO_IOCSDATALOW, HW_GPIO78);
+			ioctl(mtgpiofd, GPIO_IOCSDATALOW, HW_GPIO79);
+			ioctl(mtgpiofd, GPIO_IOCSDATALOW, HW_GPIO7);
+			myexec("reboot", NULL, NULL);
+		}
+		else if(strcmp(type, "apswitch") == 0)
+		{
+			static int apswitch = 0;
+			jstmp = cJSON_GetObjectItem(root,"state");
+			if(jstmp)
+			{
+				satfi_log("apswitch=%d\n", jstmp->valueint);
+				apswitch = jstmp->valueint;
+				jstmp=cJSON_CreateObject();
+				cJSON_AddStringToObject(jstmp,"type", "apswitch");
+				cJSON_AddStringToObject(jstmp,"state", "OK");
+				out=cJSON_Print(jstmp);
+				cJSON_Delete(jstmp);
+				response(web_socketfd, out);
+				free(out);
+			}
+			else
+			{
+				jstmp=cJSON_CreateObject();
+				cJSON_AddStringToObject(jstmp,"type", "apswitch");
+				cJSON_AddNumberToObject(jstmp,"state", apswitch);
+				out=cJSON_Print(jstmp);
+				cJSON_Delete(jstmp);
+				response(web_socketfd, out);
+				free(out);
+			}
+		}
+		else if(strcmp(type, "active") == 0)
+		{
+			if(base.sat.sat_state != SAT_STATE_CGACT_W) base.sat.sat_state = SAT_STATE_CGACT;
+			
+			static int active = 0;
+			jstmp = cJSON_GetObjectItem(root,"state");
+			if(jstmp)
+			{
+				satfi_log("active=%d\n", jstmp->valueint);
+				active = jstmp->valueint;
+				jstmp=cJSON_CreateObject();
+				cJSON_AddStringToObject(jstmp,"type", "active");
+				cJSON_AddStringToObject(jstmp,"state", "OK");
+				out=cJSON_Print(jstmp);
+				cJSON_Delete(jstmp);
+				response(web_socketfd, out);
+				free(out);
+			}
+			else
+			{
+				jstmp=cJSON_CreateObject();
+				cJSON_AddStringToObject(jstmp,"type", "active");
+				cJSON_AddNumberToObject(jstmp,"state", active);
+				out=cJSON_Print(jstmp);
+				cJSON_Delete(jstmp);
+				response(web_socketfd, out);
+				free(out);
+			}
+		}
+		cJSON_Delete(root);
+	}
+	else
+	{
+		satfi_log("cJSON_GetErrorPtr=%d\n", __LINE__);
+	}
+}
+
 static void *select_app(void *p)
 {
 	BASE *base = (BASE *)p;
@@ -5613,30 +5869,34 @@ static void *select_app(void *p)
 	int len = sizeof(struct sockaddr_in);
 	Header *pHeader = NULL;
 	char tscbuf[8192] = {0};
-    int sock_app_tcp = appsocket_init(base->app.app_port);
+    int sock_app_tcp = socket_init(base->app.app_port);
+	int web_socket_listen = socket_init(8000);
+	int connected = 0;
 
 	FD_ZERO(&fds);
 	FD_ZERO(&fdread);
 
 	FD_SET(sock_app_tcp, &fdread);
-	max_fd = sock_app_tcp;
+	FD_SET(web_socket_listen, &fdread);
+
+	max_fd = (sock_app_tcp > web_socket_listen) ? sock_app_tcp : web_socket_listen;
 	
 	while(1)
 	{
 		timeout.tv_sec = 3;
 		timeout.tv_usec = 0;
-		max_fd = sock_app_tcp;
+		max_fd = (web_socketfd > max_fd) ? web_socketfd : max_fd;
 		App_Fd_Set(&fdread, base->app.app_timeout, &max_fd);
 		fds = fdread;
-		ret = select(max_fd + 1, &fds, NULL, NULL, &timeout);  
+		ret = select(max_fd + 1, &fds, NULL, NULL, &timeout);
         if (ret == 0)  
         {
-            //satfi_log("app select timeout\n");  
+            //satfi_log("app select timeout %d %d\n", web_socket_listen, sock_app_tcp);  
         }
         else if (ret < 0)  
         {  
             satfi_log("app error occur\n"); 
-			//sleep(1);
+			sleep(1);
         }
 		else
 		{
@@ -5652,6 +5912,62 @@ static void *select_app(void *p)
 				{
 					satfi_log("Fail to accept\n");
 					exit(0);
+				}
+			}
+			else if(FD_ISSET(web_socket_listen, &fds))
+			{
+				//satfi_log("web_socket_listen %d %s:%d\n", web_socket_listen, inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port));				
+				if(web_socketfd>0)
+				{
+					//satfi_log("close(conn_fd)3\n");
+					connected = 0;
+					FD_CLR(web_socketfd, &fdread);
+					close(web_socketfd);
+					web_socketfd = -1;				
+				}
+				web_socketfd = accept(web_socket_listen, (struct sockaddr *)&cli_addr, &len);
+				FD_SET(web_socketfd, &fdread); 
+			}
+			else if(web_socketfd > 0)
+			{
+				if(FD_ISSET(web_socketfd, &fds))
+				{
+					char buf[2048] = {0};
+					char *sec_websocket_key = NULL;
+					int n = read(web_socketfd, buf, 2048);
+					//satfi_log("read:%d connected:%d\n", n, connected);
+					if(!connected) 
+					{
+						//satfi_log("read:%d\n%s\n", n, buf);
+						sec_websocket_key = calculate_accept_key(buf);	
+						websocket_shakehand(web_socketfd, sec_websocket_key);
+						if (sec_websocket_key != NULL)
+						{
+							free(sec_websocket_key);
+							sec_websocket_key = NULL;
+						}
+						connected=1;
+					}
+					else
+					{
+						char *data = deal_data(buf, &n);
+						if(data)
+						{
+							data[n] = 0;
+							satfi_log("%s\n", data);
+							Date_Parse(data);
+							//response(web_socketfd, data);
+						}			
+					}
+					
+					if(n <= 0)
+					{
+						satfi_log("close(conn_fd)2\n");
+						FD_CLR(web_socketfd, &fdread);
+						connected = 0;
+						close(web_socketfd);
+						web_socketfd = -1;
+					}
 				}
 			}
 			else
@@ -7969,11 +8285,11 @@ void *SystemServer(void *p)
 			{
 				if(MessagesHead != NULL)
 				{
-					if(base->sat.sat_state != SAT_STATE_CGACT_SCCUSS)
-					{
-						if(base->sat.sat_state != SAT_STATE_CGACT_W) base->sat.sat_state = SAT_STATE_CGACT;
-					}
-					else
+					//if(base->sat.sat_state != SAT_STATE_CGACT_SCCUSS)
+					//{
+						//if(base->sat.sat_state != SAT_STATE_CGACT_W) base->sat.sat_state = SAT_STATE_CGACT;
+					//}
+					//else
 					{
 						CheckisHaveMessageAndTriggerSend(base->sat.sat_message);
 						msg_send_timeout=0;
@@ -8034,8 +8350,8 @@ void *SystemServer(void *p)
 					{
 						if(SosMode == 0)
 						{
-							base->sat.sat_state = SAT_STATE_CGACT;
-							sleep(5);
+							//base->sat.sat_state = SAT_STATE_CGACT;
+							//sleep(5);
 							SosMode = 1;
 							char outdata[1024]= {0};
 							CreateMsgData(toPhone, messagedata, outdata);
@@ -8049,27 +8365,29 @@ void *SystemServer(void *p)
 					}
 				}
 
-				if(base->sat.sat_dialing == 0 || base->sat.sat_state == SAT_STATE_CGACT_SCCUSS)
+				if(base->sat.sat_status == 1)
 				{
-					base->sat.sat_dialing = 1;
-					ioctl(fd, GPIO_IOCSDATAHIGH, HW_GPIO79);
-					sleep(5);
-					satfi_log("pppd call sat-dailer\n");
-					myexec("start sat_pppd", NULL, NULL);
-
-					myexec("iptables -t nat -F", NULL, NULL);
-					myexec("iptables -F", NULL, NULL);
-					myexec("iptables -A OUTPUT -o lo -j ACCEPT", NULL, NULL);
-					myexec("iptables -t nat -A POSTROUTING -o ppp0 -s 192.168.43.0/24 -j MASQUERADE", NULL, NULL);
-					myexec("echo 1 > /proc/sys/net/ipv4/ip_forward", NULL, NULL);
-					myexec("ip rule add from all lookup main", NULL, NULL);
+					if(base->sat.sat_dialing == 0 || base->sat.sat_state == SAT_STATE_CGACT_SCCUSS)
+					{
+						base->sat.sat_dialing = 1;
+						satfi_log("pppd call sat-dailer\n");
+						sleep(5);
+						myexec("start sat_pppd", NULL, NULL);
 					
-					satfi_log("pppd call sat-dailer passed\n");
-					base->sat.sat_state = SAT_STATE_CSQ;
-				}
-				else
-				{
-					if(base->sat.sat_state != SAT_STATE_CGACT_W) base->sat.sat_state = SAT_STATE_CGACT;				
+						myexec("iptables -t nat -F", NULL, NULL);
+						myexec("iptables -F", NULL, NULL);
+						myexec("iptables -A OUTPUT -o lo -j ACCEPT", NULL, NULL);
+						myexec("iptables -t nat -A POSTROUTING -o ppp0 -s 192.168.43.0/24 -j MASQUERADE", NULL, NULL);
+						myexec("echo 1 > /proc/sys/net/ipv4/ip_forward", NULL, NULL);
+						myexec("ip rule add from all lookup main", NULL, NULL);
+						
+						satfi_log("pppd call sat-dailer passed\n");
+						base->sat.sat_state = SAT_STATE_CSQ;
+					}
+					else
+					{
+						if(base->sat.sat_state != SAT_STATE_CGACT_W) base->sat.sat_state = SAT_STATE_CGACT; 			
+					}
 				}
 			}
 			stat = pin_stat;
@@ -8108,6 +8426,7 @@ void init()
 	base.sat.sat_phone = -1;
 	base.sat.sat_pcmdata = -1;
 	base.sat.sat_status = 0;
+	base.sat.sat_available = 0;
 	base.sat.sat_state = -1;
 	base.sat.sat_calling = 0;
 	base.sat.sat_dialing = 0;
@@ -8115,6 +8434,7 @@ void init()
 	base.sat.captain_socket = -1;;
 	base.sat.start_time = 0;
 	base.sat.end_time = 0;
+	base.sat.sat_csq_value = -1;
 	
 	base.n3g.n3g_fd = -1;
 	base.n3g.n3g_status = 0;
@@ -8207,6 +8527,30 @@ void init()
 
 	base.sat.sat_baud_rate = GetIniKeyInt("satellite","BAUDRATE",CONFIG_FILE);
 	satfi_log("SAT_BAUD_RATE:%d\n", base.sat.sat_baud_rate);
+
+	base.sat.qos1 = GetIniKeyInt("satellite","QOS1",CONFIG_FILE);
+	satfi_log("QOS1:%d\n", base.sat.qos1);
+	if(base.sat.qos1 == 0)
+	{
+		base.sat.qos1 = 1;
+		SetKeyInt("satellite", "QOS1", CONFIG_FILE, base.sat.qos1);
+	}
+
+	base.sat.qos2 = GetIniKeyInt("satellite","QOS2",CONFIG_FILE);
+	satfi_log("QOS2:%d\n", base.sat.qos2);
+	if(base.sat.qos2 == 0)
+	{
+		base.sat.qos2 = 384;
+		SetKeyInt("satellite", "QOS2", CONFIG_FILE, base.sat.qos2);
+	}
+
+	base.sat.qos3 = GetIniKeyInt("satellite","QOS3",CONFIG_FILE);
+	satfi_log("QOS3:%d\n", base.sat.qos3);
+	if(base.sat.qos3 == 0)
+	{
+		base.sat.qos3 = 64;
+		SetKeyInt("satellite", "QOS3", CONFIG_FILE, base.sat.qos3);
+	}
 
 	base.sat.charge = GetIniKeyInt("satellite","CHARGE",CONFIG_FILE);
 	satfi_log("CHARGE:%d\n", base.sat.charge);
@@ -8396,8 +8740,8 @@ static void *CallUpThread(void *p)
 	int atdwaitcnt=0,clcccnt=0,ringcnt=0,dialcnt=0,dialfailecnt=0;
 	if(base->sat.sat_state != SAT_STATE_CGACT_SCCUSS)
 	{
-		if(base->sat.sat_state != SAT_STATE_CGACT_W) base->sat.sat_state = SAT_STATE_CGACT;
-		sleep(5);
+		//if(base->sat.sat_state != SAT_STATE_CGACT_W) base->sat.sat_state = SAT_STATE_CGACT;
+		//sleep(5);
 	}
 	
 	base->sat.sat_calling = 1;
@@ -8738,7 +9082,7 @@ int ConnectTSC(char* routename, char* ip, int port, int *err, int timeout)
 	return sockfd;
 }
 
-int appsocket_init(int port)
+int socket_init(int port)
 {
 	int ret = 0;
 	struct sockaddr_in server_addr;		// 服务器地址结构体
@@ -8763,15 +9107,6 @@ int appsocket_init(int port)
 	server_addr.sin_family = AF_INET;
 	server_addr.sin_port   = htons(port);
 	server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-
-	int sizer = 256*1024;
-	int sizes = 256*1024;
-	int optlen = sizeof(int);
-	setsockopt(socket_tcp, SOL_SOCKET, SO_RCVBUF, (void *)&sizer, optlen);
-	setsockopt(socket_tcp, SOL_SOCKET, SO_SNDBUF, (void *)&sizes, optlen);
-
-	//int on=1;
-	//setsockopt(socket_tcp, IPPROTO_TCP, TCP_NODELAY,&on,sizeof(int));        
 
 	ret = bind(socket_tcp, (struct sockaddr*)&server_addr, sizeof(server_addr));
 	if(ret != 0)
@@ -9595,6 +9930,98 @@ void ttygsmcreate(void)
 	}
 }
 
+static void *web_thread(void *p)
+{
+#define REQUEST_LEN_MAX         1024
+#define DEFEULT_SERVER_PORT     8000
+
+	BASE *base = (BASE *)p;
+	int connected = 0;
+	int listen_fd;
+	char buf[REQUEST_LEN_MAX];
+	char *data = NULL;
+	char str[INET_ADDRSTRLEN];
+	char *sec_websocket_key = NULL;
+	int n;
+	int port = DEFEULT_SERVER_PORT;
+	struct sockaddr_in	servaddr;
+	struct sockaddr_in	cliaddr;
+	socklen_t addr_len;
+
+	listen_fd = socket(AF_INET, SOCK_STREAM, 0);
+	bzero(&servaddr, sizeof(servaddr));
+	servaddr.sin_family = AF_INET;
+	servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
+	servaddr.sin_port = htons(port);
+	if(bind(listen_fd, (struct sockaddr *)&servaddr, sizeof(servaddr))<0)
+	{
+		satfi_log("bind error\n");
+		exit(0);
+	}
+	
+	listen(listen_fd, 5);
+	satfi_log("Listen %d\nAccepting connections ...\n",port);
+	addr_len = sizeof(struct sockaddr_in);
+ 
+	while (1)
+	{
+		web_socketfd = accept(listen_fd, (struct sockaddr *)&cliaddr, &addr_len);
+		satfi_log("From %s at PORT %d\n", inet_ntop(AF_INET, &cliaddr.sin_addr, str, sizeof(str)), ntohs(cliaddr.sin_port));
+		
+		while(1)
+		{
+			memset(buf, 0, REQUEST_LEN_MAX);
+			n = read(web_socketfd, buf, REQUEST_LEN_MAX);	
+			if(!connected) 
+			{
+				satfi_log("read:%d\n%s\n", n, buf);
+				sec_websocket_key = calculate_accept_key(buf);	
+				websocket_shakehand(web_socketfd, sec_websocket_key);
+				if (sec_websocket_key != NULL)
+				{
+					free(sec_websocket_key);
+					sec_websocket_key = NULL;
+				}
+				connected=1;
+				continue;
+			}
+						
+			char *data = deal_data(buf, &n);
+			if(data)
+			{
+				data[n] = 0;
+
+				cJSON *root,*jstmp;
+				char *out;
+
+				time_t t=time(NULL);
+				
+				root=cJSON_CreateObject();
+				cJSON_AddStringToObject(root,"date", ctime(&t));
+				cJSON_AddStringToObject(root,"imei", base->sat.sat_imei);
+				cJSON_AddStringToObject(root,"imsi", base->sat.sat_imsi);
+				cJSON_AddNumberToObject(root,"csq", base->sat.sat_csq_value);
+				out=cJSON_Print(root);	
+				cJSON_Delete(root);
+				response(web_socketfd, out);
+				free(out);
+			}
+			
+			if(n <= 0)
+			{
+				satfi_log("close(conn_fd)\n");
+				connected = 0;
+				web_socketfd = -1;
+				close(web_socketfd);
+				break;
+			}			
+		}
+	}
+ 
+	close(web_socketfd);
+	return NULL;
+}
+
 int main(void)
 {
 	pthread_t id_1,id_2;
@@ -9605,14 +10032,23 @@ int main(void)
 	//prctl(PR_SET_PDEATHSIG, SIGKILL);//父进程退出发送SIGKILL 给子进程
 	//signal(SIGPIPE,SignalHandler);
 	gpio_out(HW_GPIO82, 1);
-	gpio_out(HW_GPIO83, 1);
-	gpio_out(HW_GPIO81, 1);
-	gpio_out(HW_GPIO80, 1);
+	gpio_out(HW_GPIO83, 0);
+	gpio_out(HW_GPIO81, 0);
+	gpio_out(HW_GPIO80, 0);
 
 	gpio_out(HW_GPIO78, 0);
 	gpio_out(HW_GPIO79, 0);
 
-	sleep(10);
+	gpio_out(HW_GPIO3, 1);
+	gpio_out(HW_GPIO4, 1);
+	gpio_out(HW_GPIO19, 1);
+	gpio_out(HW_GPIO54, 1);
+
+	if(!isFileExists(CONFIG_FILE))
+	{
+		satfi_log("%s FileNoExists\n", CONFIG_FILE);
+		sleep(10);
+	}
 
 	init();
 	ttygsmcreate();
@@ -9637,6 +10073,8 @@ int main(void)
 	//电话音频处理
 	if(pthread_create(&id_7, NULL, recvfrom_app_voice_udp, (void *)&base) == -1) exit(1);
 	//if(pthread_create(&id_8, NULL, sendto_app_voice_udp, (void *)&base) == -1) exit(1);
+
+	//if(pthread_create(&id_1, NULL, web_thread, (void *)&base) == -1) exit(1);
 
 	main_thread_loop();
 	return 0;

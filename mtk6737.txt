@@ -9,6 +9,7 @@ codegen.dws
 Z:\XY3701_N0\kernel-3.18\drivers\misc\mediatek\mach\mt6735\len6737t_66_sh_n\dct\dct
 
 X:\XY3701_N0\kernel-3.18\drivers\misc\mediatek\mach\mt6735\len6737t_66_sh_n\dct\dct
+Z:\vendor\mediatek\proprietary\bootable\bootloader\lk\target\len6737t_66_sh_n\dct\dct
 
 /home/book/work/XY3701_N0/out/target/product/len6737t_66_sh_n/obj/KERNEL_OBJ/arch/arm64/boot/dts/len6737t_66_sh_n.dtb
 
@@ -75,26 +76,29 @@ adb remount
 adb push Y:\mytest\bin\mytest /system/bin/
 adb push Y:\power_mode\bin\power_mode /system/bin/
 adb push Y:\power_mode\bin\mtkgpio /system/bin/
-adb push Y:\power_mode\bin\httpdown /system/bin/
 adb push Y:\power_mode\bin\chat /system/bin/ 
 adb push Y:\power_mode\bin\n_gsm /system/bin/ 
 adb push Y:\satfi\bin\satfi /system/bin/
-adb push Y:\satfi\bin\pppd.sh /system/bin/
 adb push Y:\satfi\bin\busybox /system/bin/
 adb push Y:\satfi\bin\config.ini /storage/self/primary/
-adb push Y:\satfi\bin\configSat.ini /storage/self/primary/
-adb push Y:\pcm_module\pcm_master_gpio.ko /storage/self/primary/
-adb push Z:\XY3701_N0\out\target\product\len6737t_66_sh_n\symbols\system\vendor\bin\mnld /system/vendor/bin/mnld
+adb push Y:\satfi\bin\sat-dailer /etc/ppp/peers/sat-dailer
+adb push Y:\satfi\bin\sat-chat-384 /etc/ppp/char/sat-chat
+adb push Y:\satfi\bin\disconnect-chat /etc/ppp/char/disconnect-chat
+adb push Y:\satfi\bin\Settings.apk /system/priv-app/Settings
+adb shell restorecon system/bin/satfi
+adb shell restorecon system/bin/pppd
+
+
+adb push Y:\satfi\bin\hostapd.conf /data/misc/wifi/hostapd.conf
 
 adb push Z:\out\target\product\len6737t_66_sh_n\system\bin\tinymix /system/bin/
 adb push Z:\out\target\product\len6737t_66_sh_n\system\bin\\tinycap /system/bin/
 adb push Z:\out\target\product\len6737t_66_sh_n\system\bin\\tinyplay /system/bin/
 adb push Z:\out\target\product\len6737t_66_sh_n\system\bin\\tinypcminfo /system/bin/
 
-adb push Y:\satfi\bin\sat-dailer /etc/ppp/peers/sat-dailer
-adb push Y:\satfi\bin\sat-chat-384 /etc/ppp/char/sat-chat
-adb push Y:\satfi\bin\disconnect-chat /etc/ppp/char/disconnect-chat
 
+更新系统Settings.apk，开机自动WIFI热点AP模式 SSID:SatFi-MTK6737 密码:12345678
+adb push Y:\satfi\bin\Settings.apk /system/priv-app/Settings/Settings.apk
 
 adb push Y:\satfi\bin\sysctl.conf /etc/sysctl.conf
 
@@ -134,12 +138,12 @@ adb push Y:\satfi\bin\ril_test /mnt
 =======
 替换以上程序
 
->>>>>>> 8947044e15fb44781c6ebb3aec87c1438036815f
 adb push Y:\gpio_test\bin\pcm_test /mnt
 adb push Y:\gpio_test\bin\in.raw /mnt
 adb push Y:\pcm_module\pcm_master_gpio.ko /mnt
 adb push Y:\pcm_module\pcm_slave_gpio.ko /mnt
 adb push Y:\pcm_module\n_gsm.ko /mnt
+adb push Y:\pcm_module\dm9051.ko /mnt
 adb push Y:\power_mode\bin\wifitest /mnt
 
 rmmod pcm_master_gpio.ko;insmod pcm_master_gpio.ko
@@ -151,15 +155,12 @@ adb pull /mnt/out.raw Y:\gpio_test\bin\
 
 adb push Y:\gpsinf\bin\gps_test /system/bin/
 logcat pseudo:D *:S
-<<<<<<< HEAD
 logcat RILD:* *:S
 logcat SatFi:* *:S
 
 
 start ril-daemon-mtk
-=======
 logcat RIL:D *:S
->>>>>>> 8947044e15fb44781c6ebb3aec87c1438036815f
 
 /home/book/work/XY3701_N0/vendor/mediatek/proprietary/hardware/connectivity/gps/mtk_mnld/mnl/src/pseudo_mnl.c +161
 mtk_gps_sys_nmea_output_to_app
@@ -172,30 +173,38 @@ PIN76	GPIO62
 PIN75	GPIO63
 PIN74	GPIO64
 
+mtkgpio 2 1
+mtkgpio 6 1
+mtkgpio 5 1
 mtkgpio 82 1
 mtkgpio 83 1
 mtkgpio 81 1
 mtkgpio 80 1
-
 mtkgpio 78 1
 mtkgpio 79 1
+mtkgpio 7 1
 
+
+mtkgpio 2 0
+mtkgpio 6 0
+mtkgpio 5 0
 mtkgpio 82 0
 mtkgpio 83 0
 mtkgpio 81 0
 mtkgpio 80 0
-
 mtkgpio 78 0
 mtkgpio 79 0
+mtkgpio 7 0
 
 mtkgpio	61
 mtkgpio	62
 mtkgpio	63
 mtkgpio	64
 
-
-更新系统Settings.apk，开机自动WIFI热点AP模式 SSID:SatFi-MTK6737 密码:12345678
-adb push Y:\satfi\bin\Settings.apk /system/priv-app/Settings
+mtkgpio 19 1
+mtkgpio 54 1
+mtkgpio 4 1
+mtkgpio 3 1
 
 MTK6737串口设备节点
 /dev/ttyMT0 调试串口(usb转)
@@ -567,6 +576,12 @@ am start -a android.intent.action.CALL -d tel:111111 拨打电话 111111
 ndc softap stopap
 ndc softap startap
 
+tinyplay /storage/self/primary/Alarm01.wav -D 0 -d 0
+adb push Y:\satfi\bin\Alarm01.wav /mnt
+adb push Z:\out\target\product\len6737t_66_sh_n\system\bintinymix /system/bin/
+adb push Z:\out\target\product\len6737t_66_sh_n\system\bin\tinycap /system/bin/
+adb push Z:\out\target\product\len6737t_66_sh_n\system\bin\tinyplay /system/bin/
+adb push Z:\out\target\product\len6737t_66_sh_n\system\bin\tinypcminfo /system/bin/
 
 /system/bin/iptables -t nat -F
 /system/bin/iptables -F
@@ -606,3 +621,5 @@ adb push Y:\satfi\bin\satfi
 AT^PCMMODE=0,1,0,0,2,0,0
 mytest /dev/ttyMT1 921600 AT^SYSMODE=2,0,1,0,0,2,0,0
 
+修改内核配置文件，支持SPI网卡
+kernel-3.18\arch\arm64\configs\len6737t_66_sh_n_defconfig 中打开 CONFIG_ETHERNET_DM9051=y

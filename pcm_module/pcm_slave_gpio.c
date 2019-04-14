@@ -13,6 +13,8 @@
 #include <linux/platform_device.h>
 #include <linux/gpio.h>
 #include <linux/interrupt.h>
+#include <linux/types.h>
+#include <linux/io.h>
 #include "gpio_cfg.h"
 
 #define TAG                "[PCM_SLAVE] "
@@ -573,110 +575,31 @@ static int pcm_slave_kthread(void *arg)
 	return 0;
 }
 
+void __iomem *clk_audio_base = NULL;
+struct resource *regs;
 static int pcm_slave_probe(struct platform_device *pdev)
-{
-	int err;
-	int irq;
-	struct device_node *node;
-	u32 ints[2] = { 0, 0 };
+{	
+	clk_audio_base = ioremap(0x11220048, 0x1000);
 
-	GPIOERR("pcm_slave_probe\n");
-	recordbuf = kmalloc(RECORD_BUF_SIZE * FRAME_SIZE, GFP_KERNEL);
-	if(recordbuf == NULL)
-	{
-		GPIOERR("recordbuf kmalloc error\n");
-		return -ENOMEM;
-	}
-	
-	playbackbuf = kmalloc(PLAYBACK_BUF_SIZE * FRAME_SIZE, GFP_KERNEL);
-	if(playbackbuf == NULL)
-	{
-		GPIOERR("playbackbuf kmalloc error\n");
-		kfree(recordbuf);
-		return -ENOMEM;
-	}
-	
-	err = misc_register(&pcm_slave_device);
-	if (err)
-	{
-		kfree(recordbuf);
-		kfree(playbackbuf);
-		GPIOERR("misc_register pcm_slave_device error\n");
-	}
-	
-	node = of_find_compatible_node(NULL, NULL, "mediatek, pcm_clk_eint-eint");
-	if (node)
-	{
-		//of_property_read_u32_array(node, "debounce", ints, ARRAY_SIZE(ints));
-		//gpio_set_debounce(ints[0], ints[1]);
-		//GPIOERR("irq_of_parse_and_map ints[0]=%d ints[1]=%d\n", ints[0], ints[1]);
-		pcmirq = irq_of_parse_and_map(node, 0);
-		GPIOERR("irq_of_parse_and_map irq=%d\n", pcmirq);
-		irq_set_irq_type(pcmirq, IRQF_TRIGGER_FALLING);
-		irqtype = IRQF_TRIGGER_FALLING;
-		err =request_threaded_irq(pcmirq, NULL, (irq_handler_t)pcm_slave_eint_interrupt_handler, IRQF_ONESHOT, "pcm_slave_eint", NULL);
-		if (err > 0)
-		{
-			GPIOERR("pcm_slave_probe request_irq error\n");
-			kfree(recordbuf);
-			kfree(playbackbuf);
-			misc_deregister(&pcm_slave_device);
-			err = -1;
-		}
-	}
+	if(clk_audio_base == NULL)GPIOERR("[CLK_AUDIO] base error\n");
 	else
-	{
-		GPIOERR("pcm_slave_probe of_find_compatible_node error\n");
-		kfree(recordbuf);
-		kfree(playbackbuf);
-		misc_deregister(&pcm_slave_device);
-		err = -1;
-	}
+	GPIOERR("[CLK_AUDIO1] base 0x%p\n", clk_audio_base);
+	GPIOERR("[CLK_AUDIO2] base 0x%.8x\n", *(const volatile u32 __force *)clk_audio_base);
 
-	gpio_slave_init();
-
-	pcm_kthread = kthread_create(pcm_slave_kthread, NULL, "pcm_slave_kthread");
-	if (IS_ERR(pcm_kthread))
-		return PTR_ERR(pcm_kthread);
-	wake_up_process(pcm_kthread);
-
-	return err;
+	*(volatile u32 __force *)clk_audio_base = 0X1; 
+	GPIOERR("[CLK_AUDIO3] base 0x%.8x\n", *(const volatile u32 __force *)clk_audio_base);
+	return 0;
 }
 
 static int pcm_slave_remove(struct platform_device *pdev)
-{
-	int err;
-	struct device_node *node = NULL;
-	int irq;
-	//u32 ints[2] = { 0, 0 };
-	
-	GPIOERR("pcm_slave_remove\n");
-	iounmap(gpio_regs);
-	kfree(recordbuf);
-	kfree(playbackbuf);
-	err = misc_deregister(&pcm_slave_device);
-	if (err)
-		GPIOERR("misc_deregister pcm_slave_device error\n");
-
-	node = of_find_compatible_node(NULL, NULL, "mediatek, pcm_clk_eint-eint");
-	if (node)
-	{
-		irq = irq_of_parse_and_map(node, 0);
-		GPIOERR("irq_of_parse_and_map irq=%d\n", irq);
-		free_irq(irq, NULL);
-	}
-	
-	if(pcm_kthread)
-	{
-		kthread_stop(pcm_kthread);
-		pcm_kthread = NULL;
-	}
-	
-	return err;
+{	
+	iounmap(clk_audio_base);
+	//release_mem_region(regs->start, resource_size(regs));
+	return 0;
 }
 
 static const struct of_device_id pcm_slave_of_match[] = {
-	{.compatible = "mediatek, pcm_clk_eint-eint"},
+	{.compatible = "mediatek,mt6735-audiosys"},
 	{},
 };
 
