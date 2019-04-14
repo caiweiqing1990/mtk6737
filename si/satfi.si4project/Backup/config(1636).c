@@ -306,9 +306,7 @@ void GetIniKeyString(char *appName, char *keyName, char *profile, char *keyVal)
 
 int GetIniKeyInt(char *appName, char *keyName, char *profile)
 {
-  char ucTmp[KEYVALLEN]={0};
+  char ucTmp[KEYVALLEN];
   GetIniKeyString(appName, keyName, profile, ucTmp);
-  if(strlen(ucTmp) == 0)
-  	return -1;
   return atoi(ucTmp);
 }

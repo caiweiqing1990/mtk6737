@@ -162,10 +162,11 @@ typedef struct _sat
   int qos1;					//u/a
   int qos2;					//384/64
   int qos3;					//384/64
+  int active;				//是否准许激活
   int sat_phone;
   int sat_message;
   int sat_pcmdata;
-  int sat_available;
+  int sat_available;		//-1|0|1|2|3 模块加载失败|未激活|已激活|正在激活|未准许激活
   int sat_status;            //0：command 1：online data
   enum SAT_STATE sat_state;
   enum SAT_STATE_PHONE sat_state_phone;
@@ -2519,6 +2520,8 @@ static void *func_y(void *p)
 					base->sat.sat_state = SAT_STATE_CGACT_SCCUSS;
 					satfi_log("SAT_STATE_CGACT_SCCUSS\n");
 					ioctl(mtgpiofd, GPIO_IOCSDATALOW, HW_GPIO78);
+					
+					if(base->sat.active == 0)base->sat.sat_available = 3;
 				}
 				sleep(2);
 			}			
@@ -2720,6 +2723,10 @@ static void *func_y(void *p)
 					//uart_send(base->sat.sat_fd, "AT\r\n", 4);
 					//uart_send(base->sat.sat_phone, "AT\r\n", 4);
 					//uart_send(base->sat.sat_message, "AT\r\n", 4);
+					if(base->sat.active == 1)
+					{
+						base->sat.sat_dialing = 0;
+					}
 					break;
 				default:
 					satfi_log("no handle base->sat.sat_state %d\n", base->sat.sat_state);
@@ -2732,20 +2739,29 @@ static void *func_y(void *p)
 		{
 			if(base->sat.sat_dialing == 0)
 			{
-				satfi_log("pppd call sat-dailer\n");
-				base->sat.sat_dialing = 1;
-				ioctl(mtgpiofd, GPIO_IOCSDATAHIGH, HW_GPIO79);
-				myexec("start sat_pppd", NULL, NULL);
-				
-				myexec("iptables -t nat -F", NULL, NULL);
-				myexec("iptables -F", NULL, NULL);
-				myexec("iptables -A OUTPUT -o lo -j ACCEPT", NULL, NULL);
-				myexec("iptables -t nat -A POSTROUTING -o ppp0 -s 192.168.43.0/24 -j MASQUERADE", NULL, NULL);
-				myexec("echo 1 > /proc/sys/net/ipv4/ip_forward", NULL, NULL);
-				myexec("ip rule add from all lookup main", NULL, NULL);
-				
-				satfi_log("pppd call sat-dailer passed\n");
-				base->sat.sat_state = SAT_STATE_CSQ;
+				if(base->sat.active == 1)
+				{
+					satfi_log("pppd call sat-dailer\n");
+					base->sat.sat_dialing = 1;
+					ioctl(mtgpiofd, GPIO_IOCSDATAHIGH, HW_GPIO79);
+					myexec("start sat_pppd", NULL, NULL);
+					
+					myexec("iptables -t nat -F", NULL, NULL);
+					myexec("iptables -F", NULL, NULL);
+					myexec("iptables -A OUTPUT -o lo -j ACCEPT", NULL, NULL);
+					myexec("iptables -t nat -A POSTROUTING -o ppp0 -s 192.168.43.0/24 -j MASQUERADE", NULL, NULL);
+					myexec("echo 1 > /proc/sys/net/ipv4/ip_forward", NULL, NULL);
+					myexec("ip rule add from all lookup main", NULL, NULL);
+					
+					satfi_log("pppd call sat-dailer passed\n");
+					base->sat.sat_state = SAT_STATE_CSQ;
+
+					base->sat.sat_available = 2;//正在激活
+				}
+				else
+				{
+					base->sat.sat_available = 3;//未准许激活
+				}
 			}
 		}
 		
@@ -5821,9 +5837,7 @@ void Date_Parse(char *data)
 		}
 		else if(strcmp(type, "active") == 0)
 		{
-			if(base.sat.sat_state != SAT_STATE_CGACT_W) base.sat.sat_state = SAT_STATE_CGACT;
-			
-			static int active = 0;
+			int active = 0;
 			jstmp = cJSON_GetObjectItem(root,"state");
 			if(jstmp)
 			{
@@ -5836,17 +5850,24 @@ void Date_Parse(char *data)
 				cJSON_Delete(jstmp);
 				response(web_socketfd, out);
 				free(out);
+				base.sat.active = active;
+				SetKeyInt("satellite", "ACTIVE", CONFIG_FILE, base.sat.active);
+				if(active == 0 && base.sat.sat_available == 1)
+				{
+					if(base.sat.sat_state != SAT_STATE_CGACT_W) base.sat.sat_state = SAT_STATE_CGACT;
+				}
 			}
 			else
 			{
 				jstmp=cJSON_CreateObject();
 				cJSON_AddStringToObject(jstmp,"type", "active");
-				cJSON_AddNumberToObject(jstmp,"state", active);
+				cJSON_AddNumberToObject(jstmp,"state", GetIniKeyInt("satellite","ACTIVE",CONFIG_FILE));
 				out=cJSON_Print(jstmp);
 				cJSON_Delete(jstmp);
 				response(web_socketfd, out);
 				free(out);
 			}
+			
 		}
 		cJSON_Delete(root);
 	}
@@ -8383,6 +8404,7 @@ void *SystemServer(void *p)
 						
 						satfi_log("pppd call sat-dailer passed\n");
 						base->sat.sat_state = SAT_STATE_CSQ;
+						base->sat.sat_available = 2;
 					}
 					else
 					{
@@ -8551,6 +8573,16 @@ void init()
 		base.sat.qos3 = 64;
 		SetKeyInt("satellite", "QOS3", CONFIG_FILE, base.sat.qos3);
 	}
+
+	base.sat.active = GetIniKeyInt("satellite","ACTIVE",CONFIG_FILE);
+	satfi_log("ACTIVE:%d\n", base.sat.active);
+	if(base.sat.active < 0)
+	{
+		base.sat.active = 1;
+		SetKeyInt("satellite", "ACTIVE", CONFIG_FILE, base.sat.active);
+	}
+
+	if(base.sat.active == 0)base.sat.sat_available = 3;
 
 	base.sat.charge = GetIniKeyInt("satellite","CHARGE",CONFIG_FILE);
 	satfi_log("CHARGE:%d\n", base.sat.charge);
