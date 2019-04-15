@@ -2156,6 +2156,26 @@ void msm01a_reset(void)
 	gpio_out(RESET_IN, 1);
 }
 
+void cgeqreq_set(void)
+{
+	int i=0;
+	char cmd[128] = {0};
+	sprintf(cmd, "AT+CGEQREQ=4,%d,%d,%d,%d,%d\r\n", base.sat.qos1, base.sat.qos2, base.sat.qos3, base.>sat.qos2, base.sat.qos3);
+	while(i<10)
+	{
+		i++;
+		base.sat.sat_state = SAT_STATE_CGEQREQ;
+		uart_send(base.sat.sat_fd, cmd, strlen(cmd));
+		satfi_log("cgeqreq_set %s\n", cmd);
+		sleep(2);
+		if(base.sat.sat_state == SAT_STATE_CGEQREQ_OK)
+		{
+			satfi_log("cgeqreq_set break\n");
+			break;
+		}
+	}
+}
+
 #define SERIAL_PORT		"/dev/ttyMT1"
 
 /* 卫星模块线程
@@ -2406,7 +2426,7 @@ void *func_y(void *p)
 					base->sat.sat_state = SAT_STATE_CGACT_W;
 				case SAT_STATE_CGACT_W:
 				case SAT_STATE_CGACT_SCCUSS:
-					//satfi_log("SAT_STATE_CGACT %d\n", base->sat.sat_state);
+					satfi_log("SAT_STATE_CGACT_W/SAT_STATE_CGACT_SCCUSS %d\n", base->sat.sat_state);
 					//uart_send(base->sat.sat_fd, "AT\r\n", 4);
 					//uart_send(base->sat.sat_phone, "AT\r\n", 4);
 					//uart_send(base->sat.sat_message, "AT\r\n", 4);
@@ -2428,20 +2448,8 @@ void *func_y(void *p)
 			{
 				if(base->sat.active == 1)
 				{
-					int i=0;
-					char cmd[128] = {0};
-					while(i<10)
-					{
-						i++;
-						base->sat.sat_state = SAT_STATE_CGEQREQ;
-						uart_send(base->sat.sat_fd, cmd, strlen(cmd));
-						sprintf(cmd, "AT+CGEQREQ=4,%d,%d,%d,%d,%d\r\n", base->sat.qos1, base->sat.qos2, base->sat.qos3, base->sat.qos2, base->sat.qos3);
-						satfi_log("QOS %s\n", cmd);
-						sleep(2);
-						if(SAT_STATE_CGEQREQ_OK == base->sat.sat_state)
-							break;
-					}
-
+					cgeqreq_set();//eg : AT+CGEQREQ=4,1,384,64,384,64
+					
 					satfi_log("pppd call sat-dailer\n");
 					base->sat.sat_dialing = 1;
 					ioctl(mtgpiofd, GPIO_IOCSDATAHIGH, HW_GPIO79);
@@ -8106,25 +8114,12 @@ void *SystemServer(void *p)
 				{
 					if(base->sat.sat_dialing == 0 || base->sat.sat_state == SAT_STATE_CGACT_SCCUSS)
 					{
-						base->sat.sat_dialing = 1;
-						satfi_log("pppd call sat-dailer\n");
-						sleep(5);
-						myexec("start sat_pppd", NULL, NULL);
-					
-						myexec("iptables -t nat -F", NULL, NULL);
-						myexec("iptables -F", NULL, NULL);
-						myexec("iptables -A OUTPUT -o lo -j ACCEPT", NULL, NULL);
-						myexec("iptables -t nat -A POSTROUTING -o ppp0 -s 192.168.43.0/24 -j MASQUERADE", NULL, NULL);
-						myexec("echo 1 > /proc/sys/net/ipv4/ip_forward", NULL, NULL);
-						myexec("ip rule add from all lookup main", NULL, NULL);
-						
-						satfi_log("pppd call sat-dailer passed\n");
-						base->sat.sat_state = SAT_STATE_CSQ;
-						base->sat.sat_available = 2;
+						base->sat.active = 1;
 					}
 					else
 					{
-						if(base->sat.sat_state != SAT_STATE_CGACT_W) base->sat.sat_state = SAT_STATE_CGACT; 			
+						if(base->sat.sat_state != SAT_STATE_CGACT_W) base->sat.sat_state = SAT_STATE_CGACT;
+						base->sat.active = 0;
 					}
 				}
 			}
