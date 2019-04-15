@@ -330,8 +330,6 @@ void main_thread_loop(void)
 
 	int n,ret;
 
-	//int fd = open("/storage/self/primary/readserial", O_RDWR|O_CREAT, 0644);
-
 	while(1)
 	{
 		FD_ZERO(&fds);
@@ -442,34 +440,33 @@ void main_thread_loop(void)
 						//satfi_log("gpsDataBuf=%s\n", gpsDataBuf);
 					}
 				}
-				
 				break;
 		}
 	}
 	
 }
 
-void ring_detect_start(void)
-{
-	pthread_t id_1;
-	if(pthread_create(&id_1, NULL, recvfrom_app_voice_udp, (void *)&base) == -1) exit(1);
-	if(pthread_create(&id_1, NULL, select_app, (void *)&base) == -1) exit(1);
-	if(pthread_create(&id_1, NULL, SystemServer, (void *)&base) == -1) exit(1);
-	if(pthread_create(&id_1, NULL, func_y, (void *)&base) == -1) exit(1);
-}
 
 #if MAIN_CPP
 int main(int argc, char *argv[])
 {
+	pthread_t id_1;
+	
 	hw_init();
 	if(!isFileExists(CONFIG_FILE))
 	{
 		satfi_log("%s FileNoExists\n", CONFIG_FILE);
 		sleep(10);
 	}
+	
 	init();
 	ttygsmcreate();
-	ring_detect_start();
+	
+	if(pthread_create(&id_1, NULL, recvfrom_app_voice_udp, (void *)&base) == -1) exit(1);
+	if(pthread_create(&id_1, NULL, select_app, (void *)&base) == -1) exit(1);
+	if(pthread_create(&id_1, NULL, SystemServer, (void *)&base) == -1) exit(1);
+	if(pthread_create(&id_1, NULL, func_y, (void *)&base) == -1) exit(1);
+	
 	main_thread_loop();
 	return 0;
 }
