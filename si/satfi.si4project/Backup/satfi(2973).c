@@ -6,17 +6,6 @@
 #include "data_coder.h"
 #include "websocket/websocket.h"
 #include "cJSON/cJSON.h"
-#include "iconv.h"
-
-#if MAIN_CPP
-#define LOG_TAG "satfi_cpp"
-#else
-#define LOG_TAG "satfi_c"
-#endif
-
-#define LOGD(fmt, arg ...) ALOGD("%s: " fmt, __FUNCTION__ , ##arg)
-#define LOGW(fmt, arg ...) ALOGW("%s: " fmt, __FUNCTION__ , ##arg)
-#define LOGE(fmt, arg ...) ALOGE("%s: " fmt, __FUNCTION__ , ##arg)
 
 int socket_init(int port);
 int uart_send(int fd, char *data, int datalen);
@@ -25,12 +14,7 @@ int BcdToStr(unsigned char *str, const char *bcd, int bcdlen);
 int StrToBcd(unsigned char *bcd, const char *str, int strlen);
 int log_insert(char *MsID, void *data, unsigned int datalen);
 int ConnectTSC(char* routename, char* ip, int port, int *err, int timeout);
-void printfhex(unsigned char *buf, int len);
-char *make_csq(char *buf, time_t *timep, int csqval);
-void CreateSOSMessage(char *Msid, int Lg, int Lt, int AlarmType);
-void CreateMessage(char *Msid, char *toPhone, int ID, char *messagedata);
-int AppCallUpRsp(int socket, short sat_state_phone);
-void gpio_out(int gpio, int val);
+
 
 pthread_mutex_t sat_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t n3g_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -41,6 +25,72 @@ BASE base = { 0 };
 char satfi_version[32] = {0}; //当前satfi版本
 int version_num = 0; 			//当前satfi版本
 char config_url[512] = {0};	//update.ini在服务器中的路径
+
+void printfhex(unsigned char *buf, int len);
+char *make_csq(char *buf, time_t *timep, int csqval);
+void CreateSOSMessage(char *Msid, int Lg, int Lt, int AlarmType);
+void CreateMessage(char *Msid, char *toPhone, int ID, char *messagedata);
+int AppCallUpRsp(int socket, short sat_state_phone);
+void gpio_out(int gpio, int val);
+
+typedef struct _grpinfo
+{
+	char GrpID[USERID_LLEN];		//群组ID
+	unsigned short Count;			//终端个数
+	char msid[500][USERID_LLEN];	//一个群组最多500个终端,可修改
+}GRPINFO;
+
+typedef struct _user {
+  int socketfd;						//套接字
+  char userid[USERID_LLEN];        	//用户ID
+  char defgrp[USERID_LLEN];			//默认群组ID
+  unsigned short grpCount; 			//群组个数
+  GRPINFO grpinfo[30];				//群组个数最多保存30个，可修改
+  int udp_voice_packnum;			//用于语音对讲计费，统计收到的语音包数
+  int famNumConut;
+  char FamiliarityNumber[100][USERID_LLEN];//亲情号码最多100个
+  struct _user *next;
+}USER;
+
+typedef struct _log {
+  char MsID[USERID_LLEN]; 
+  void *data;
+  struct _log *next;
+}LOG;
+
+typedef  struct Pack{
+	unsigned int Name;			//消息 语音 图片 唯一识别码
+	unsigned short PackSeq; 	//包流水号
+	unsigned short Packtotal; 	//语音 图片 总包数
+	int offset;					//数据偏移
+	char* Data;					//消息 语音 图片数据
+	int isSended;
+	unsigned short type;		// 0 1 2 消息 语音 图片
+	struct Pack *next;
+}PACK;
+
+typedef  struct Messge{
+	char MsID[USERID_LLEN]; 
+	char toPhoneNum[USERID_LLEN];
+	int ID;
+	char Data[1024];
+	struct Messge *next;
+}MESSAGE;
+
+typedef  struct GPSData{
+	char* Data;
+	struct GPSData *next;
+}GPSDATA;
+
+#define BUF_SIZE	1024*32
+typedef struct _appsocket {
+  int AppSocketFd;
+  time_t Update;
+  int DataSaveOffset;
+  char Data[BUF_SIZE];
+  char ip[16];
+  struct _appsocket *next;
+}APPSOCKET;
 
 static APPSOCKET *gp_appsocket = NULL;
 static PACK *PackHead = NULL;				//消息 语音 图片 记录
@@ -84,6 +134,24 @@ void StartCallUp(char calling_number[15]);
 void Data_To_MsID(char *MsID, void *data);
 void Data_To_ExceptMsID(char *MsID, void *data);
 void Data_Transmit(char *MsID, void *data);
+
+#define LOG_TAG "satfi"
+#include <cutils/sockets.h>
+#include <cutils/log.h>     /*logging in logcat*/
+#define LOGD(fmt, arg ...) ALOGD("%s: " fmt, __FUNCTION__ , ##arg)
+#define LOGW(fmt, arg ...) ALOGW("%s: " fmt, __FUNCTION__ , ##arg)
+#define LOGE(fmt, arg ...) ALOGE("%s: " fmt, __FUNCTION__ , ##arg)
+
+#define __DEBUG__  
+#ifdef __DEBUG__  
+//#define satfi_log(x...) printf(x)
+#define satfi_log(x...) ALOGE(x)
+#else
+#define satfi_log(x...)
+#endif
+
+#define SAT_LINK_DISCONNECT	1
+#define SAT_LINK_NORMAL		0
 
 void NotifyAllUserSatState(unsigned short state)
 {
@@ -2093,14 +2161,6 @@ short get_sat_dailstatus()
 #define AP_SLEEP_BB		HW_GPIO121
 #define BB_SLEEP_AP		HW_GPIO98
 
-void gpio_in(int gpio)
-{
-	int fd = open("/dev/mtgpio", O_RDONLY);
-	ioctl(fd, GPIO_IOCTMODE0, gpio);
-	ioctl(fd, GPIO_IOCSDIRIN, gpio);
-	close(fd);
-}
-
 void gpio_out(int gpio, int val)
 {
 	int fd = open("/dev/mtgpio", O_RDONLY);
@@ -2161,7 +2221,7 @@ void msm01a_reset(void)
 /* 卫星模块线程
  *
  */
-void *func_y(void *p)
+static void *func_y(void *p)
 {
 	BASE *base = (BASE*)p;
 	int counter = 0;
@@ -5570,7 +5630,7 @@ void Date_Parse(char *data)
 	}
 }
 
-void *select_app(void *p)
+static void *select_app(void *p)
 {
 	BASE *base = (BASE *)p;
 	fd_set fds;
@@ -7802,6 +7862,8 @@ void CreateMessage(char *Msid, char *toPhone, int ID, char *messagedata)
 	MessageADD(Msid, toPhone, ID, outdata, strlen(outdata));		
 }
 
+
+
 // -1 means failure
 int safe_sendto(const char* path, const char* buff, int len) {
     int ret = 0;
@@ -8132,7 +8194,7 @@ void *SystemServer(void *p)
 /* 初始化
  *
  */
-void init(void)
+void init()
 {
 	base.sat.sat_fd = -1;
 	base.sat.sat_message = -1;
@@ -9131,6 +9193,232 @@ static void SignalHandler(int nSigno)
 #define PCM_WRITE_PCM       _IOW(PCM_IOC_MAGIC, 0x03, uint32_t)
 #define PCM_STOP          	_IO(PCM_IOC_MAGIC, 0x04)
 
+#define NN 160
+
+void milliseconds_sleep()
+{
+  struct timeval tv = {0, 20000};//20ms
+  int err;
+  do
+  {
+    err = select(0,NULL,NULL,NULL,&tv);
+  } while (err<0 || errno == EINTR);
+}
+
+static void *recvfrom_app_voice_udp(void *p)
+{
+	BASE *base = (BASE *)p;
+    struct sockaddr_in addr;
+    addr.sin_family = AF_INET;
+    addr.sin_port = htons(12070);
+    addr.sin_addr.s_addr = htonl(INADDR_ANY);
+	
+    int sock;
+    if ((sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
+    {
+        perror("socket udp");
+        exit(1);
+    }
+
+    if (bind(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0)
+    {
+        perror("bind udp");
+		close(sock);
+        exit(1);
+    }
+
+#define BUS_SIZE (6*960)//11520
+
+	char tmp[BUS_SIZE];
+	//char playbackbuf[3200];
+	int plybackbufofs=0;
+	struct sockaddr_in clientAddr;
+	struct sockaddr_in *clientAddr1 = &(base->sat.clientAddr1);
+	struct sockaddr_in *clientAddr2 = &(base->sat.clientAddr2);
+
+	base->sat.voice_socket_udp = sock;
+
+	int len = sizeof(struct sockaddr_in);
+	
+	bzero(&clientAddr, len);
+	bzero(clientAddr1, len);
+	bzero(clientAddr2, len);
+	
+	int n;
+	struct timeval tout = {10,0};	
+	fd_set fds;
+	int maxfd;
+	int ret;
+	int ofs=0,ofs1=0;
+
+	satfi_log("select_voice_udp %d\n", sock);
+
+	SpeexPreprocessState *st;
+	st = speex_preprocess_state_init(NN, 8000);
+
+	int vad = 1;
+	int vadProbStart = 90;
+	int vadProbContinue = 100;
+	speex_preprocess_ctl(st, SPEEX_PREPROCESS_SET_VAD, &vad); //静音检测
+	speex_preprocess_ctl(st, SPEEX_PREPROCESS_SET_PROB_START , &vadProbStart); //Set probability required for the VAD to go from silence to voice
+	speex_preprocess_ctl(st, SPEEX_PREPROCESS_SET_PROB_CONTINUE, &vadProbContinue); //Set probability required for the VAD to stay in the voice state (integer percent)
+
+	//int fd = open("/storage/self/primary/writeserial", O_RDWR|O_CREAT, 0644);
+
+	struct timeval start,end;
+	
+	while (1)
+    {
+		FD_ZERO(&fds);/* 每次循环都需要清空 */
+		FD_SET(sock, &fds); /* 添加描述符 */
+		maxfd = sock;
+		tout.tv_sec = 3;
+		tout.tv_usec = 0;
+		
+		switch(select(maxfd+1,&fds,NULL,NULL,&tout))
+		{
+			case -1: break;
+			case  0:
+
+				if(base->sat.sat_calling == 1)
+				{
+					satfi_log("clientAddr timeout\n");
+					if(base->sat.sat_state_phone == SAT_STATE_PHONE_DIALING_RING)
+					{
+						if(ntohs(clientAddr1->sin_port) == 0)
+						{
+							AppCallUpRspForce(base->sat.socket, SAT_STATE_PHONE_DIALING_RING);
+						}
+					}
+					else if(base->sat.sat_state_phone == SAT_STATE_PHONE_ONLINE)
+					{
+						if(ntohs(clientAddr1->sin_port) == 0)
+						{
+							AppCallUpRspForce(base->sat.socket, SAT_STATE_PHONE_DIALING_RING);
+							AppCallUpRspForce(base->sat.socket, SAT_STATE_PHONE_ONLINE);
+						}
+					}
+					break;
+				}
+			
+				if(ntohs(clientAddr1->sin_port) != 0 && ntohs(clientAddr2->sin_port) != 0)
+				{
+					base->sat.sat_state_phone = SAT_STATE_PHONE_IDLE;
+				}
+				else if(ntohs(clientAddr1->sin_port) != 0)
+				{
+					base->sat.sat_calling = 0;
+					base->sat.sat_state_phone = SAT_STATE_PHONE_IDLE;
+				}
+				
+				if(ntohs(clientAddr1->sin_port) != 0)
+				{
+					satfi_log("bzero clientAddr1\n");
+					bzero(clientAddr1, len);
+				}
+				
+				if(ntohs(clientAddr2->sin_port) != 0)
+				{
+					satfi_log("bzero clientAddr2\n");
+					bzero(clientAddr2, len);
+				}
+
+				plybackbufofs = 0;
+				break;
+			default:
+								
+				if(FD_ISSET(sock, &fds))
+				{
+			        n = recvfrom(sock, &tmp[ofs], 320, 0, (struct sockaddr*)&clientAddr, &len);
+			        if (n>0 && base->sat.sat_calling == 1)
+			        {
+						if(memcmp(clientAddr1 ,&clientAddr, len) == 0)
+						{
+							if(ntohs(clientAddr2->sin_port) != 0)
+							{
+								if(base->sat.sat_state_phone == SAT_STATE_PHONE_ONLINE)
+								{
+									n = sendto(sock, tmp, n, 0, (struct sockaddr *)clientAddr2, len);
+									if (n < 0)
+									{
+										perror("sendto clientAddr2");
+									}
+								}
+							}
+							else
+							{
+								if(base->sat.sat_state_phone == SAT_STATE_PHONE_ONLINE)
+								{
+									if(base->sat.sat_pcmdata > 0)
+									{
+										//satfi_log("n=%d ofs=%d\n", n, ofs);
+										ofs += n;
+										if(ofs >= BUS_SIZE)
+										{
+											ofs1=0;
+											while(ofs1<ofs)
+											{
+												if(write(base->sat.sat_pcmdata, &tmp[ofs1], 320) <= 0)
+												{
+													satfi_log("write sat_pcmdata error\n");
+													continue;
+												}
+												//satfi_log("%d\n", ofs1);
+												ofs1 += 320;
+												milliseconds_sleep(); //delay 20ms
+											}
+											//gettimeofday(&end, NULL);
+											//satfi_log("ofs1=%d %ld\n", ofs1, end.tv_usec);
+											ofs = 0;
+										}
+									}
+									else
+									{
+										satfi_log("recvfrom_app_voice_udp = %d\n", base->sat.sat_pcmdata);
+									}									
+								}
+								else
+								{
+									plybackbufofs = 0;
+								}
+							}
+						}
+						else if(memcmp(clientAddr2 ,&clientAddr, len) == 0)
+						{
+							if(ntohs(clientAddr1->sin_port) != 0 && base->sat.sat_state_phone == SAT_STATE_PHONE_ONLINE)
+							{
+								//gettimeofday(&tv, NULL);
+								//satfi_log(" 								   %s %d %06d %d",inet_ntoa(clientAddr2->sin_addr) ,tv.tv_sec, tv.tv_usec, n);
+								n = sendto(sock, tmp, n, 0, (struct sockaddr *)clientAddr1, len);
+								if (n < 0)
+								{
+									perror("sendto clientAddr1");
+								}
+							}
+						}
+						else
+						{
+							if(ntohs(clientAddr1->sin_port) == 0)
+							{
+								satfi_log("clientAddr1 %s %d\n", inet_ntoa(clientAddr.sin_addr), ntohs(clientAddr.sin_port));
+								memcpy(clientAddr1, &clientAddr, len);
+							}
+							else if(ntohs(clientAddr2->sin_port) == 0)
+							{
+								satfi_log("clientAddr2 %s %d\n", inet_ntoa(clientAddr.sin_addr), ntohs(clientAddr.sin_port));
+								memcpy(clientAddr2, &clientAddr, len);
+							}
+							else
+							{
+								satfi_log("%s %d\n", inet_ntoa(clientAddr.sin_addr), ntohs(clientAddr.sin_port));
+							}
+						}
+			        }					
+				}
+		}
+    }	
+}
+
 static void *sendto_app_voice_udp(void *p)
 {
 	BASE *base = (BASE *)p;
@@ -9273,6 +9561,144 @@ int safe_recvfrom(int fd, char* buff, int len) {
     return ret;
 }
 
+void main_thread_loop(void)
+{
+	fd_set fds;
+	int maxfd = 0;
+	struct timeval timeout;
+
+	int SatDataOfs[4]={0};
+	char SatDataBuf[4][4096];
+
+	char gpsDataBuf[1024];
+	int gpsSocketfd = -1;
+	//int gpsSocketfd = create_satfi_udp_fd();
+	//satfi_log("gpsSocketfd=%d\n", gpsSocketfd);
+
+	struct sockaddr_in *clientAddr1 = &(base.sat.clientAddr1);
+	int len = sizeof(struct sockaddr_in);
+
+	int n,ret;
+
+	//int fd = open("/storage/self/primary/readserial", O_RDWR|O_CREAT, 0644);
+
+	while(1)
+	{
+		FD_ZERO(&fds);
+		maxfd=0;
+
+		if(gpsSocketfd > 0) {
+			FD_SET(gpsSocketfd, &fds);
+			if(gpsSocketfd > maxfd) {
+				maxfd = gpsSocketfd;
+			}
+		}
+
+		if(base.sat.sat_fd > 0) {
+			FD_SET(base.sat.sat_fd, &fds);
+			if(base.sat.sat_fd > maxfd) {
+				maxfd = base.sat.sat_fd;
+			}
+		}
+
+		if(base.sat.sat_phone > 0) {
+			FD_SET(base.sat.sat_phone, &fds);
+			if(base.sat.sat_phone > maxfd) {
+				maxfd = base.sat.sat_phone;
+			}
+		}
+
+		if(base.sat.sat_message > 0) {
+			FD_SET(base.sat.sat_message, &fds);
+			if(base.sat.sat_message > maxfd) {
+				maxfd = base.sat.sat_message;
+			}
+		}
+		
+		if(base.sat.sat_pcmdata > 0) {
+			FD_SET(base.sat.sat_pcmdata, &fds);
+			if(base.sat.sat_pcmdata > maxfd) {
+				maxfd = base.sat.sat_pcmdata;
+			}
+		}
+
+
+		if(maxfd == 0) {
+			sleep(3);
+			continue;
+		}
+
+		timeout.tv_sec = 3;
+		timeout.tv_usec = 0;
+		switch(select(maxfd+1,&fds,NULL,NULL,&timeout))
+		{
+			case -1: satfi_log("select error %s\n", strerror(errno)); break;
+			case  0: break;
+			default:
+				if(base.sat.sat_fd > 0 && FD_ISSET(base.sat.sat_fd, &fds)) {
+					//satfi_log("base.sat.sat_fd=%d\n", base.sat.sat_fd);
+					handle_sat_data(&base.sat.sat_fd, SatDataBuf[0], &SatDataOfs[0]);//卫星模块数据
+				}
+
+				if(base.sat.sat_phone > 0 && FD_ISSET(base.sat.sat_phone, &fds)) {
+					//satfi_log("base.sat.sat_phone=%d\n", base.sat.sat_phone);
+					handle_sat_data(&base.sat.sat_phone, SatDataBuf[1], &SatDataOfs[1]);//卫星模块数据
+				}
+
+				if(base.sat.sat_message > 0 && FD_ISSET(base.sat.sat_message, &fds)) {
+					//satfi_log("base.sat.sat_message=%d\n", base.sat.sat_message);
+					handle_sat_data(&base.sat.sat_message, SatDataBuf[2], &SatDataOfs[2]);//卫星模块数据
+				}
+
+				if(base.sat.sat_pcmdata > 0 && FD_ISSET(base.sat.sat_pcmdata, &fds)) {
+					n = read(base.sat.sat_pcmdata, SatDataBuf[3], 4096);
+					//satfi_log("read sat_pcmdata=%d\n", n);
+					if(n > 0)
+					{
+						if(ntohs(clientAddr1->sin_port) != 0)
+						{
+							//write(fd, SatDataBuf[3], n);
+							ret = sendto(base.sat.voice_socket_udp, SatDataBuf[3], n, 0, (struct sockaddr *)clientAddr1, len);
+							if(ret <= 0)
+							{
+								satfi_log("sendto clientAddr11 %s\n", strerror(errno));								
+							}
+							else
+							{
+								//satfi_log("read serial sat_pcmdata n = %d\n", n);								
+							}
+						}
+						else
+						{
+							//satfi_log("clientAddr1->sin_port zero\n");
+						}
+					}
+					else
+					{
+						satfi_log("read sat_pcmdata error\n");
+						close(base.sat.sat_pcmdata);
+						base.sat.sat_pcmdata = -1;
+					}
+				}
+
+				if(gpsSocketfd > 0 && FD_ISSET(gpsSocketfd, &fds))
+				{
+					int n = safe_recvfrom(gpsSocketfd, gpsDataBuf, 1024);
+					if(n>0)
+					{
+						gpsDataBuf[n] = 0;
+						strncpy(base.gps.gps_bd, gpsDataBuf, n);
+						parseGpsData(gpsDataBuf, n);
+						//satfi_log("gpsDataBuf=%s\n", gpsDataBuf);
+					}
+				}
+				
+				break;
+		}
+	}
+	
+}
+
 void ttygsmcreate(void)
 {
 	int i;
@@ -9289,8 +9715,107 @@ void ttygsmcreate(void)
 	}
 }
 
-void hw_init(void)
+static void *web_thread(void *p)
 {
+#define REQUEST_LEN_MAX         1024
+#define DEFEULT_SERVER_PORT     8000
+
+	BASE *base = (BASE *)p;
+	int connected = 0;
+	int listen_fd;
+	char buf[REQUEST_LEN_MAX];
+	char *data = NULL;
+	char str[INET_ADDRSTRLEN];
+	char *sec_websocket_key = NULL;
+	int n;
+	int port = DEFEULT_SERVER_PORT;
+	struct sockaddr_in	servaddr;
+	struct sockaddr_in	cliaddr;
+	socklen_t addr_len;
+
+	listen_fd = socket(AF_INET, SOCK_STREAM, 0);
+	bzero(&servaddr, sizeof(servaddr));
+	servaddr.sin_family = AF_INET;
+	servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
+	servaddr.sin_port = htons(port);
+	if(bind(listen_fd, (struct sockaddr *)&servaddr, sizeof(servaddr))<0)
+	{
+		satfi_log("bind error\n");
+		exit(0);
+	}
+	
+	listen(listen_fd, 5);
+	satfi_log("Listen %d\nAccepting connections ...\n",port);
+	addr_len = sizeof(struct sockaddr_in);
+ 
+	while (1)
+	{
+		web_socketfd = accept(listen_fd, (struct sockaddr *)&cliaddr, &addr_len);
+		satfi_log("From %s at PORT %d\n", inet_ntop(AF_INET, &cliaddr.sin_addr, str, sizeof(str)), ntohs(cliaddr.sin_port));
+		
+		while(1)
+		{
+			memset(buf, 0, REQUEST_LEN_MAX);
+			n = read(web_socketfd, buf, REQUEST_LEN_MAX);	
+			if(!connected) 
+			{
+				satfi_log("read:%d\n%s\n", n, buf);
+				sec_websocket_key = calculate_accept_key(buf);	
+				websocket_shakehand(web_socketfd, sec_websocket_key);
+				if (sec_websocket_key != NULL)
+				{
+					free(sec_websocket_key);
+					sec_websocket_key = NULL;
+				}
+				connected=1;
+				continue;
+			}
+						
+			char *data = deal_data(buf, &n);
+			if(data)
+			{
+				data[n] = 0;
+
+				cJSON *root,*jstmp;
+				char *out;
+
+				time_t t=time(NULL);
+				
+				root=cJSON_CreateObject();
+				cJSON_AddStringToObject(root,"date", ctime(&t));
+				cJSON_AddStringToObject(root,"imei", base->sat.sat_imei);
+				cJSON_AddStringToObject(root,"imsi", base->sat.sat_imsi);
+				cJSON_AddNumberToObject(root,"csq", base->sat.sat_csq_value);
+				out=cJSON_Print(root);	
+				cJSON_Delete(root);
+				response(web_socketfd, out);
+				free(out);
+			}
+			
+			if(n <= 0)
+			{
+				satfi_log("close(conn_fd)\n");
+				connected = 0;
+				web_socketfd = -1;
+				close(web_socketfd);
+				break;
+			}			
+		}
+	}
+ 
+	close(web_socketfd);
+	return NULL;
+}
+
+int main_fork(void)
+{
+	pthread_t id_1,id_2;
+	pthread_t id_3,id_4;
+	pthread_t id_5,id_6;
+	pthread_t id_7,id_8;
+
+	//prctl(PR_SET_PDEATHSIG, SIGKILL);//父进程退出发送SIGKILL 给子进程
+	//signal(SIGPIPE,SignalHandler);
 	gpio_out(HW_GPIO82, 1);
 	gpio_out(HW_GPIO83, 0);
 	gpio_out(HW_GPIO81, 0);
@@ -9304,49 +9829,41 @@ void hw_init(void)
 	gpio_out(HW_GPIO19, 1);
 	gpio_out(HW_GPIO54, 1);
 
-	gpio_out(HW_GPIO1, 0);
-	gpio_in(HW_GPIO58);
-}
+	if(!isFileExists(CONFIG_FILE))
+	{
+		satfi_log("%s FileNoExists\n", CONFIG_FILE);
+		sleep(10);
+	}
 
-#if !MAIN_CPP
-
-int main(void)
-{
-	pthread_t id_1;
-
-	//prctl(PR_SET_PDEATHSIG, SIGKILL);//父进程退出发送SIGKILL 给子进程
-	//signal(SIGPIPE,SignalHandler);
-
-	hw_init();
-		
 	init();
 	ttygsmcreate();
 	//处理服务器,APP数据
 	if(pthread_create(&id_1, NULL, select_app, (void *)&base) == -1) exit(1);
-	//if(pthread_create(&id_1, NULL, select_tsc, (void *)&base) == -1) exit(1);
+	//if(pthread_create(&id_2, NULL, select_tsc, (void *)&base) == -1) exit(1);
 
 	//切换路由
-	//if(pthread_create(&id_1, NULL, check_route, (void *)&base) == -1) exit(1);
+	//if(pthread_create(&id_3, NULL, check_route, (void *)&base) == -1) exit(1);
 
 	//使用udp，接收服务器对讲语音数据
-	//if(pthread_create(&id_1, NULL, select_tsc_udp, (void *)&base) == -1) exit(1);
+	//if(pthread_create(&id_4, NULL, select_tsc_udp, (void *)&base) == -1) exit(1);
 	
 	//System检测，心跳包
-	if(pthread_create(&id_1, NULL, SystemServer, (void *)&base) == -1) exit(1);
-	//if(pthread_create(&id_1, NULL, CheckProgramUpdateServer, (void *)&base) == -1) exit(1);
+	if(pthread_create(&id_5, NULL, SystemServer, (void *)&base) == -1) exit(1);
+	//if(pthread_create(&id_6, NULL, CheckProgramUpdateServer, (void *)&base) == -1) exit(1);
 
 	//sat拨号线程,ring检测
-	if(pthread_create(&id_1, NULL, func_y, (void *)&base) == -1) exit(1);
-	if(pthread_create(&id_1, NULL, ring_detect, (void *)&base) == -1) exit(1);
+	if(pthread_create(&id_4, NULL, func_y, (void *)&base) == -1) exit(1);
+	if(pthread_create(&id_5, NULL, ring_detect, (void *)&base) == -1) exit(1);
 
 	//电话音频处理
-	if(pthread_create(&id_1, NULL, recvfrom_app_voice_udp, (void *)&base) == -1) exit(1);
-	//if(pthread_create(&id_1, NULL, sendto_app_voice_udp, (void *)&base) == -1) exit(1);
+	if(pthread_create(&id_7, NULL, recvfrom_app_voice_udp, (void *)&base) == -1) exit(1);
+	//if(pthread_create(&id_8, NULL, sendto_app_voice_udp, (void *)&base) == -1) exit(1);
 
+	//if(pthread_create(&id_1, NULL, web_thread, (void *)&base) == -1) exit(1);
+
+	main_thread_loop();
 	return 0;
 }
-
-#endif
 
 #if 0
 int main(int argc, char *argv[])

@@ -5,13 +5,17 @@ include $(CLEAR_VARS)
 
 LOCAL_C_INCLUDES += system/core/include/cutils/ external/speex/include/
 LOCAL_SRC_FILES:= $(call all-c-files-under)
+LOCAL_SRC_FILES+= $(call all-cpp-files-under)
 
-LOCAL_SHARED_LIBRARIES += liblog
-#LOCAL_SHARED_LIBRARIES := -llog
-LOCAL_LDFLAGS += $(LOCAL_PATH)/libspeex.a
+LOCAL_STATIC_LIBRARIES += libspeex \
+						libiconv
 
-LOCAL_MODULE_TAGS := debug
+LOCAL_SHARED_LIBRARIES := \
+				libcutils \
+				libutils \
+				libmedia \
+				liblog
+
 LOCAL_MODULE := satfi
 LOCAL_MODULE_PATH := $(LOCAL_PATH)/bin
 include $(BUILD_EXECUTABLE)
-

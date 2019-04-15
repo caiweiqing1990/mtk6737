@@ -188,6 +188,8 @@ int main(int argc, char **argv)
 					
 	minFrameCount = (minFrameCount1 > minFrameCount2) ? minFrameCount1 : minFrameCount2;	
 						
+	minFrameCount = 1600;					
+						
 	if(record->initCheck() != OK)
 	{
 		ALOGE("AudioRecord initCheck error!");
