@@ -2160,7 +2160,7 @@ void cgeqreq_set(void)
 {
 	int i=0;
 	char cmd[128] = {0};
-	sprintf(cmd, "AT+CGEQREQ=4,%d,%d,%d,%d,%d\r\n", base.sat.qos1, base.sat.qos2, base.sat.qos3, base.>sat.qos2, base.sat.qos3);
+	sprintf(cmd, "AT+CGEQREQ=4,%d,%d,%d,%d,%d\r\n", base.sat.qos1, base.sat.qos2, base.sat.qos3, base.sat.qos2, base.sat.qos3);
 	while(i<10)
 	{
 		i++;
