@@ -2175,10 +2175,6 @@ void *func_y(void *p)
 	sleep(10);
 	ioctl(mtgpiofd, GPIO_IOCSDATALOW, HW_GPIO82);
 
-	char cmd[32] = {0};
-	sprintf(cmd, "AT+CGEQREQ=4,%d,%d,%d,%d,%d\r\n", base->sat.qos1, base->sat.qos2, base->sat.qos3, base->sat.qos2, base->sat.qos3);
-	satfi_log("%s\n", cmd);
-
 	while(1)
 	{
 		//sat_lock();
@@ -2212,9 +2208,7 @@ void *func_y(void *p)
 					base->sat.sat_available = 0;
 					base->sat.sat_state = SAT_STATE_CGACT_SCCUSS;
 					satfi_log("SAT_STATE_CGACT_SCCUSS\n");
-					ioctl(mtgpiofd, GPIO_IOCSDATALOW, HW_GPIO78);
-					
-					if(base->sat.active == 0)base->sat.sat_available = 3;
+					ioctl(mtgpiofd, GPIO_IOCSDATALOW, HW_GPIO78);					
 				}
 				sleep(2);
 			}			
@@ -2259,7 +2253,7 @@ void *func_y(void *p)
 			
 			satfi_log("power_mode msm01a reset %d %d\n",__LINE__, base->sat.sat_state);
 			base->sat.sat_state = SAT_STATE_RESTART_W;
-			base->sat.sat_status = 0;
+			base->sat.sat_status = -1;
 			base->sat.sat_msg_sending = 0;
 			//msm01a_reset();
 			sleep(10);
@@ -2331,9 +2325,9 @@ void *func_y(void *p)
 					break;
 				case SAT_STATE_SIM_ACTIVE:
 				case SAT_STATE_SIM_ACTIVE_W:
-					satfi_log("func_y:send %s to SAT Module\n", cmd);
-					uart_send(base->sat.sat_fd, cmd, strlen(cmd));
-					sleep(3);
+					//satfi_log("func_y:send %s to SAT Module\n", cmd);
+					//uart_send(base->sat.sat_fd, cmd, strlen(cmd));
+					//sleep(3);
 					satfi_log("func_y:send AT+CFUN=1 to SAT Module\n");
 					uart_send(base->sat.sat_fd, "AT+CFUN=1\r\n", 11);
 					base->sat.sat_state = SAT_STATE_SIM_ACTIVE_W;
@@ -2358,9 +2352,9 @@ void *func_y(void *p)
 					satfi_log("func_y:send AT+CIMI to SAT Module\n");
 					uart_send(base->sat.sat_fd, "AT+CIMI\r\n", 9);
 					base->sat.sat_state = SAT_STATE_IMSI_W;
-					sleep(3);
-					satfi_log("func_y:send %s to SAT Module\n", cmd);
-					uart_send(base->sat.sat_fd, cmd, strlen(cmd));
+					//sleep(3);
+					//satfi_log("func_y:send %s to SAT Module\n", cmd);
+					//uart_send(base->sat.sat_fd, cmd, strlen(cmd));
 					uart_send(base->sat.sat_phone, "AT\r\n", 4);
 					uart_send(base->sat.sat_message, "AT\r\n", 4);
 					break;
@@ -2434,6 +2428,20 @@ void *func_y(void *p)
 			{
 				if(base->sat.active == 1)
 				{
+					int i=0;
+					char cmd[128] = {0};
+					while(i<10)
+					{
+						i++;
+						base->sat.sat_state = SAT_STATE_CGEQREQ;
+						uart_send(base->sat.sat_fd, cmd, strlen(cmd));
+						sprintf(cmd, "AT+CGEQREQ=4,%d,%d,%d,%d,%d\r\n", base->sat.qos1, base->sat.qos2, base->sat.qos3, base->sat.qos2, base->sat.qos3);
+						satfi_log("QOS %s\n", cmd);
+						sleep(2);
+						if(SAT_STATE_CGEQREQ_OK == base->sat.sat_state)
+							break;
+					}
+
 					satfi_log("pppd call sat-dailer\n");
 					base->sat.sat_dialing = 1;
 					ioctl(mtgpiofd, GPIO_IOCSDATAHIGH, HW_GPIO79);
@@ -3081,6 +3089,11 @@ int handle_sat_data(int *satfd, char *data, int *ofs)
 					{
 						satfi_log("stop sat_pppd\n");
 						myexec("stop sat_pppd", NULL, NULL);												
+					}
+					else if(base.sat.sat_state==SAT_STATE_CGEQREQ)
+					{
+						satfi_log("SAT_STATE_CGEQREQ_OK\n");
+						base.sat.sat_state = SAT_STATE_CGEQREQ_OK;
 					}
 					sat_unlock();
 					idx=0;
@@ -5439,20 +5452,28 @@ void Date_Parse(char *data)
 		{
 			jstmp = cJSON_GetObjectItem(root,"value");
 			satfi_log("qos1=%d\n", jstmp->valueint);
-			if(jstmp->valueint == 1 || jstmp->valueint == 3)SetKeyInt("satellite", "QOS1", CONFIG_FILE, jstmp->valueint);
+			if(jstmp->valueint == 1 || jstmp->valueint == 3)
+			{
+				base.sat.qos1 = jstmp->valueint;
+				SetKeyInt("satellite", "QOS1", CONFIG_FILE, jstmp->valueint);
+			}	
 			jstmp=cJSON_CreateObject();
 			cJSON_AddStringToObject(jstmp,"type", "qos1");
 			cJSON_AddStringToObject(jstmp,"state", "OK");
 			out=cJSON_Print(jstmp);
 			cJSON_Delete(jstmp);
 			response(web_socketfd, out);
-			free(out);		
+			free(out);
 		}
 		else if(strcmp(type, "qos2") == 0)
 		{
 			jstmp = cJSON_GetObjectItem(root,"value");
 			satfi_log("qos2=%d\n", jstmp->valueint);
-			if(jstmp->valueint == 384 || jstmp->valueint == 64)SetKeyInt("satellite", "QOS2", CONFIG_FILE, jstmp->valueint);
+			if(jstmp->valueint == 384 || jstmp->valueint == 64)
+			{
+				base.sat.qos2 = jstmp->valueint;
+				SetKeyInt("satellite", "QOS2", CONFIG_FILE, jstmp->valueint);
+			}
 			jstmp=cJSON_CreateObject();
 			cJSON_AddStringToObject(jstmp,"type", "qos2");
 			cJSON_AddStringToObject(jstmp,"state", "OK");
@@ -5465,7 +5486,11 @@ void Date_Parse(char *data)
 		{
 			jstmp = cJSON_GetObjectItem(root,"value");
 			satfi_log("qos3=%d\n", jstmp->valueint);
-			if(jstmp->valueint == 384 || jstmp->valueint == 64)SetKeyInt("satellite", "QOS3", CONFIG_FILE, jstmp->valueint);
+			if(jstmp->valueint == 384 || jstmp->valueint == 64)
+			{
+				base.sat.qos3 = jstmp->valueint;
+				SetKeyInt("satellite", "QOS3", CONFIG_FILE, jstmp->valueint);
+			}
 			//base.sat.qos3 = GetIniKeyInt("satellite","QOS3",CONFIG_FILE);
 			jstmp=cJSON_CreateObject();
 			cJSON_AddStringToObject(jstmp,"type", "qos3");
@@ -8243,7 +8268,7 @@ void init(void)
 
 	base.sat.qos1 = GetIniKeyInt("satellite","QOS1",CONFIG_FILE);
 	satfi_log("QOS1:%d\n", base.sat.qos1);
-	if(base.sat.qos1 == 0)
+	if(base.sat.qos1 < 0)
 	{
 		base.sat.qos1 = 1;
 		SetKeyInt("satellite", "QOS1", CONFIG_FILE, base.sat.qos1);
@@ -8251,7 +8276,7 @@ void init(void)
 
 	base.sat.qos2 = GetIniKeyInt("satellite","QOS2",CONFIG_FILE);
 	satfi_log("QOS2:%d\n", base.sat.qos2);
-	if(base.sat.qos2 == 0)
+	if(base.sat.qos2 < 0)
 	{
 		base.sat.qos2 = 384;
 		SetKeyInt("satellite", "QOS2", CONFIG_FILE, base.sat.qos2);
@@ -8259,7 +8284,7 @@ void init(void)
 
 	base.sat.qos3 = GetIniKeyInt("satellite","QOS3",CONFIG_FILE);
 	satfi_log("QOS3:%d\n", base.sat.qos3);
-	if(base.sat.qos3 == 0)
+	if(base.sat.qos3 < 0)
 	{
 		base.sat.qos3 = 64;
 		SetKeyInt("satellite", "QOS3", CONFIG_FILE, base.sat.qos3);
