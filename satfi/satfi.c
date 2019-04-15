@@ -2448,8 +2448,8 @@ void *func_y(void *p)
 			{
 				if(base->sat.active == 1)
 				{
-					cgeqreq_set();//eg : AT+CGEQREQ=4,1,384,64,384,64
-					
+					base->sat.sat_available = 2;//正在激活
+					cgeqreq_set();//eg : AT+CGEQREQ=4,1,384,64,384,64					
 					satfi_log("pppd call sat-dailer\n");
 					base->sat.sat_dialing = 1;
 					ioctl(mtgpiofd, GPIO_IOCSDATAHIGH, HW_GPIO79);
@@ -2464,8 +2464,6 @@ void *func_y(void *p)
 					
 					satfi_log("pppd call sat-dailer passed\n");
 					base->sat.sat_state = SAT_STATE_CSQ;
-
-					base->sat.sat_available = 2;//正在激活
 				}
 				else
 				{
