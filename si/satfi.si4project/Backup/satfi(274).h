@@ -32,6 +32,8 @@
 #include <cutils/sockets.h>
 #include <cutils/log.h>     /*logging in logcat*/
 
+#define MAIN_CPP	1
+
 #define GPS_DATA_FILE		"/storage/self/primary/GpsData.txt"
 #define CALL_RECORDS_FILE	"/storage/self/primary/CallRecords.txt"
 #define SAT_IMEI_FILE		"/storage/self/primary/configSat.ini"
@@ -166,7 +168,6 @@ typedef struct _sat
   int sat_calling;           //是否正在进行呼叫
   int sat_dialing;           //是否正在尝试拨号
   int sat_msg_sending;
-  int battery;
   char sat_ifname[16];
   char sat_ifname_a[16];
   char sat_imsi[16];
@@ -333,14 +334,9 @@ int AppCallUpRspForce(int socket, short sat_state_phone);
 int handle_sat_data(int *satfd, char *data, int *ofs);
 int safe_recvfrom(int fd, char* buff, int len);
 int parseGpsData(char *buf, int len);
-void *handle_app_data(void *p);
+void *select_app(void *p);
 void *SystemServer(void *p);
-void *handle_pcm_data(void *p);
+void *recvfrom_app_voice_udp(void *p);
 void main_thread_loop(void);
-void gps_start(void) ;
-int socket_bind_udp(const char* path);
-int socket_set_blocking(int fd, int blocking);
-int create_satfi_udp_fd(void);
-void *sat_ring_detect(void *p);
 
 #endif

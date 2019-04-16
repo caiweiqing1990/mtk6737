@@ -333,14 +333,14 @@ int AppCallUpRspForce(int socket, short sat_state_phone);
 int handle_sat_data(int *satfd, char *data, int *ofs);
 int safe_recvfrom(int fd, char* buff, int len);
 int parseGpsData(char *buf, int len);
-void *handle_app_data(void *p);
+void *select_app(void *p);
 void *SystemServer(void *p);
-void *handle_pcm_data(void *p);
+void *recvfrom_app_voice_udp(void *p);
 void main_thread_loop(void);
 void gps_start(void) ;
 int socket_bind_udp(const char* path);
 int socket_set_blocking(int fd, int blocking);
 int create_satfi_udp_fd(void);
-void *sat_ring_detect(void *p);
+
 
 #endif

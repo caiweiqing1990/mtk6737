@@ -8,6 +8,12 @@
 #include "cJSON/cJSON.h"
 #include "iconv.h"
 
+#if MAIN_CPP
+#define LOG_TAG "satfi_cpp"
+#else
+#define LOG_TAG "satfi_c"
+#endif
+
 #define LOGD(fmt, arg ...) ALOGD("%s: " fmt, __FUNCTION__ , ##arg)
 #define LOGW(fmt, arg ...) ALOGW("%s: " fmt, __FUNCTION__ , ##arg)
 #define LOGE(fmt, arg ...) ALOGE("%s: " fmt, __FUNCTION__ , ##arg)
@@ -3246,8 +3252,6 @@ int handle_sat_data(int *satfd, char *data, int *ofs)
 							base.sat.sat_state_phone = SAT_STATE_PHONE_HANGUP;
 						}
 						
-						base.sat.secondLinePhoneMode = 0;
-						
 					}
 					else if(strstr(data, "VOICEFORMAT: 3,0"))
 					{
@@ -3641,7 +3645,6 @@ int handle_app_msg_tcp(int socket, char *pack, char *tscbuf)
 				strncpy(rsp->sat_gps, base.sat.sat_gps, 127);
 				strncpy(rsp->bd_gps, base.gps.gps_bd, 127);
 				strncpy(rsp->version, satfi_version, 32);
-				rsp->battery = base.sat.battery;
 				n = write(socket, tmp, rsp->header.length);
 				if(n<0) satfi_log("write return error: errno=%d (%s) %d %d\n", errno, strerror(errno),__LINE__,socket);
 			}
@@ -5358,7 +5361,7 @@ void Date_Parse(char *data)
 				cJSON_AddNumberToObject(jstmp,"net", base.sat.sat_status);
 				cJSON_AddNumberToObject(jstmp,"active", base.sat.sat_available);
 			}
-			cJSON_AddNumberToObject(jstmp,"battery", base.sat.battery);
+			cJSON_AddNumberToObject(jstmp,"battery", 75);
 			out=cJSON_Print(jstmp);
 			cJSON_Delete(jstmp);
 			response(web_socketfd, out);
@@ -5598,7 +5601,7 @@ void Date_Parse(char *data)
 	}
 }
 
-void *handle_app_data(void *p)
+void *select_app(void *p)
 {
 	BASE *base = (BASE *)p;
 	fd_set fds;
@@ -7871,64 +7874,8 @@ int safe_sendto(const char* path, const char* buff, int len) {
     return ret;
 }
 
-/*************************************************
-* Local UDP Socket
-**************************************************/
-// -1 means failure
-int socket_bind_udp(const char* path) 
-{
-    int fd;
-    struct sockaddr_un addr;
 
-    fd = socket(PF_LOCAL, SOCK_DGRAM, 0);
-    if (fd < 0) {
-        satfi_log("socket_bind_udp() socket() failed reason=[%s]%d\n",
-            strerror(errno), errno);
-        return -1;
-    }
-    satfi_log("fd=%d\n", fd);
-
-    memset(&addr, 0, sizeof(addr));
-    addr.sun_path[0] = 0;
-    memcpy(addr.sun_path + 1, path, strlen(path));
-    addr.sun_family = AF_UNIX;
-    unlink(addr.sun_path);
-    if (bind(fd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
-        satfi_log("socket_bind_udp() bind() failed path=[%s] reason=[%s]%d\n",
-            path, strerror(errno), errno);
-        close(fd);
-        return -1;
-    }
-    return fd;
-}
-
-// -1 means failure
-int socket_set_blocking(int fd, int blocking) 
-{
-    if (fd < 0) {
-        satfi_log("socket_set_blocking() invalid fd=%d\n", fd);
-        return -1;
-    }
-
-    int flags = fcntl(fd, F_GETFL, 0);
-    if (flags == -1) {
-        satfi_log("socket_set_blocking() fcntl() failed invalid flags=%d reason=[%s]%d\n",
-            flags, strerror(errno), errno);
-        return -1;
-    }
-
-    flags = blocking ? (flags&~O_NONBLOCK) : (flags|O_NONBLOCK);
-    return (fcntl(fd, F_SETFL, flags) == 0) ? 0 : -1;
-}
-
-int create_satfi_udp_fd(void) {
-    int fd = socket_bind_udp("satfi");
-    socket_set_blocking(fd, 0);
-    return fd;
-}
-
-
-void gps_start(void) 
+int gps_start() 
 {
     satfi_log("gps_start\n");
 #define MTK_HAL2MNL "mtk_hal2mnl"
@@ -7962,33 +7909,13 @@ void gps_start(void)
 
 
     char buff[HAL_MNL_BUFF_SIZE] = {0};
-	int offset = 0;
-    put_int(buff, &offset, HAL_MNL_INTERFACE_VERSION);
-    put_int(buff, &offset, HAL2MNL_GPS_STOP);
-	safe_sendto(MTK_HAL2MNL, buff, offset);
-
-	sleep(1);
-
-	offset = 0;
-    put_int(buff, &offset, HAL_MNL_INTERFACE_VERSION);
-    put_int(buff, &offset, HAL2MNL_GPS_SET_POSITION_MODE);
-    put_int(buff, &offset, 0);
-    put_int(buff, &offset, 0);
-    put_int(buff, &offset, 5000);
-    put_int(buff, &offset, 1);
-    put_int(buff, &offset, 1);
-	safe_sendto(MTK_HAL2MNL, buff, offset);
-
-	sleep(1);
-
-	offset = 0;
+    int offset = 0;
     put_int(buff, &offset, HAL_MNL_INTERFACE_VERSION);
     put_int(buff, &offset, HAL2MNL_GPS_START);
-    safe_sendto(MTK_HAL2MNL, buff, offset);
-
+    return safe_sendto(MTK_HAL2MNL, buff, offset);
 }
 
-int gps_stop(void) 
+int gps_stop() 
 {
     satfi_log("gps_stop\n");
 #define MTK_HAL2MNL "mtk_hal2mnl"
@@ -8173,6 +8100,11 @@ void *SystemServer(void *p)
 							CreateMsgData(toPhone, messagedata, outdata);
 							MessageADD(toPhone, toPhone, 0, outdata, strlen(outdata));		
 						}
+
+						if(boolcallphone == 1)
+						{
+							//StartCallUp(toPhone);							
+						}
 					}
 				}
 
@@ -8234,8 +8166,6 @@ void init(void)
 	base.sat.start_time = 0;
 	base.sat.end_time = 0;
 	base.sat.sat_csq_value = -1;
-	base.sat.battery = 0;
-	base.sat.socket = 0;
 	
 	base.n3g.n3g_fd = -1;
 	base.n3g.n3g_status = 0;
@@ -8653,6 +8583,7 @@ static void *CallUpThread(void *p)
 				clcccnt = 0;
 				base->sat.sat_state_phone = SAT_STATE_PHONE_DIALINGFAILE;
 			}
+
 		}
 		
 		if(base->sat.sat_state_phone == SAT_STATE_PHONE_DIALING_RING)
@@ -8949,7 +8880,7 @@ void printfhex(unsigned char *buf, int len)
 	printf("\n");
 }
 
-void *sat_ring_detect(void *p)
+static void *ring_detect(void *p)
 {
 	BASE *base = (BASE *)p;
 	int ring = 0;
@@ -9072,8 +9003,6 @@ void *sat_ring_detect(void *p)
 			{
 				if(ringsocket < 0)
 				{
-					base->sat.secondLinePhoneMode = 1;//没有app链接 拨号电话机
-					ioctl(mtgpiofd, GPIO_IOCSDATAHIGH, HW_GPIO1);//振铃电话机
 					break;
 				}
 				
@@ -9121,6 +9050,7 @@ void *sat_ring_detect(void *p)
 						base->sat.StartTime = time(0);
 						satfi_log("ring StartTime=%lld\n", base->sat.StartTime);
 					}
+
 				}
 				
 				if(base->sat.sat_state_phone == SAT_STATE_PHONE_HANGUP)
@@ -9133,32 +9063,6 @@ void *sat_ring_detect(void *p)
 				sleep(1);
 			}
 
-			int i=30;
-			while(base->sat.secondLinePhoneMode)
-			{
-				if(ioctl(mtgpiofd, GPIO_IOCQDATAIN, HW_GPIO58) == 0)
-				{
-					ioctl(mtgpiofd, GPIO_IOCSDATALOW, HW_GPIO1);
-					if(base->sat.sat_state_phone != SAT_STATE_PHONE_ONLINE)
-						AnsweringPhone();//二线电话摘机
-					else
-						satfi_log("SAT_STATE_PHONE_ONLINE secondLinePhoneMode\n");
-				}
-				else
-				{
-					i--;
-					if(i < 0 || base->sat.sat_state_phone == SAT_STATE_PHONE_ONLINE) 
-					{
-						satfi_log("SAT_STATE_PHONE_ONLINE secondLinePhoneMode timeout break\n");//超时没人接听
-						break;
-					}
-				}
-				
-				sleep(1);
-			}
-
-			ioctl(mtgpiofd, GPIO_IOCSDATALOW, HW_GPIO1);
-			base->sat.secondLinePhoneMode = 0;
 			base->sat.EndTime = time(0);
 			
 			int cnt = 10;
@@ -9308,6 +9212,63 @@ static void *sendto_app_voice_udp(void *p)
 }
 
 
+/*************************************************
+* Local UDP Socket
+**************************************************/
+// -1 means failure
+int socket_bind_udp(const char* path) 
+{
+    int fd;
+    struct sockaddr_un addr;
+
+    fd = socket(PF_LOCAL, SOCK_DGRAM, 0);
+    if (fd < 0) {
+        satfi_log("socket_bind_udp() socket() failed reason=[%s]%d\n",
+            strerror(errno), errno);
+        return -1;
+    }
+    satfi_log("fd=%d\n", fd);
+
+    memset(&addr, 0, sizeof(addr));
+    addr.sun_path[0] = 0;
+    memcpy(addr.sun_path + 1, path, strlen(path));
+    addr.sun_family = AF_UNIX;
+    unlink(addr.sun_path);
+    if (bind(fd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
+        satfi_log("socket_bind_udp() bind() failed path=[%s] reason=[%s]%d\n",
+            path, strerror(errno), errno);
+        close(fd);
+        return -1;
+    }
+    return fd;
+}
+
+
+// -1 means failure
+int socket_set_blocking(int fd, int blocking) 
+{
+    if (fd < 0) {
+        satfi_log("socket_set_blocking() invalid fd=%d\n", fd);
+        return -1;
+    }
+
+    int flags = fcntl(fd, F_GETFL, 0);
+    if (flags == -1) {
+        satfi_log("socket_set_blocking() fcntl() failed invalid flags=%d reason=[%s]%d\n",
+            flags, strerror(errno), errno);
+        return -1;
+    }
+
+    flags = blocking ? (flags&~O_NONBLOCK) : (flags|O_NONBLOCK);
+    return (fcntl(fd, F_SETFL, flags) == 0) ? 0 : -1;
+}
+
+int create_satfi_udp_fd() {
+    int fd = socket_bind_udp("satfi");
+    socket_set_blocking(fd, 0);
+    return fd;
+}
+
 // -1 means failure
 int safe_recvfrom(int fd, char* buff, int len) {
     int ret = 0;
@@ -9363,11 +9324,11 @@ void hw_init(void)
 
 	gpio_out(HW_GPIO1, 0);
 	gpio_in(HW_GPIO58);
-	gpio_pull_enable(HW_GPIO58);
-	gpio_pull_up(HW_GPIO58);
 }
 
-int main_satfi(void)
+#if !MAIN_CPP
+
+int main(void)
 {
 	pthread_t id_1;
 
@@ -9379,7 +9340,7 @@ int main_satfi(void)
 	init();
 	ttygsmcreate();
 	//处理服务器,APP数据
-	if(pthread_create(&id_1, NULL, handle_app_data, (void *)&base) == -1) exit(1);
+	if(pthread_create(&id_1, NULL, select_app, (void *)&base) == -1) exit(1);
 	//if(pthread_create(&id_1, NULL, select_tsc, (void *)&base) == -1) exit(1);
 
 	//切换路由
@@ -9394,15 +9355,16 @@ int main_satfi(void)
 
 	//sat拨号线程,ring检测
 	if(pthread_create(&id_1, NULL, func_y, (void *)&base) == -1) exit(1);
-	if(pthread_create(&id_1, NULL, sat_ring_detect, (void *)&base) == -1) exit(1);
+	if(pthread_create(&id_1, NULL, ring_detect, (void *)&base) == -1) exit(1);
 
 	//电话音频处理
-	if(pthread_create(&id_1, NULL, handle_pcm_data, (void *)&base) == -1) exit(1);
+	if(pthread_create(&id_1, NULL, recvfrom_app_voice_udp, (void *)&base) == -1) exit(1);
 	//if(pthread_create(&id_1, NULL, sendto_app_voice_udp, (void *)&base) == -1) exit(1);
 
-	main_thread_loop();
 	return 0;
 }
+
+#endif
 
 #if 0
 int main(int argc, char *argv[])

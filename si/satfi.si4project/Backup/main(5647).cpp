@@ -1,5 +1,15 @@
 
+#include <utils/Log.h>
 #include <media/AudioRecord.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <media/AudioTrack.h>
+#include <binder/MemoryDealer.h>
+#include <binder/MemoryHeapBase.h>
+#include <binder/MemoryBase.h>
+#include <binder/ProcessState.h>
+#include <cutils/properties.h>
+#include <media/AudioSystem.h>
 #include <media/AudioTrack.h>
 
 using namespace android;
@@ -11,9 +21,6 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-
-extern BASE base;
-#define BUS_SIZE (6*960)//11520
 
 int audio_test(void)
 {
@@ -77,6 +84,8 @@ int audio_test(void)
 	return 0;
 }
 
+extern BASE base;
+
 void milliseconds_sleep()
 {
   struct timeval tv = {0, 20000};//20ms
@@ -87,7 +96,7 @@ void milliseconds_sleep()
   } while (err<0 || errno == EINTR);
 }
 
-void *handle_pcm_data(void *p)
+void *recvfrom_app_voice_udp(void *p)
 {
 	BASE *base = (BASE *)p;
     struct sockaddr_in addr;
@@ -108,6 +117,8 @@ void *handle_pcm_data(void *p)
 		close(sock);
         exit(1);
     }
+
+#define BUS_SIZE (6*960)//11520
 
 	char tmp[BUS_SIZE];
 	//char playbackbuf[3200];
@@ -143,21 +154,10 @@ void *handle_pcm_data(void *p)
 	speex_preprocess_ctl(st, SPEEX_PREPROCESS_SET_PROB_START , &vadProbStart); //Set probability required for the VAD to go from silence to voice
 	speex_preprocess_ctl(st, SPEEX_PREPROCESS_SET_PROB_CONTINUE, &vadProbContinue); //Set probability required for the VAD to stay in the voice state (integer percent)
 
+	//int fd = open("/storage/self/primary/writeserial", O_RDWR|O_CREAT, 0644);
+
 	struct timeval start,end;
-
-	size_t  minFrameCount 	= 0;
-	int framesize = 2;
 	
-	sp<AudioRecord> record = new AudioRecord(AUDIO_SOURCE_MIC, 8000, AUDIO_FORMAT_PCM_16_BIT, audio_channel_in_mask_from_count(1),
-						String16(),(size_t)(2 * framesize * BUS_SIZE), NULL, NULL, minFrameCount, AUDIO_SESSION_ALLOCATE,
-						AudioRecord::TRANSFER_DEFAULT, AUDIO_INPUT_FLAG_NONE, -1, -1);
-	if(record->initCheck() != OK)
-	{
-		satfi_log("AudioRecord initCheck error!");
-	}	
-
-	int AudioRecordStart = 0;
-
 	while (1)
     {
 		FD_ZERO(&fds);/* 每次循环都需要清空 */
@@ -170,6 +170,7 @@ void *handle_pcm_data(void *p)
 		{
 			case -1: break;
 			case  0:
+
 				if(base->sat.sat_calling == 1)
 				{
 					satfi_log("clientAddr timeout\n");
@@ -214,15 +215,6 @@ void *handle_pcm_data(void *p)
 				}
 
 				plybackbufofs = 0;
-
-				if(base->sat.secondLinePhoneMode == 0)
-				{
-					if(AudioRecordStart == 1)
-					{
-						AudioRecordStart = 0;
-						record->stop();
-					}
-				}
 				break;
 			default:
 								
@@ -315,22 +307,6 @@ void *handle_pcm_data(void *p)
 			        }					
 				}
 		}
-
-		while(base->sat.secondLinePhoneMode == 1 && base->sat.sat_state_phone == SAT_STATE_PHONE_ONLINE)
-		{
-			if(AudioRecordStart == 0)
-			{
-				AudioRecordStart = 1;
-				if(record->start()!= android::NO_ERROR)
-				{
-					satfi_log("AudioRecord start error!");
-					record.clear();
-				}
-			}
-			
-			record->read(tmp, 320);
-			write(base->sat.sat_pcmdata, tmp, 320);
-		}
     }	
 }
 
@@ -348,20 +324,11 @@ void main_thread_loop(void)
 	int gpsSocketfd = -1;
 	//int gpsSocketfd = create_satfi_udp_fd();
 	//satfi_log("gpsSocketfd=%d\n", gpsSocketfd);
-	//gps_start();
 
 	struct sockaddr_in *clientAddr1 = &(base.sat.clientAddr1);
 	socklen_t len = sizeof(struct sockaddr_in);
 
 	int n,ret;
-
-	sp<AudioTrack> track = new AudioTrack(AUDIO_STREAM_MUSIC, 8000, AUDIO_FORMAT_PCM_16_BIT, AUDIO_CHANNEL_OUT_MONO, 0);
-	if(track->initCheck() != OK)
-	{
-		satfi_log("AudioRecord initCheck error!\n");
-	}
-
-	int AudioTrackStart = 0;
 
 	while(1)
 	{
@@ -403,6 +370,7 @@ void main_thread_loop(void)
 			}
 		}
 
+
 		if(maxfd == 0) {
 			sleep(3);
 			continue;
@@ -413,18 +381,7 @@ void main_thread_loop(void)
 		switch(select(maxfd+1,&fds,NULL,NULL,&timeout))
 		{
 			case -1: satfi_log("select error %s\n", strerror(errno)); break;
-			case  0: 
-			{
-				if(base.sat.secondLinePhoneMode == 0)
-				{
-					if(AudioTrackStart == 1)
-					{
-						track->stop();
-						AudioTrackStart = 0;
-					}
-				}
-				break;
-			}
+			case  0: break;
 			default:
 				if(base.sat.sat_fd > 0 && FD_ISSET(base.sat.sat_fd, &fds)) {
 					//satfi_log("base.sat.sat_fd=%d\n", base.sat.sat_fd);
@@ -462,22 +419,6 @@ void main_thread_loop(void)
 						else
 						{
 							//satfi_log("clientAddr1->sin_port zero\n");
-							if(base.sat.secondLinePhoneMode == 1)
-							{
-								if(AudioTrackStart == 0)
-								{
-									if(track->start()!= android::NO_ERROR)
-									{
-										satfi_log("AudioTrack start error!");
-									}
-									else
-									{
-										satfi_log("AudioTrack start success!");
-									}
-									AudioTrackStart = 1;
-								}
-								track->write(SatDataBuf[3], n);
-							}
 						}
 					}
 					else
@@ -505,10 +446,12 @@ void main_thread_loop(void)
 	
 }
 
-int main()
+
+#if MAIN_CPP
+int main(int argc, char *argv[])
 {
 	pthread_t id_1;
-
+	
 	hw_init();
 	if(!isFileExists(CONFIG_FILE))
 	{
@@ -519,12 +462,12 @@ int main()
 	init();
 	ttygsmcreate();
 	
-	if(pthread_create(&id_1, NULL, func_y, (void *)&base) == -1) exit(1);			//卫星模块启动
-	if(pthread_create(&id_1, NULL, sat_ring_detect, (void *)&base) == -1) exit(1); //卫星来电检测
-	if(pthread_create(&id_1, NULL, handle_app_data, (void *)&base) == -1) exit(1); //处理app数据
+	if(pthread_create(&id_1, NULL, recvfrom_app_voice_udp, (void *)&base) == -1) exit(1);
+	if(pthread_create(&id_1, NULL, select_app, (void *)&base) == -1) exit(1);
 	if(pthread_create(&id_1, NULL, SystemServer, (void *)&base) == -1) exit(1);
-	if(pthread_create(&id_1, NULL, handle_pcm_data, (void *)&base) == -1) exit(1);//处理通话语音
-
+	if(pthread_create(&id_1, NULL, func_y, (void *)&base) == -1) exit(1);
+	
 	main_thread_loop();
 	return 0;
 }
+#endif

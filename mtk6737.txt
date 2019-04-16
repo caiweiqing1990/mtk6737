@@ -79,6 +79,7 @@ adb push Y:\power_mode\bin\mtkgpio /system/bin/
 adb push Y:\power_mode\bin\chat /system/bin/ 
 adb push Y:\power_mode\bin\n_gsm /system/bin/ 
 adb push Y:\satfi\bin\satfi /system/bin/
+adb push Y:\satfi\bin\mnld /system/vendor/bin
 adb push Y:\satfi\bin\busybox /system/bin/
 adb push Y:\satfi\bin\config.ini /storage/self/primary/
 adb push Y:\satfi\bin\sat-dailer /etc/ppp/peers/sat-dailer
@@ -92,9 +93,9 @@ adb shell restorecon system/bin/pppd
 adb push Y:\satfi\bin\hostapd.conf /data/misc/wifi/hostapd.conf
 
 adb push Z:\out\target\product\len6737t_66_sh_n\system\bin\tinymix /system/bin/
-adb push Z:\out\target\product\len6737t_66_sh_n\system\bin\\tinycap /system/bin/
-adb push Z:\out\target\product\len6737t_66_sh_n\system\bin\\tinyplay /system/bin/
-adb push Z:\out\target\product\len6737t_66_sh_n\system\bin\\tinypcminfo /system/bin/
+adb push Z:\out\target\product\len6737t_66_sh_n\system\bin\tinycap /system/bin/
+adb push Z:\out\target\product\len6737t_66_sh_n\system\bin\tinyplay /system/bin/
+adb push Z:\out\target\product\len6737t_66_sh_n\system\bin\tinypcminfo /system/bin/
 
 
 更新系统Settings.apk，开机自动WIFI热点AP模式 SSID:SatFi-MTK6737 密码:12345678
@@ -623,3 +624,34 @@ mytest /dev/ttyMT1 921600 AT^SYSMODE=2,0,1,0,0,2,0,0
 
 修改内核配置文件，支持SPI网卡
 kernel-3.18\arch\arm64\configs\len6737t_66_sh_n_defconfig 中打开 CONFIG_ETHERNET_DM9051=y
+
+
+
+
+
+
+
+DTNF
+
+RC	PIN82	GPIO1	振铃
+SHR	PIN97	GPIO58	
+
+OE		GPIO53
+D0		GPIO60
+D1		GPIO59
+D2		GPIO57
+D3		GPIO62
+
+DV		GPIO61
+
+INH		GPIO64
+PWDN	GPIO63
+
+mtkgpio	64	1
+mtkgpio	63	1
+
+
+mtkgpio	60
+mtkgpio	59
+mtkgpio	57
+mtkgpio	62

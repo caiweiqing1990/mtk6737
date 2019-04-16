@@ -211,7 +211,6 @@ typedef struct _app_heartbeat_rsp
   char sat_csq[32];
   char bd_gps[128];
   char version[32];
-  short battery;
 }MsgAppHeartbeatRsp;
 
 /*QUERY_GROUP_CMD*/

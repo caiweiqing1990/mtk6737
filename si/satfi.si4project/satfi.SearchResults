@@ -1,4 +1,4 @@
----- NN Matches (3 in 3 files) ----
-recvfrom_app_voice_udp in main.cpp (Y:\satfi) : 	st = speex_preprocess_state_init(NN, 8000);
-sendto_app_voice_udp in satfi.c (Y:\satfi) : 	st = speex_preprocess_state_init(NN, 8000);
-satfi.h (Y:\satfi) line 323 : #define NN 160
+---- SAT_STATE_PHONE_ATA_W Matches (3 in 2 files) ----
+handle_sat_data in satfi.c (Y:\satfi) : 					else if(base.sat.sat_state_phone==SAT_STATE_PHONE_ATA_W) 
+AnsweringPhone in satfi.c (Y:\satfi) : 	base.sat.sat_state_phone = SAT_STATE_PHONE_ATA_W;
+SAT_STATE_PHONE in satfi.h (Y:\satfi) :   SAT_STATE_PHONE_ATA_W,		//应答命令已发送
