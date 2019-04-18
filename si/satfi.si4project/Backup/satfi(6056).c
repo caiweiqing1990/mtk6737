@@ -9322,7 +9322,7 @@ void *Second_linePhone_Dial_Detect(void *p)
 		}
 		else
 		{
-			if(base->sat.ring == 0)
+			if(base->sat.ring == 1)
 			{
 				if(ioctl(mtgpiofd, GPIO_IOCQDATAIN, SHR) == 1)
 				{

@@ -1,4 +1,34 @@
----- SAT_STATE_PHONE_ATA_W Matches (3 in 2 files) ----
-handle_sat_data in satfi.c (Y:\satfi) : 					else if(base.sat.sat_state_phone==SAT_STATE_PHONE_ATA_W) 
-AnsweringPhone in satfi.c (Y:\satfi) : 	base.sat.sat_state_phone = SAT_STATE_PHONE_ATA_W;
-SAT_STATE_PHONE in satfi.h (Y:\satfi) :   SAT_STATE_PHONE_ATA_W,		//应答命令已发送
+---- mtgpiofd Matches (35 in 1 files) ----
+satfi.c (Y:\satfi) line 60 : int mtgpiofd = -1;
+func_y in satfi.c (Y:\satfi) : 	ioctl(mtgpiofd, GPIO_IOCSDATALOW, HW_GPIO82);
+func_y in satfi.c (Y:\satfi) : 				if(mtgpiofd > 0)
+func_y in satfi.c (Y:\satfi) : 					ioctl(mtgpiofd, GPIO_IOCSDATALOW, HW_GPIO78);
+func_y in satfi.c (Y:\satfi) : 					ioctl(mtgpiofd, GPIO_IOCSDATAHIGH, HW_GPIO78);
+func_y in satfi.c (Y:\satfi) : 					ioctl(mtgpiofd, GPIO_IOCSDATALOW, HW_GPIO78);					
+func_y in satfi.c (Y:\satfi) : 				ioctl(mtgpiofd, GPIO_IOCSDATALOW, HW_GPIO82);
+func_y in satfi.c (Y:\satfi) : 				ioctl(mtgpiofd, GPIO_IOCSDATAHIGH, HW_GPIO82);
+func_y in satfi.c (Y:\satfi) : 				ioctl(mtgpiofd, GPIO_IOCSDATAHIGH, HW_GPIO82);
+func_y in satfi.c (Y:\satfi) : 				ioctl(mtgpiofd, GPIO_IOCSDATAHIGH, HW_GPIO83);
+func_y in satfi.c (Y:\satfi) : 				ioctl(mtgpiofd, GPIO_IOCSDATAHIGH, HW_GPIO81);
+func_y in satfi.c (Y:\satfi) : 				ioctl(mtgpiofd, GPIO_IOCSDATAHIGH, HW_GPIO80);
+func_y in satfi.c (Y:\satfi) : 					ioctl(mtgpiofd, GPIO_IOCSDATAHIGH, HW_GPIO79);
+Date_Parse in satfi.c (Y:\satfi) : 			ioctl(mtgpiofd, GPIO_IOCSDATALOW, HW_GPIO2);
+Date_Parse in satfi.c (Y:\satfi) : 			ioctl(mtgpiofd, GPIO_IOCSDATALOW, HW_GPIO6);
+Date_Parse in satfi.c (Y:\satfi) : 			ioctl(mtgpiofd, GPIO_IOCSDATALOW, HW_GPIO5);
+Date_Parse in satfi.c (Y:\satfi) : 			ioctl(mtgpiofd, GPIO_IOCSDATALOW, HW_GPIO82);
+Date_Parse in satfi.c (Y:\satfi) : 			ioctl(mtgpiofd, GPIO_IOCSDATALOW, HW_GPIO83);
+Date_Parse in satfi.c (Y:\satfi) : 			ioctl(mtgpiofd, GPIO_IOCSDATALOW, HW_GPIO81);
+Date_Parse in satfi.c (Y:\satfi) : 			ioctl(mtgpiofd, GPIO_IOCSDATALOW, HW_GPIO80);
+Date_Parse in satfi.c (Y:\satfi) : 			ioctl(mtgpiofd, GPIO_IOCSDATALOW, HW_GPIO78);
+Date_Parse in satfi.c (Y:\satfi) : 			ioctl(mtgpiofd, GPIO_IOCSDATALOW, HW_GPIO79);
+Date_Parse in satfi.c (Y:\satfi) : 			ioctl(mtgpiofd, GPIO_IOCSDATALOW, HW_GPIO7);
+SystemServer in satfi.c (Y:\satfi) : 	mtgpiofd = fd;
+sat_ring_detect in satfi.c (Y:\satfi) : 					ioctl(mtgpiofd, GPIO_IOCSDATAHIGH, HW_GPIO1);//振铃电话机
+sat_ring_detect in satfi.c (Y:\satfi) : 				if(ioctl(mtgpiofd, GPIO_IOCQDATAIN, HW_GPIO58) == 0)
+sat_ring_detect in satfi.c (Y:\satfi) : 					ioctl(mtgpiofd, GPIO_IOCSDATALOW, HW_GPIO1);
+sat_ring_detect in satfi.c (Y:\satfi) : 			ioctl(mtgpiofd, GPIO_IOCSDATALOW, HW_GPIO1);
+GetKeyVal in satfi.c (Y:\satfi) : 	val = ((ioctl(mtgpiofd, GPIO_IOCQDATAIN, D3)<<1)|(ioctl(mtgpiofd, GPIO_IOCQDATAIN, D2)<<1) \
+GetKeyVal in satfi.c (Y:\satfi) : 		|(ioctl(mtgpiofd, GPIO_IOCQDATAIN, D1)<<1)|ioctl(mtgpiofd, GPIO_IOCQDATAIN, D0));
+Get_Second_LinePhone_Num in satfi.c (Y:\satfi) : 		if(ioctl(mtgpiofd, GPIO_IOCQDATAIN, SHR) == 0)
+Get_Second_LinePhone_Num in satfi.c (Y:\satfi) : 			if(ioctl(mtgpiofd, GPIO_IOCQDATAIN, DV) == 1)
+Second_linePhone_Dial_Detect in satfi.c (Y:\satfi) : 			if(ioctl(mtgpiofd, GPIO_IOCQDATAIN, SHR) == 1)

@@ -146,7 +146,6 @@ typedef  struct _n3g
 typedef struct _sat
 {
   int sat_fd;                //SAT模块文件
-  int ring;
   int qos1;					//u/a
   int qos2;					//384/64
   int qos3;					//384/64

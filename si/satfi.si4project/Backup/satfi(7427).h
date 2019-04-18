@@ -146,7 +146,6 @@ typedef  struct _n3g
 typedef struct _sat
 {
   int sat_fd;                //SAT模块文件
-  int ring;
   int qos1;					//u/a
   int qos2;					//384/64
   int qos3;					//384/64
@@ -343,6 +342,5 @@ int socket_bind_udp(const char* path);
 int socket_set_blocking(int fd, int blocking);
 int create_satfi_udp_fd(void);
 void *sat_ring_detect(void *p);
-void *Second_linePhone_Dial_Detect(void *p);
 
 #endif

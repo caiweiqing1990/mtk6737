@@ -325,7 +325,7 @@ void *handle_pcm_data(void *p)
 				if(AudioRecordStart == 0)
 				{
 					AudioRecordStart = 1;
-					if(record->start() != android::NO_ERROR)
+					if(record->start()!= android::NO_ERROR)
 					{
 						satfi_log("AudioRecord start error!");
 						record.clear();
@@ -473,7 +473,7 @@ void main_thread_loop(void)
 							{
 								if(AudioTrackStart == 0)
 								{
-									if(track->start() != android::NO_ERROR)
+									if(track->start()!= android::NO_ERROR)
 									{
 										satfi_log("AudioTrack start error!");
 									}

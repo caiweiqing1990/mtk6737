@@ -90,7 +90,10 @@ adb shell restorecon system/bin/satfi
 adb shell restorecon system/bin/pppd
 
 
-adb push Y:\satfi\bin\hostapd.conf /data/misc/wifi/hostapd.conf
+adb push Y:\AudioRecord\bin\AudioRecordTest /mnt
+
+adb push Y:\satfi\bin\udhcpd_br0.conf /data/misc/wifi/udhcpd_br0.conf
+busybox udhcpd -fS /data/misc/wifi/udhcpd_br0.conf
 
 adb push Z:\out\target\product\len6737t_66_sh_n\system\bin\tinymix /system/bin/
 adb push Z:\out\target\product\len6737t_66_sh_n\system\bin\tinycap /system/bin/
@@ -633,25 +636,30 @@ kernel-3.18\arch\arm64\configs\len6737t_66_sh_n_defconfig 中打开 CONFIG_ETHER
 
 DTNF
 
-RC	PIN82	GPIO1	振铃
-SHR	PIN97	GPIO58	
+RC		PIN82	GPIO1	振铃控制
+SHR		PIN97	GPIO58	摘机检测
 
-OE		GPIO53
 D0		GPIO60
 D1		GPIO59
 D2		GPIO57
-D3		GPIO62
+D3		GPIO47
 
-DV		GPIO61
+DV		GPIO48			按键检测
 
-INH		GPIO64
-PWDN	GPIO63
+INH		GPIO51
+PWDN	GPIO52
+OE		GPIO53
 
-mtkgpio	64	1
-mtkgpio	63	1
+mtkgpio	51 0
+mtkgpio	52 0
+mtkgpio	53 1
 
+mtkgpio	48
 
 mtkgpio	60
+
 mtkgpio	59
+
 mtkgpio	57
-mtkgpio	62
+
+mtkgpio	47

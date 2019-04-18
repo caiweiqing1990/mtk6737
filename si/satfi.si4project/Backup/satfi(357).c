@@ -1,6 +1,3 @@
-
-#define LOG_TAG "satfi"
-
 #include "satfi.h"
 #include "msg.h"
 #include "server.h"
@@ -8736,7 +8733,6 @@ static void *CallUpThread(void *p)
 	base->sat.sat_state_phone = SAT_STATE_PHONE_IDLE;
 	base->sat.socket = 0;
 	base->sat.sat_calling = 0;
-	base->sat.secondLinePhoneMode = 0;
 	satfi_log("CallUpThread Exit\n");
 	return NULL;
 }
@@ -8746,7 +8742,6 @@ void StartCallUp(char *calling_number)
 	pthread_t thread;
 	if(base.sat.sat_calling == 0)
 	{
-		satfi_log("calling_number=%s\n", calling_number);
 		strncpy(base.sat.calling_number, calling_number,sizeof(base.sat.called_number));
 		pthread_create(&thread,NULL,CallUpThread,&base);
 	}
@@ -8957,6 +8952,7 @@ void printfhex(unsigned char *buf, int len)
 void *sat_ring_detect(void *p)
 {
 	BASE *base = (BASE *)p;
+	int ring = 0;
 	int ringnocarriercnt = 0;
 	int ringcnt = 0;
 
@@ -8967,10 +8963,10 @@ void *sat_ring_detect(void *p)
 		if(base->sat.sat_state_phone == SAT_STATE_PHONE_RING_COMING)
 		{
 			satfi_log("ring SAT_STATE_PHONE_RING_COMING\n");
-			base->sat.ring = 1;
+			ring = 1;
 		}
 		
-		if(base->sat.ring == 1)
+		if(ring == 1)
 		{
 			net_lock();
 			base->sat.sat_calling = 1;
@@ -9218,7 +9214,7 @@ void *sat_ring_detect(void *p)
 			
 			satfi_log("SAT_STATE_PHONE_HANGUP %d\n", base->sat.sat_state_phone);
 			bzero(base->sat.called_number,15);
-			base->sat.ring = 0;			
+			ring = 0;			
 			ringsocket = -1;
 			base->sat.sat_calling = 0;
 			base->sat.sat_state_phone = SAT_STATE_PHONE_IDLE;
@@ -9248,93 +9244,61 @@ static int GetKeyVal(void)
 //1 2 3 4 5 6 7 8 9 10 11 12
 //1 2 3 4 5 6 7 8 9 0  *  #
 	int val;
-	val = ((ioctl(mtgpiofd, GPIO_IOCQDATAIN, D3)<<3)|(ioctl(mtgpiofd, GPIO_IOCQDATAIN, D2)<<2) \
+	val = ((ioctl(mtgpiofd, GPIO_IOCQDATAIN, D3)<<1)|(ioctl(mtgpiofd, GPIO_IOCQDATAIN, D2)<<1) \
 		|(ioctl(mtgpiofd, GPIO_IOCQDATAIN, D1)<<1)|ioctl(mtgpiofd, GPIO_IOCQDATAIN, D0));
+	satfi_log("GetKeyVal=%d\n", val);
 	if(val == 10) val = 0;
 	return val;
 }
 
 static int Get_Second_LinePhone_Num(char * PhoneNumber)
 {
-	int val=0;
-	int keypress=0;
-	int i=0;
-	
+
 	while(1)
 	{
-		if(ioctl(mtgpiofd, GPIO_IOCQDATAIN, SHR) == 0)
+		if(ioctl(mtgpiofd, GPIO_IOCQDATAIN, DV) == 1)
 		{
-			if(ioctl(mtgpiofd, GPIO_IOCQDATAIN, DV) == 1)
+			if(GetKeyVal() == 12)//#
 			{
-				if(keypress == 0)
-				{
-					val = GetKeyVal();
-					if(val == 12)//#
-					{
-						satfi_log("break # %s\n", PhoneNumber);
-						PhoneNumber[i] = 0;
-						return i;
-					}
-					else
-					{
-						if(val < 10)
-						{
-							PhoneNumber[i] = val + 0x30;
-							i++;
-							satfi_log("GetKeyVal=%d PhoneNumber=%s\n", val, PhoneNumber);
-						}
-					}
-					keypress = 1;
-				}
-			}
-			else
-			{
-				keypress = 0;
+				break;
 			}
 		}
 		else
 		{
-			//satfi_log("break\n");
-			if(i>0)bzero(PhoneNumber, i);
 			break;
 		}
-		usleep(50000);
+		
+		usleep(20);
 	}
-
+		
 	return 0;
 }
 
 void *Second_linePhone_Dial_Detect(void *p)
 {
 	BASE *base = (BASE *)p;
-	char PhoneNumber[1024] = {0};
-	int len;
+	char PhoneNumber[64] = {0};
 	while(1)
 	{
 		if(base->sat.secondLinePhoneMode == 0)
 		{
-			if(len = Get_Second_LinePhone_Num(PhoneNumber))
+			if(Get_Second_LinePhone_Num(PhoneNumber))
 			{
 				base->sat.secondLinePhoneMode = 1;
 				StartCallUp(PhoneNumber);
-				bzero(PhoneNumber, len);
 			}
 		}
 		else
 		{
-			if(base->sat.ring == 0)
+			if(ioctl(mtgpiofd, GPIO_IOCQDATAIN, HW_GPIO58) == 1)
 			{
-				if(ioctl(mtgpiofd, GPIO_IOCQDATAIN, SHR) == 1)
+				if(base->sat.sat_calling == 1)
 				{
-					satfi_log("Second_linePhone_Dial_Detect ATH len=%d\n", len);
+					satfi_log("Second_linePhone_Dial_Detect ATH\n");
+					base->sat.sat_state_phone = SAT_STATE_PHONE_ATH_W;//电话机挂断
 					base->sat.secondLinePhoneMode = 0;
-					if(base->sat.sat_calling == 1)
-					{
-						base->sat.sat_state_phone = SAT_STATE_PHONE_ATH_W;//电话机挂断
-					}
 				}
 			}
-
 		}
 
 		sleep(1);
