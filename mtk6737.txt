@@ -90,7 +90,7 @@ adb shell restorecon system/bin/satfi
 adb shell restorecon system/bin/pppd
 
 
-adb push Y:\AudioRecord\bin\AudioRecordTest /mnt
+adb push Y:\AudioRecord\bin\AudioRecordTest /system/bin/
 
 adb push Y:\satfi\bin\udhcpd_br0.conf /data/misc/wifi/udhcpd_br0.conf
 busybox udhcpd -fS /data/misc/wifi/udhcpd_br0.conf

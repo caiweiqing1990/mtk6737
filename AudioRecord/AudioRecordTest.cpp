@@ -222,7 +222,7 @@ int main(int argc, char **argv)
 	
 	while(1)
 	{
-		int readLen = record->read(inBuffer, 960z);	
+		int readLen = record->read(inBuffer, 960);	
 		ALOGE("readLen = %d", readLen);
 		track->write(inBuffer, readLen);
 	}

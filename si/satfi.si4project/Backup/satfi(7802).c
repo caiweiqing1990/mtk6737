@@ -1482,7 +1482,7 @@ static int getBaudrate(int baudrate)
  */
 int init_serial(int *fd, char *device, int baud_rate)
 {
-	satfi_log("open serial port : %s ... %d\n", device, *fd);
+	satfi_log("open serial port : %s ...\n", device);
 	int fd_serial = open(device, O_RDWR | O_NOCTTY | O_NDELAY);
 	if (fd_serial < 0)
 	{
@@ -1511,7 +1511,7 @@ int init_serial(int *fd, char *device, int baud_rate)
 	/* 3.设置新属性: TCSANOW，所有改变立即生效 */
 	tcflush(fd_serial, TCIFLUSH);	   /* 溢出数据可以接收，但不读 */
 	tcsetattr(fd_serial, TCSANOW, &options);
-	satfi_log("open serial port : %s successfully!!! fd = %d\n", device, fd_serial);
+	satfi_log("open serial port : %s successfully!!!\n", device);
 	return 0;
 }
 
@@ -2296,10 +2296,7 @@ void *func_y(void *p)
 			{
 				if(base->sat.sat_phone < 0)init_serial(&base->sat.sat_phone, "/dev/ttygsm2", base->sat.sat_baud_rate);
 				if(base->sat.sat_message < 0)init_serial(&base->sat.sat_message, "/dev/ttygsm3", base->sat.sat_baud_rate);
-				if(base->sat.sat_pcmdata < 0)
-				{
-					init_serial(&base->sat.sat_pcmdata, "/dev/ttygsm9", base->sat.sat_baud_rate);
-				}
+				if(base->sat.sat_pcmdata < 0)init_serial(&base->sat.sat_pcmdata, "/dev/ttygsm9", base->sat.sat_baud_rate);
 			}
 			
 		}
@@ -8739,6 +8736,7 @@ static void *CallUpThread(void *p)
 	base->sat.sat_state_phone = SAT_STATE_PHONE_IDLE;
 	base->sat.socket = 0;
 	base->sat.sat_calling = 0;
+	base->sat.secondLinePhoneMode = 0;
 	satfi_log("CallUpThread Exit\n");
 	return NULL;
 }
@@ -9261,8 +9259,6 @@ static int Get_Second_LinePhone_Num(char * PhoneNumber)
 	int val=0;
 	int keypress=0;
 	int i=0;
-
-	char tmp[1024] = {0};
 	
 	while(1)
 	{
@@ -9275,18 +9271,17 @@ static int Get_Second_LinePhone_Num(char * PhoneNumber)
 					val = GetKeyVal();
 					if(val == 12)//#
 					{
-						tmp[i] = 0;
-						strncpy(PhoneNumber, tmp, i);
-						satfi_log("break # PhoneNumber=%s\n", PhoneNumber);
+						satfi_log("break # %s\n", PhoneNumber);
+						PhoneNumber[i] = 0;
 						return i;
 					}
 					else
 					{
 						if(val < 10)
 						{
-							tmp[i] = val + 0x30;
+							PhoneNumber[i] = val + 0x30;
 							i++;
-							satfi_log("GetKeyVal=%d tmp=%s\n", val, tmp);
+							satfi_log("GetKeyVal=%d PhoneNumber=%s\n", val, PhoneNumber);
 						}
 					}
 					keypress = 1;
@@ -9299,11 +9294,13 @@ static int Get_Second_LinePhone_Num(char * PhoneNumber)
 		}
 		else
 		{
+			//satfi_log("break\n");
+			if(i>0)bzero(PhoneNumber, i);
 			break;
 		}
 		usleep(50000);
 	}
-	
+
 	return 0;
 }
 
@@ -9314,21 +9311,18 @@ void *Second_linePhone_Dial_Detect(void *p)
 	int len;
 	while(1)
 	{
-		if(base->sat.ring == 0)
+		if(base->sat.secondLinePhoneMode == 0)
 		{
-			if(base->sat.secondLinePhoneMode == 0)
+			if(len = Get_Second_LinePhone_Num(PhoneNumber))
 			{
-				if(ioctl(mtgpiofd, GPIO_IOCQDATAIN, SHR) == 0)
-				{
-					if(len = Get_Second_LinePhone_Num(PhoneNumber))
-					{
-						base->sat.secondLinePhoneMode = 1;
-						StartCallUp(PhoneNumber);
-						bzero(PhoneNumber, len);
-					}
-				}
+				base->sat.secondLinePhoneMode = 1;
+				StartCallUp(PhoneNumber);
+				bzero(PhoneNumber, len);
 			}
-			else
+		}
+		else
+		{
+			if(base->sat.ring == 0)
 			{
 				if(ioctl(mtgpiofd, GPIO_IOCQDATAIN, SHR) == 1)
 				{
@@ -9337,13 +9331,6 @@ void *Second_linePhone_Dial_Detect(void *p)
 					if(base->sat.sat_calling == 1)
 					{
 						base->sat.sat_state_phone = SAT_STATE_PHONE_ATH_W;//电话机挂断
-					}
-				}
-				else
-				{
-					if(base->sat.sat_calling == 0)
-					{
-						base->sat.secondLinePhoneMode = 0;
 					}
 				}
 			}

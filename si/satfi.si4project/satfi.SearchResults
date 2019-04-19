@@ -1,34 +1,19 @@
----- mtgpiofd Matches (35 in 1 files) ----
-satfi.c (Y:\satfi) line 60 : int mtgpiofd = -1;
-func_y in satfi.c (Y:\satfi) : 	ioctl(mtgpiofd, GPIO_IOCSDATALOW, HW_GPIO82);
-func_y in satfi.c (Y:\satfi) : 				if(mtgpiofd > 0)
-func_y in satfi.c (Y:\satfi) : 					ioctl(mtgpiofd, GPIO_IOCSDATALOW, HW_GPIO78);
-func_y in satfi.c (Y:\satfi) : 					ioctl(mtgpiofd, GPIO_IOCSDATAHIGH, HW_GPIO78);
-func_y in satfi.c (Y:\satfi) : 					ioctl(mtgpiofd, GPIO_IOCSDATALOW, HW_GPIO78);					
-func_y in satfi.c (Y:\satfi) : 				ioctl(mtgpiofd, GPIO_IOCSDATALOW, HW_GPIO82);
-func_y in satfi.c (Y:\satfi) : 				ioctl(mtgpiofd, GPIO_IOCSDATAHIGH, HW_GPIO82);
-func_y in satfi.c (Y:\satfi) : 				ioctl(mtgpiofd, GPIO_IOCSDATAHIGH, HW_GPIO82);
-func_y in satfi.c (Y:\satfi) : 				ioctl(mtgpiofd, GPIO_IOCSDATAHIGH, HW_GPIO83);
-func_y in satfi.c (Y:\satfi) : 				ioctl(mtgpiofd, GPIO_IOCSDATAHIGH, HW_GPIO81);
-func_y in satfi.c (Y:\satfi) : 				ioctl(mtgpiofd, GPIO_IOCSDATAHIGH, HW_GPIO80);
-func_y in satfi.c (Y:\satfi) : 					ioctl(mtgpiofd, GPIO_IOCSDATAHIGH, HW_GPIO79);
-Date_Parse in satfi.c (Y:\satfi) : 			ioctl(mtgpiofd, GPIO_IOCSDATALOW, HW_GPIO2);
-Date_Parse in satfi.c (Y:\satfi) : 			ioctl(mtgpiofd, GPIO_IOCSDATALOW, HW_GPIO6);
-Date_Parse in satfi.c (Y:\satfi) : 			ioctl(mtgpiofd, GPIO_IOCSDATALOW, HW_GPIO5);
-Date_Parse in satfi.c (Y:\satfi) : 			ioctl(mtgpiofd, GPIO_IOCSDATALOW, HW_GPIO82);
-Date_Parse in satfi.c (Y:\satfi) : 			ioctl(mtgpiofd, GPIO_IOCSDATALOW, HW_GPIO83);
-Date_Parse in satfi.c (Y:\satfi) : 			ioctl(mtgpiofd, GPIO_IOCSDATALOW, HW_GPIO81);
-Date_Parse in satfi.c (Y:\satfi) : 			ioctl(mtgpiofd, GPIO_IOCSDATALOW, HW_GPIO80);
-Date_Parse in satfi.c (Y:\satfi) : 			ioctl(mtgpiofd, GPIO_IOCSDATALOW, HW_GPIO78);
-Date_Parse in satfi.c (Y:\satfi) : 			ioctl(mtgpiofd, GPIO_IOCSDATALOW, HW_GPIO79);
-Date_Parse in satfi.c (Y:\satfi) : 			ioctl(mtgpiofd, GPIO_IOCSDATALOW, HW_GPIO7);
-SystemServer in satfi.c (Y:\satfi) : 	mtgpiofd = fd;
-sat_ring_detect in satfi.c (Y:\satfi) : 					ioctl(mtgpiofd, GPIO_IOCSDATAHIGH, HW_GPIO1);//振铃电话机
-sat_ring_detect in satfi.c (Y:\satfi) : 				if(ioctl(mtgpiofd, GPIO_IOCQDATAIN, HW_GPIO58) == 0)
-sat_ring_detect in satfi.c (Y:\satfi) : 					ioctl(mtgpiofd, GPIO_IOCSDATALOW, HW_GPIO1);
-sat_ring_detect in satfi.c (Y:\satfi) : 			ioctl(mtgpiofd, GPIO_IOCSDATALOW, HW_GPIO1);
-GetKeyVal in satfi.c (Y:\satfi) : 	val = ((ioctl(mtgpiofd, GPIO_IOCQDATAIN, D3)<<1)|(ioctl(mtgpiofd, GPIO_IOCQDATAIN, D2)<<1) \
-GetKeyVal in satfi.c (Y:\satfi) : 		|(ioctl(mtgpiofd, GPIO_IOCQDATAIN, D1)<<1)|ioctl(mtgpiofd, GPIO_IOCQDATAIN, D0));
-Get_Second_LinePhone_Num in satfi.c (Y:\satfi) : 		if(ioctl(mtgpiofd, GPIO_IOCQDATAIN, SHR) == 0)
-Get_Second_LinePhone_Num in satfi.c (Y:\satfi) : 			if(ioctl(mtgpiofd, GPIO_IOCQDATAIN, DV) == 1)
-Second_linePhone_Dial_Detect in satfi.c (Y:\satfi) : 			if(ioctl(mtgpiofd, GPIO_IOCQDATAIN, SHR) == 1)
+---- base->sat.sat_pcmdata Matches (21 in 3 files) ----
+handle_pcm_data in main.cpp (Y:\satfi) : 									if(base->sat.sat_pcmdata > 0)
+handle_pcm_data in main.cpp (Y:\satfi) : 												if(write(base->sat.sat_pcmdata, &tmp[ofs1], 320) <= 0)
+handle_pcm_data in main.cpp (Y:\satfi) : 										satfi_log("recvfrom_app_voice_udp = %d\n", base->sat.sat_pcmdata);
+handle_pcm_data in main.cpp (Y:\satfi) : 				write(base->sat.sat_pcmdata, tmp, 320);
+main_thread_loop in main.cpp (Y:\satfi) : 		if(base.sat.sat_pcmdata > 0) {
+main_thread_loop in main.cpp (Y:\satfi) : 			FD_SET(base.sat.sat_pcmdata, &fds);
+main_thread_loop in main.cpp (Y:\satfi) : 			if(base.sat.sat_pcmdata > maxfd) {
+main_thread_loop in main.cpp (Y:\satfi) : 				maxfd = base.sat.sat_pcmdata;
+main_thread_loop in main.cpp (Y:\satfi) : 				if(base.sat.sat_pcmdata > 0 && FD_ISSET(base.sat.sat_pcmdata, &fds)) {
+main_thread_loop in main.cpp (Y:\satfi) : 					n = read(base.sat.sat_pcmdata, SatDataBuf[3], 4096);
+main_thread_loop in main.cpp (Y:\satfi) : 						close(base.sat.sat_pcmdata);
+main_thread_loop in main.cpp (Y:\satfi) : 						base.sat.sat_pcmdata = -1;
+func_y in satfi.c (Y:\satfi) : 				if(base->sat.sat_pcmdata < 0)init_serial(&base->sat.sat_pcmdata, "/dev/ttygsm9", base->sat.sat_baud_rate);
+init in satfi.c (Y:\satfi) : 	base.sat.sat_pcmdata = -1;
+sendto_app_voice_udp in satfi.c (Y:\satfi) : 				if(base->sat.sat_pcmdata > 0)
+sendto_app_voice_udp in satfi.c (Y:\satfi) : 					n = read(base->sat.sat_pcmdata, voicebuf, 320);
+sendto_app_voice_udp in satfi.c (Y:\satfi) : 					satfi_log("base->sat.sat_pcmdata = %d\n", base->sat.sat_pcmdata);
+_sat in satfi.h (Y:\satfi) :   int sat_pcmdata;
