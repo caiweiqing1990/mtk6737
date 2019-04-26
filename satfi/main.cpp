@@ -366,7 +366,7 @@ void main_thread_loop(void)
 		satfi_log("AudioRecord initCheck error!\n");
 	}
 
-	//track->setVolume(1.0f, 1.0f);  
+	//track->setVolume(100.0f, 100.0f);
 
 	int AudioTrackStart = 0;
 
@@ -517,10 +517,12 @@ int main()
 	pthread_t id_1;
 
 	hw_init();
-	if(!isFileExists(CONFIG_FILE))
+	if(pthread_create(&id_1, NULL, SystemServer, (void *)&base) == -1) exit(1);					//系统检测
+	
+	while(!isFileExists(CONFIG_FILE))
 	{
 		satfi_log("%s FileNoExists\n", CONFIG_FILE);
-		sleep(10);
+		sleep(1);
 	}
 	
 	init();
@@ -530,7 +532,6 @@ int main()
 	if(pthread_create(&id_1, NULL, sat_ring_detect, (void *)&base) == -1) exit(1); 				//卫星来电检测
 	if(pthread_create(&id_1, NULL, Second_linePhone_Dial_Detect, (void *)&base) == -1) exit(1);//二线电话拨号检测
 	if(pthread_create(&id_1, NULL, handle_app_data, (void *)&base) == -1) exit(1); 				//处理app数据
-	if(pthread_create(&id_1, NULL, SystemServer, (void *)&base) == -1) exit(1);					//系统检测
 	if(pthread_create(&id_1, NULL, handle_pcm_data, (void *)&base) == -1) exit(1);				//处理通话语音
 
 	main_thread_loop();

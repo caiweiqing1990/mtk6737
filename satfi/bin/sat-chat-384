@@ -4,9 +4,9 @@ ABORT   ERROR
 REPORT  CONNECT
 TIMEOUT 300
 ""      "AT"
-OK      "AT\^DEPCD=1"
-OK      "AT+CGDCONT=4,\"IP\",\"ctnet\",,0,0"
-OK      "AT\^DAUTH=4,\"ctnet@mycdma.cn\",\"vnet.mobi\""
+#OK      "AT\^DEPCD=1"
+#OK      "AT+CGDCONT=4,\"IP\",\"ctnet\",,0,0"
+#OK      "AT\^DAUTH=4,\"ctnet@mycdma.cn\",\"vnet.mobi\""
 #OK      "AT+CGEQREQ=4,1,384,64,384,64"
 OK      "AT\^DTEST"
 OK      "AT\^DMPCHN=1"

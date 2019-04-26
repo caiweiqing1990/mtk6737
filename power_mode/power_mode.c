@@ -106,20 +106,21 @@ void gpio_pull_disable(int gpio)
 
 void msm01a_on(void)
 {
-	gpio_out(49, 1);//功放使能 接收
-	gpio_out(50, 1);//功放使能 发送
-	gpio_pull_disable(86);//串口1 流控引脚
+	//gpio_out(49, 1);//功放使能 接收
+	//gpio_out(50, 1);//功放使能 发送
+	//gpio_pull_disable(86);//串口1 流控引脚
 	gpio_out(AP_WAKEUP_BB, 0);
 	gpio_out(AP_SLEEP_BB, 0);
 	gpio_out(USB_BOOT, 1);
 	sleep(1);
-	gpio_out(RESET_IN, 1);
-	sleep(1);
 	gpio_out(PWREN, 1);
+	sleep(1);
+	gpio_out(RESET_IN, 1);
 }
 
 void msm01a_reset(void)
 {
+	gpio_out(PWREN, 1);
 	gpio_out(RESET_IN, 0);
 	sleep(1);
 	gpio_out(RESET_IN, 1);
@@ -127,7 +128,17 @@ void msm01a_reset(void)
 
 void msm01a_off(void)
 {
-	
+	gpio_out(PWREN, 0);
+	gpio_out(RESET_IN, 1);
+	sleep(1);
+	gpio_out(RESET_IN, 0);
+}
+
+//用于天通升级切换为U盘
+void msm01a_ap(void)
+{
+	gpio_out(HW_GPIO120, 0);
+	msm01a_reset();
 }
 
 void print_usage(char *file)
@@ -136,6 +147,7 @@ void print_usage(char *file)
 	printf("%s msm01a reset\n", file);
 	printf("%s msm01a on\n", file);
 	printf("%s msm01a off\n", file);
+	printf("%s msm01a ap\n", file);
 }
 
 int main(int argc, char **argv)
@@ -154,6 +166,9 @@ int main(int argc, char **argv)
 		}
 		else if (!strcmp("off", argv[2])){
 			msm01a_off();
+		}
+		else if (!strcmp("ap", argv[2])){
+			msm01a_ap();
 		}
 		else{
 			print_usage(argv[0]);

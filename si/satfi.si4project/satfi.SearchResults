@@ -1,19 +1,8 @@
----- base->sat.sat_pcmdata Matches (21 in 3 files) ----
-handle_pcm_data in main.cpp (Y:\satfi) : 									if(base->sat.sat_pcmdata > 0)
-handle_pcm_data in main.cpp (Y:\satfi) : 												if(write(base->sat.sat_pcmdata, &tmp[ofs1], 320) <= 0)
-handle_pcm_data in main.cpp (Y:\satfi) : 										satfi_log("recvfrom_app_voice_udp = %d\n", base->sat.sat_pcmdata);
-handle_pcm_data in main.cpp (Y:\satfi) : 				write(base->sat.sat_pcmdata, tmp, 320);
-main_thread_loop in main.cpp (Y:\satfi) : 		if(base.sat.sat_pcmdata > 0) {
-main_thread_loop in main.cpp (Y:\satfi) : 			FD_SET(base.sat.sat_pcmdata, &fds);
-main_thread_loop in main.cpp (Y:\satfi) : 			if(base.sat.sat_pcmdata > maxfd) {
-main_thread_loop in main.cpp (Y:\satfi) : 				maxfd = base.sat.sat_pcmdata;
-main_thread_loop in main.cpp (Y:\satfi) : 				if(base.sat.sat_pcmdata > 0 && FD_ISSET(base.sat.sat_pcmdata, &fds)) {
-main_thread_loop in main.cpp (Y:\satfi) : 					n = read(base.sat.sat_pcmdata, SatDataBuf[3], 4096);
-main_thread_loop in main.cpp (Y:\satfi) : 						close(base.sat.sat_pcmdata);
-main_thread_loop in main.cpp (Y:\satfi) : 						base.sat.sat_pcmdata = -1;
-func_y in satfi.c (Y:\satfi) : 				if(base->sat.sat_pcmdata < 0)init_serial(&base->sat.sat_pcmdata, "/dev/ttygsm9", base->sat.sat_baud_rate);
-init in satfi.c (Y:\satfi) : 	base.sat.sat_pcmdata = -1;
-sendto_app_voice_udp in satfi.c (Y:\satfi) : 				if(base->sat.sat_pcmdata > 0)
-sendto_app_voice_udp in satfi.c (Y:\satfi) : 					n = read(base->sat.sat_pcmdata, voicebuf, 320);
-sendto_app_voice_udp in satfi.c (Y:\satfi) : 					satfi_log("base->sat.sat_pcmdata = %d\n", base->sat.sat_pcmdata);
-_sat in satfi.h (Y:\satfi) :   int sat_pcmdata;
+---- SAT_SIM_NOT_INSERTED Matches (7 in 2 files) ----
+get_sat_status in satfi.c (Y:\satfi) :   	base.sat.sat_state == SAT_SIM_NOT_INSERTED) status = 3;  //没有读到IMSI
+func_y in satfi.c (Y:\satfi) : 				case SAT_SIM_NOT_INSERTED:
+handle_sat_data in satfi.c (Y:\satfi) : 							base.sat.sat_state = SAT_SIM_NOT_INSERTED;
+handle_sat_data in satfi.c (Y:\satfi) : 						base.sat.sat_state = SAT_SIM_NOT_INSERTED;
+handle_sat_data in satfi.c (Y:\satfi) : 						satfi_log("%s SAT_SIM_NOT_INSERTED\n", data);
+handle_sat_data in satfi.c (Y:\satfi) : 						base.sat.sat_state = SAT_SIM_NOT_INSERTED;
+SAT_STATE in satfi.h (Y:\satfi) :   SAT_SIM_NOT_INSERTED,

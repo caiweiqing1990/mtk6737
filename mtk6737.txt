@@ -315,8 +315,7 @@ allow pppd self:capability { dac_override net_admin net_raw setgid setuid };
 allow pppd kernel:system { module_request };
 allow pppd system_file:file { execute_no_trans };
 
-make bootimage
-make bootimage-nodeps
+make bootimage;make bootimage-nodeps
 
 adb root
 adb remount
@@ -629,15 +628,10 @@ mytest /dev/ttyMT1 921600 AT^SYSMODE=2,0,1,0,0,2,0,0
 kernel-3.18\arch\arm64\configs\len6737t_66_sh_n_defconfig 中打开 CONFIG_ETHERNET_DM9051=y
 
 
-
-
-
-
-
 DTNF
 
-RC		PIN82	GPIO1	振铃控制
-SHR		PIN97	GPIO58	摘机检测
+RC		GPIO1	振铃控制
+SHR		GPIO58	摘机检测
 
 D0		GPIO60
 D1		GPIO59
@@ -657,9 +651,10 @@ mtkgpio	53 1
 mtkgpio	48
 
 mtkgpio	60
-
 mtkgpio	59
-
 mtkgpio	57
-
 mtkgpio	47
+
+
+error: device offline
+
