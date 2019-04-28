@@ -2385,9 +2385,9 @@ void *func_y(void *p)
 						cmux=1;
 						break;
 					}
-					satfi_log("func_y:send AT^LOGSWITCH=0 to SAT Module\n");
-					uart_send(base->sat.sat_fd, "AT^LOGSWITCH=0\r\n", strlen("AT^LOGSWITCH=0\r\n"));
-					sleep(3);
+					//satfi_log("func_y:send AT^LOGSWITCH=0 to SAT Module\n");
+					//uart_send(base->sat.sat_fd, "AT^LOGSWITCH=0\r\n", strlen("AT^LOGSWITCH=0\r\n"));
+					//sleep(3);
 					satfi_log("func_y:send AT+CIMI to SAT Module\n");
 					uart_send(base->sat.sat_fd, "AT+CIMI\r\n", 9);
 					base->sat.sat_state = SAT_STATE_IMSI_W;
@@ -3285,7 +3285,6 @@ int handle_sat_data(int *satfd, char *data, int *ofs)
 					{
 						satfi_log("%s SAT_SIM_NOT_INSERTED\n", data);
 						base.sat.sat_state = SAT_SIM_NOT_INSERTED;
-						msm01a_off();
 					}
 					else if(strstr(data, "SIMST: 1"))
 					{
@@ -9210,7 +9209,7 @@ void *sat_ring_detect(void *p)
 					}
 					else
 					{
-						ioctl(mtgpiofd, GPIO_IOCSDATAHIGH, RC);//响铃
+						ioctl(mtgpiofd, GPIO_IOCSDATAHIGH, RC);
 					}
 				}
 				

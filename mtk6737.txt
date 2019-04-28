@@ -414,6 +414,11 @@ CONFIG_STP=y
 CONFIG_BRIDGE=y
 CONFIG_LLC=y
 CONFIG_VT=y
+
+Preloader模块：
+rm -rf out/target/product/len6737t_66_sh_n/obj/PRELOADER_OBJ （clean操作）
+mmm vendor/mediatek/proprietary/bootable/bootloader/preloader:pl （编译）
+
 LK模块：
 mmm vendor/mediatek/proprietary/bootable/bootloader/lk:clean-lk （clean操作）
 mmm vendor/mediatek/proprietary/bootable/bootloader/lk:lk （编译）
@@ -657,4 +662,11 @@ mtkgpio	47
 
 
 error: device offline
+
+frameworks/base/media/java/android/media/AudioSystem.java +785
+
+DEFAULT_STREAM_VOLUME
+
+
+
 

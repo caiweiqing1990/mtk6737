@@ -3285,7 +3285,6 @@ int handle_sat_data(int *satfd, char *data, int *ofs)
 					{
 						satfi_log("%s SAT_SIM_NOT_INSERTED\n", data);
 						base.sat.sat_state = SAT_SIM_NOT_INSERTED;
-						msm01a_off();
 					}
 					else if(strstr(data, "SIMST: 1"))
 					{
@@ -9210,7 +9209,7 @@ void *sat_ring_detect(void *p)
 					}
 					else
 					{
-						ioctl(mtgpiofd, GPIO_IOCSDATAHIGH, RC);//响铃
+						ioctl(mtgpiofd, GPIO_IOCSDATAHIGH, RC);
 					}
 				}
 				

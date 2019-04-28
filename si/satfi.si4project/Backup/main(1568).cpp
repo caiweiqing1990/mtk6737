@@ -133,15 +133,15 @@ void *handle_pcm_data(void *p)
 
 	satfi_log("select_voice_udp %d\n", sock);
 
-	//SpeexPreprocessState *st;
-	//st = speex_preprocess_state_init(NN, 8000);
+	SpeexPreprocessState *st;
+	st = speex_preprocess_state_init(NN, 8000);
 
-	//int vad = 1;
-	//int vadProbStart = 90;
-	//int vadProbContinue = 100;
-	//speex_preprocess_ctl(st, SPEEX_PREPROCESS_SET_VAD, &vad); //静音检测
-	//speex_preprocess_ctl(st, SPEEX_PREPROCESS_SET_PROB_START , &vadProbStart); //Set probability required for the VAD to go from silence to voice
-	//speex_preprocess_ctl(st, SPEEX_PREPROCESS_SET_PROB_CONTINUE, &vadProbContinue); //Set probability required for the VAD to stay in the voice state (integer percent)
+	int vad = 1;
+	int vadProbStart = 90;
+	int vadProbContinue = 100;
+	speex_preprocess_ctl(st, SPEEX_PREPROCESS_SET_VAD, &vad); //静音检测
+	speex_preprocess_ctl(st, SPEEX_PREPROCESS_SET_PROB_START , &vadProbStart); //Set probability required for the VAD to go from silence to voice
+	speex_preprocess_ctl(st, SPEEX_PREPROCESS_SET_PROB_CONTINUE, &vadProbContinue); //Set probability required for the VAD to stay in the voice state (integer percent)
 
 	struct timeval start,end;
 

@@ -3285,7 +3285,6 @@ int handle_sat_data(int *satfd, char *data, int *ofs)
 					{
 						satfi_log("%s SAT_SIM_NOT_INSERTED\n", data);
 						base.sat.sat_state = SAT_SIM_NOT_INSERTED;
-						msm01a_off();
 					}
 					else if(strstr(data, "SIMST: 1"))
 					{
