@@ -218,12 +218,13 @@ int main(int argc, char **argv)
 	
 	bufferSizeInBytes = framesize * minFrameCount;
 	void *inBuffer = malloc(bufferSizeInBytes);
-	ALOGE("bufferSizeInBytes = %d", bufferSizeInBytes);
+	ALOGE("bufferSizeInBytes=%d, %d %d", bufferSizeInBytes, minFrameCount1, minFrameCount2);
 	
 	while(1)
 	{
-		int readLen = record->read(inBuffer, 960);	
-		ALOGE("readLen = %d", readLen);
+		ALOGE("1");
+		int readLen = record->read(inBuffer, bufferSizeInBytes);	
+		ALOGE("2");
 		track->write(inBuffer, readLen);
 	}
 	

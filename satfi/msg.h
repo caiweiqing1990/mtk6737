@@ -155,6 +155,14 @@
 
 #define SOS_INFO					0x0063
 
+#define STATUS_REQUEST				0x0064
+#define STATUS_RESPONSE				0x8064
+#define WIFI_REQUEST				0x0065
+#define WIFI_RESPONSE				0x8065
+#define SOS_REQUEST					0x0066
+#define SOS_RESPONSE				0x8066
+#define QOS_REQUEST					0x0067
+#define QOS_RESPONSE				0x8067
 
 #pragma pack (1)
 
@@ -1026,7 +1034,51 @@ typedef struct _app_remove_family_phone
 	char Phone[21];
 } MsgRemovePamilyPhone;
 
-//SOS_INFO
+//STATUS_REQUEST
+typedef struct _app_status_req
+{
+	MsgHeader header;
+	char MsID[21];
+} MsgStatusReq;
+
+//STATUS_RESPONSE
+typedef struct _app_status_rsp
+{
+	MsgHeader header;
+	char MsID[21];
+	unsigned short power_satus;
+	unsigned short battery_level;
+	unsigned short battery_status;
+	unsigned short sat_status;
+	char sat_imei[16];
+	char sat_imsi[16];
+	unsigned short net_status;
+	unsigned short data_status;
+	unsigned short sat_csq;
+	unsigned short lte_status;
+	unsigned short temperature;
+	char version_sat[32];
+	char version[32];
+} MsgStatusRsp;
+
+//WIFI_REQUEST
+typedef struct _app_wifi_req
+{
+	MsgHeader header;
+	char MsID[21];
+	char ssid[32];
+	char passwd[32];
+} MsgWifiReq;
+
+//WIFI_RESPONSE
+typedef struct _app_wifi_rsp
+{
+	MsgHeader header;
+	char MsID[21];
+	unsigned short Result;
+} MsgWifiRsp;
+
+//SOS_REQUEST
 typedef struct _app_sos_info
 {
 	MsgHeader header;
@@ -1036,6 +1088,33 @@ typedef struct _app_sos_info
 	unsigned short boolcallphone;
 	char Message[0];
 } MsgSosInfo;
+
+//SOS_RESPONSE
+typedef struct _app_sos_info_rsp
+{
+	MsgHeader header;
+	char MsID[21];
+	unsigned short Result;
+} MsgSosInfoRsp;
+
+//QOS_REQUEST
+typedef struct _app_qos_info
+{
+	MsgHeader header;
+	char MsID[21];
+	unsigned short Operation;
+	unsigned short Type;
+	unsigned short UpBandWidth;
+	unsigned short DownBandWidth;
+} MsgQosInfo;
+
+//QOS_RESPONSE
+typedef struct _app_qos_info_rsp
+{
+	MsgHeader header;
+	char MsID[21];
+	unsigned short Result;
+} MsgQosInfoRsp;
 
 #pragma pack ()
 

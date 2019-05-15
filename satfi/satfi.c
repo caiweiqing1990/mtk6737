@@ -1,6 +1,4 @@
 
-#define LOG_TAG "satfi"
-
 #include "satfi.h"
 #include "msg.h"
 #include "server.h"
@@ -10,10 +8,6 @@
 #include "websocket/websocket.h"
 #include "cJSON/cJSON.h"
 #include "iconv.h"
-
-#define LOGD(fmt, arg ...) ALOGD("%s: " fmt, __FUNCTION__ , ##arg)
-#define LOGW(fmt, arg ...) ALOGW("%s: " fmt, __FUNCTION__ , ##arg)
-#define LOGE(fmt, arg ...) ALOGE("%s: " fmt, __FUNCTION__ , ##arg)
 
 int socket_init(int port);
 int uart_send(int fd, char *data, int datalen);
@@ -36,6 +30,7 @@ pthread_mutex_t pack_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 BASE base = { 0 };
 char satfi_version[32] = {0}; //当前satfi版本
+char satfi_version_sat[32] = {0}; 
 int version_num = 0; 			//当前satfi版本
 char config_url[512] = {0};	//update.ini在服务器中的路径
 
@@ -1594,7 +1589,7 @@ int detect_interface(char *ifname)
   return rc;
 }
 
-int myexec(char *command, char *result, int *maxline)
+int myexec(const char *command, char *result, int *maxline)
 {
   FILE *pp = popen(command, "r");
   if(NULL == pp) return -1;
@@ -2095,6 +2090,7 @@ short get_sat_dailstatus()
   return status;
 }
 
+#define MSM_POWER		HW_GPIO3
 #define USB_BOOT		HW_GPIO120
 #define PWREN			HW_GPIO127
 #define RESET_IN		HW_GPIO122
@@ -2149,9 +2145,8 @@ void gpio_pull_up(int gpio)
 
 void msm01a_on(void)
 {
-	//gpio_out(49, 1);//功放使能 接收
-	//gpio_out(50, 1);//功放使能 发送
-	//gpio_pull_disable(86);//串口1 流控引脚
+	satfi_log("msm01a_on\n");
+	gpio_out(MSM_POWER, 1);
 	gpio_out(AP_WAKEUP_BB, 0);
 	gpio_out(AP_SLEEP_BB, 0);
 	gpio_out(USB_BOOT, 1);
@@ -2163,6 +2158,7 @@ void msm01a_on(void)
 
 void msm01a_reset(void)
 {
+	satfi_log("msm01a_reset\n");
 	gpio_out(PWREN, 1);
 	gpio_out(RESET_IN, 0);
 	sleep(1);
@@ -2171,17 +2167,54 @@ void msm01a_reset(void)
 
 void msm01a_off(void)
 {
-	gpio_out(PWREN, 0);
-	gpio_out(RESET_IN, 1);
+	satfi_log("msm01a_off\n");
+	//gpio_out(PWREN, 0);
+	//gpio_out(RESET_IN, 1);
+	//sleep(1);
+	//gpio_out(RESET_IN, 0);
+	gpio_out(MSM_POWER, 0);
 	sleep(1);
-	gpio_out(RESET_IN, 0);
 }
 
 void cgeqreq_set(void)
 {
 	int i=0;
 	char cmd[128] = {0};
-	sprintf(cmd, "AT+CGEQREQ=4,%d,%d,%d,%d,%d\r\n", base.sat.qos1, base.sat.qos2, base.sat.qos3, base.sat.qos2, base.sat.qos3);
+	char qos1[128] = {0};
+	char qos2[128] = {0};
+	char qos3[128] = {0};
+
+	if(isFileExists(CONFIG_FILE))
+	{
+		GetIniKeyString("satellite", "QOS1", CONFIG_FILE, qos1);
+		GetIniKeyString("satellite", "QOS2", CONFIG_FILE, qos2);
+		GetIniKeyString("satellite", "QOS3", CONFIG_FILE, qos3);
+
+		if(strlen(qos1) == 0)
+		{
+			sprintf(qos1, "%s", base.sat.qos1);
+		}
+		
+		if(strlen(qos2) == 0)
+		{
+			sprintf(qos2, "%s", base.sat.qos2);
+		}
+		
+		if(strlen(qos3) == 0)
+		{
+			sprintf(qos3, "%s", base.sat.qos3);
+		}
+	}
+	else
+	{
+		sprintf(qos1, "%s", base.sat.qos1);
+		sprintf(qos2, "%s", base.sat.qos2);
+		sprintf(qos3, "%s", base.sat.qos3);
+	}
+	
+	sprintf(cmd, "AT+CGEQREQ=4,%s,%s,%s,%s,%s\r\n", qos1, qos2, qos3, qos2, qos3);
+	satfi_log("%s", cmd);
+	
 	while(i<5)
 	{
 		i++;
@@ -2196,7 +2229,6 @@ void cgeqreq_set(void)
 		uart_send(base.sat.sat_fd, "AT\^DAUTH=4,\"ctnet@mycdma.cn\",\"vnet.mobi\"\r\n", 
 			strlen("AT\^DAUTH=4,\"ctnet@mycdma.cn\",\"vnet.mobi\"\r\n"));
 		sleep(2);
-		satfi_log("%s", cmd);
 		base.sat.sat_state = SAT_STATE_CGEQREQ;
 		uart_send(base.sat.sat_fd, cmd, strlen(cmd));
 		sleep(2);
@@ -2222,12 +2254,10 @@ void *func_y(void *p)
 
 	int cmux=0;
 	
-	satfi_log("power_mode msm01a off\n");
 	msm01a_off();
-	satfi_log("power_mode msm01a on\n");
 	msm01a_on();
-	sleep(10);
-	ioctl(mtgpiofd, GPIO_IOCSDATALOW, HW_GPIO82);
+	base->sat.module_status = 1;
+	sleep(5);
 
 	while(1)
 	{
@@ -2241,12 +2271,14 @@ void *func_y(void *p)
 					base->sat.sat_state = SAT_STATE_CGACT;
 				}
 				base->sat.sat_available = 1;
+				base->sat.data_status = 2;
 			}
 			else
 			{
 				if(base->sat.sat_state == SAT_STATE_CGACT_W)
 				{
 					base->sat.sat_available = 0;
+					base->sat.data_status = 0;
 					base->sat.sat_state = SAT_STATE_CGACT_SCCUSS;
 					satfi_log("SAT_STATE_CGACT_SCCUSS\n");
 					myexec("stop sat_pppd", NULL, NULL);												
@@ -2294,6 +2326,7 @@ void *func_y(void *p)
 			base->sat.sat_status = -1;
 			base->sat.sat_msg_sending = 0;
 			cmux = 0;
+			base->sat.module_status = 2;
 			msm01a_reset();
 			sleep(10);
 			continue;
@@ -2336,8 +2369,13 @@ void *func_y(void *p)
 					}
 					else
 					{
-						satfi_log("func_y:send AT to SAT Module\n");
-						uart_send(base->sat.sat_fd, "AT\r\n", 4);						
+						satfi_log("func_y:send AT to SAT Module1\n");
+						uart_send(base->sat.sat_fd, "AT\r\n", 4);
+						if(strlen(satfi_version_sat) == 0)
+						{
+							satfi_log("func_y:send AT+CGMR to SAT Module\n");
+							uart_send(base->sat.sat_fd, "AT+CGMR\r\n", 9);
+						}
 					}
 					base->sat.sat_state = SAT_STATE_AT_W;
 					counter=0;
@@ -2350,8 +2388,13 @@ void *func_y(void *p)
 					}
 					else
 					{
-						satfi_log("func_y:send AT to SAT Module\n");
+						satfi_log("func_y:send AT to SAT Module2\n");
 						uart_send(base->sat.sat_fd, "AT\r\n", 4);
+						if(strlen(satfi_version_sat) == 0)
+						{
+							satfi_log("func_y:send AT+CGMR to SAT Module\n");
+							uart_send(base->sat.sat_fd, "AT+CGMR\r\n", 9);
+						}
 					}
 					base->sat.sat_state = SAT_STATE_AT_W;
 					counter++;
@@ -2360,11 +2403,12 @@ void *func_y(void *p)
 						satfi_log("SAT_STATE_RESTART %d\n", __LINE__);
 						base->sat.sat_state = SAT_STATE_RESTART;
 						counter=0;
+						base->sat.module_status = 0;
 					}
 					break;
 				case SAT_STATE_SIM_ACTIVE:
 				case SAT_STATE_SIM_ACTIVE_W:
-					satfi_log("func_y:send AT+CFUN=1 to SAT Module\n");
+					satfi_log("func_y:send AT+CFUN=1 to SAT Module1\n");
 					uart_send(base->sat.sat_fd, "AT+CFUN=1\r\n", 11);
 					base->sat.sat_state = SAT_STATE_SIM_ACTIVE_W;
 					sleep(10);
@@ -2385,9 +2429,9 @@ void *func_y(void *p)
 						cmux=1;
 						break;
 					}
-					satfi_log("func_y:send AT^LOGSWITCH=0 to SAT Module\n");
-					uart_send(base->sat.sat_fd, "AT^LOGSWITCH=0\r\n", strlen("AT^LOGSWITCH=0\r\n"));
-					sleep(3);
+					//satfi_log("func_y:send AT^LOGSWITCH=1 to SAT Module\n");
+					//uart_send(base->sat.sat_fd, "AT^LOGSWITCH=1\r\n", strlen("AT^LOGSWITCH=1\r\n"));
+					//sleep(3);
 					satfi_log("func_y:send AT+CIMI to SAT Module\n");
 					uart_send(base->sat.sat_fd, "AT+CIMI\r\n", 9);
 					base->sat.sat_state = SAT_STATE_IMSI_W;
@@ -2395,7 +2439,10 @@ void *func_y(void *p)
 					uart_send(base->sat.sat_message, "AT\r\n", 4);
 					break;
 				case SAT_STATE_FULL_FUN:
-					satfi_log("func_y:send AT+CFUN=1 to SAT Module\n");
+					//satfi_log("func_y:send AT^LOGSWITCH=1 to SAT Module\n");
+					//uart_send(base->sat.sat_fd, "AT^LOGSWITCH=1\r\n", strlen("AT^LOGSWITCH=1\r\n"));
+					//sleep(3);
+					satfi_log("func_y:send AT+CFUN=1 to SAT Module2\n");
 					uart_send(base->sat.sat_fd, "AT+CFUN=1\r\n", 11);
 					base->sat.sat_state = SAT_STATE_FULL_FUN_W;
 					uart_send(base->sat.sat_phone, "AT\r\n", 4);
@@ -2431,6 +2478,8 @@ void *func_y(void *p)
 					//counter=0;
 					break;
 				case SAT_SIM_NOT_INSERTED:
+					base->sat.net_status = 0;
+					break;
 				case SAT_SIM_ARREARAGE:
 					break;
 				case SAT_STATE_REGFAIL:
@@ -2464,29 +2513,48 @@ void *func_y(void *p)
 		{
 			if(base->sat.sat_dialing == 0)
 			{
+				if(isFileExists(CONFIG_FILE))
+				{
+					int val;
+					val = GetIniKeyInt("satellite","ACTIVE",CONFIG_FILE);
+					if(val >= 0)base->sat.active = val;
+				}
+			
 				if(base->sat.active == 1)
 				{
 					base->sat.sat_available = 2;//正在激活
 					cgeqreq_set();//eg : AT+CGEQREQ=4,1,384,64,384,64					
 					satfi_log("pppd call sat-dailer\n");
 					base->sat.sat_dialing = 1;
-					ioctl(mtgpiofd, GPIO_IOCSDATAHIGH, HW_GPIO79);
 					myexec("start sat_pppd", NULL, NULL);
 					
+					myexec("echo 1 > /proc/sys/net/ipv4/ip_forward", NULL, NULL);
 					myexec("iptables -t nat -F", NULL, NULL);
 					myexec("iptables -F", NULL, NULL);
 					myexec("iptables -A OUTPUT -o lo -j ACCEPT", NULL, NULL);
-					myexec("iptables -t nat -A POSTROUTING -o ppp0 -s 192.168.43.0/24 -j MASQUERADE", NULL, NULL);
-					myexec("echo 1 > /proc/sys/net/ipv4/ip_forward", NULL, NULL);
-					myexec("ip rule add from all lookup main", NULL, NULL);
 					
+					myexec("iptables -t nat -A PREROUTING -d 192.168.43.1 -p udp --dport 53 -j DNAT --to 219.150.32.132:53", NULL, NULL);
+					myexec("iptables -t nat -A PREROUTING -d 192.168.1.1 -p udp --dport 53 -j DNAT --to 219.150.32.132:53", NULL, NULL);
+					myexec("iptables -t nat -A POSTROUTING -o ppp0 -s 192.168.43.0/24 -j MASQUERADE", NULL, NULL);
+					myexec("iptables -t nat -A POSTROUTING -o ppp0 -s 192.168.1.0/24 -j MASQUERADE", NULL, NULL);
+
+					myexec("ip rule add from all lookup main", NULL, NULL);
+
+					myexec("ifconfig eth0 192.168.1.1", NULL, NULL);
+					myexec("ip rule add from all table 205", NULL, NULL);
+					myexec("ip route add 192.168.43.0/24 via 192.168.43.1 dev ap0 table 205", NULL, NULL);
+					myexec("ip route add 192.168.1.0/24 via 192.168.1.1 dev eth0 table 205", NULL, NULL);
+					myexec("ip route flush cache", NULL, NULL);
+					
+					//myexec("ndc resolver setnetdns ppp0 \"\" 219.150.32.132 123.150.150.150", NULL, NULL);
 					satfi_log("pppd call sat-dailer passed\n");
 					base->sat.sat_state = SAT_STATE_CSQ;
+					base->sat.data_status = 1;
 				}
 				else
 				{
 					base->sat.sat_available = 3;//未准许激活
-				}			
+				}
 			}
 		}
 	}
@@ -2893,12 +2961,13 @@ int handle_sat_data(int *satfd, char *data, int *ofs)
 							{
 								satfi_log("%s %d\n",data, __LINE__);
 								base.sat.sat_state = SAT_STATE_FULL_FUN;
-								base.sat.sat_status = 0;
+								base.sat.sat_status = 0;								
 							}
 							else if(data[11] == '1' || data[11] == '5')
 							{
 								base.sat.sat_state = SAT_STATE_CSQ;
-								base.sat.sat_status = 1;
+								base.sat.sat_status = 1;								
+								base.sat.net_status = 2;
 							}
 							else if(data[11] == '2')
 							{
@@ -2913,6 +2982,8 @@ int handle_sat_data(int *satfd, char *data, int *ofs)
 									base.sat.sat_state = SAT_STATE_CSQ;
 									base.sat.sat_status = 0;
 								}
+								
+								base.sat.net_status = 1;
 							}
 							else if(data[11] == '3')
 							{
@@ -2972,7 +3043,7 @@ int handle_sat_data(int *satfd, char *data, int *ofs)
 				{
 					if(data[idx-2]=='\n' && data[idx-1]=='\n')
 					{
-						satfi_log("%s %d\n",data, __LINE__);
+						satfi_log("%s\n",data);
 						//printf("%s\n",data);
 						sat_lock();
 						if(strstr(data,"SIM not inserted"))
@@ -3047,7 +3118,7 @@ int handle_sat_data(int *satfd, char *data, int *ofs)
 				{
 					if(data[idx-2]=='\n' && data[idx-1]=='\n')
 					{
-						satfi_log("%s %d\n", data, __LINE__);
+						satfi_log("%s\n", data);
 						strncpy(base.sat.sat_imsi, &data[9], 15);
 						if(base.sat.sat_state==SAT_STATE_IMSI_W)
 						{
@@ -3056,10 +3127,22 @@ int handle_sat_data(int *satfd, char *data, int *ofs)
 						idx=0;
 					}
 				}
+				else if(strstr(data,"+CGMR"))
+				{
+					if(data[idx-3]=='\n' && data[idx-2]=='\n' && data[idx-1]=='\n')
+					{
+						strncpy(satfi_version_sat, &data[9], strlen(&data[9]) - 3);
+						satfi_log("satfi_version_sat=%s", satfi_version_sat);
+						idx=0;
+					}
+				}
 				else if(strstr(data,"\n\nOK\n\n"))
 				{
 					//satfi_log("%s %d\n", data, __LINE__);
 					sat_lock();
+
+					base.sat.module_status = 3;
+					
 					if(base.sat.sat_state_phone==SAT_STATE_PHONE_CLCC) 
 					{
 						base.sat.sat_state_phone = SAT_STATE_PHONE_CLCC_OK;//可进行拨号
@@ -3271,7 +3354,7 @@ int handle_sat_data(int *satfd, char *data, int *ofs)
 						}
 						
 						base.sat.secondLinePhoneMode = 0;
-						
+						base.sat.playBusyToneFlag = 1;
 					}
 					else if(strstr(data, "VOICEFORMAT: 3,0"))
 					{
@@ -3567,6 +3650,16 @@ void udp_voice_calc_money(char *msid, int money)
 	SaveDataToFile(CALL_RECORDS_FILE ,(char *)rsp, rsp->header.length);
 }
 
+int get_battery_level(void)
+{
+	int battery_level;
+	battery_level = Get_AUXIN2_Value();
+	satfi_log("battery_level=%d", battery_level);
+	if(battery_level >= 1280) battery_level = 1280;
+	if(battery_level <= 800) battery_level = 800;
+	return (48000 - (128000 - battery_level * 100)) / 480;	
+}
+
 int handle_app_msg_tcp(int socket, char *pack, char *tscbuf)
 {
 	char *tmp = tscbuf;
@@ -3666,7 +3759,7 @@ int handle_app_msg_tcp(int socket, char *pack, char *tscbuf)
 				strncpy(rsp->sat_gps, base.sat.sat_gps, 127);
 				strncpy(rsp->bd_gps, base.gps.gps_bd, 127);
 				strncpy(rsp->version, satfi_version, 32);
-				rsp->battery = base.sat.battery;
+				rsp->battery = get_battery_level();
 				n = write(socket, tmp, rsp->header.length);
 				if(n<0) satfi_log("write return error: errno=%d (%s) %d %d\n", errno, strerror(errno),__LINE__,socket);
 			}
@@ -5145,10 +5238,10 @@ int handle_app_msg_tcp(int socket, char *pack, char *tscbuf)
 		break;
 
 		case SOS_INFO:
+		case SOS_REQUEST:
 		{
 			char Phone[21] = {0};
 			char Message[1024] = {0};
-			char outdata[1024] = {0};
 			//SetKeyString("SOS", "PHONE", SOS_FILE, NULL, "13112121508");
 			//SetKeyString("SOS", "MESSAGE", SOS_FILE, NULL, "HELP");
 			//SetKeyInt("SOS", "INTERVAL", SOS_FILE, 3);
@@ -5168,9 +5261,116 @@ int handle_app_msg_tcp(int socket, char *pack, char *tscbuf)
 			satfi_log("boolcallphone=%d\n", req->boolcallphone);
 			satfi_log("Phone=%s\n", req->Phone);
 			satfi_log("datalen=%d, Message=%s\n", datalen, req->Message);	
+
+			memset(tmp,0,2048);
+			MsgSosInfoRsp *rsp = (MsgSosInfoRsp *)tmp;
+			rsp->header.length = sizeof(MsgSosInfoRsp);
+			rsp->header.mclass = SOS_RESPONSE;
+			rsp->Result = 0;
+			write(socket, tmp, rsp->header.length);
+		}
+		break;
+
+		case WIFI_REQUEST:
+		{
+			MsgWifiReq *req = (MsgWifiReq *)pack;
+			satfi_log("ssid=%s, passwd=%s\n", req->ssid, req->passwd);
+
+			memset(tmp,0,2048);
+			MsgWifiRsp *rsp = (MsgWifiRsp *)tmp;
+			rsp->header.length = sizeof(MsgWifiRsp);
+			rsp->header.mclass = WIFI_RESPONSE;
+			rsp->Result = 0;
+			write(socket, tmp, rsp->header.length);						
 		}
 		break;
 		
+		case QOS_REQUEST:
+		{
+			MsgQosInfo *req = (MsgQosInfo *)pack;
+			satfi_log("Operation=%d, Type=%d, UpBandWidth=%d, DownBandWidth=%d\n", req->Operation, req->Type, req->UpBandWidth, req->DownBandWidth);
+
+			SetKeyInt("satellite", "ACTIVE", CONFIG_FILE, req->Operation);
+
+			if(req->Type == 0)
+				SetKeyInt("satellite", "QOS1", CONFIG_FILE, 3);//背景模式（A）
+			else if(req->Type == 1)
+				SetKeyInt("satellite", "QOS1", CONFIG_FILE, 1);//流模式（U）
+			
+			if(req->UpBandWidth == 0)
+				SetKeyString("satellite", "QOS2", CONFIG_FILE, NULL,"9.6");
+			else if(req->UpBandWidth == 1)
+				SetKeyInt("satellite", "QOS2", CONFIG_FILE, 64);
+			else if(req->UpBandWidth == 2)
+				SetKeyInt("satellite", "QOS2", CONFIG_FILE, 128);
+			else if(req->UpBandWidth == 3)
+				SetKeyInt("satellite", "QOS2", CONFIG_FILE, 256);
+			else if(req->UpBandWidth == 4)
+				SetKeyInt("satellite", "QOS2", CONFIG_FILE, 384);
+
+			if(req->DownBandWidth == 0)
+				SetKeyString("satellite", "QOS3", CONFIG_FILE, NULL,"9.6");
+			else if(req->DownBandWidth == 1)
+				SetKeyInt("satellite", "QOS3", CONFIG_FILE, 64);
+			else if(req->DownBandWidth == 2)
+				SetKeyInt("satellite", "QOS3", CONFIG_FILE, 128);
+			else if(req->DownBandWidth == 3)
+				SetKeyInt("satellite", "QOS3", CONFIG_FILE, 256);
+			else if(req->DownBandWidth == 4)
+				SetKeyInt("satellite", "QOS3", CONFIG_FILE, 384);
+
+			base.sat.qos1 = GetIniKeyInt("satellite", "QOS1", CONFIG_FILE);
+			base.sat.qos2 = GetIniKeyInt("satellite", "QOS2", CONFIG_FILE);
+			base.sat.qos3 = GetIniKeyInt("satellite", "QOS3", CONFIG_FILE);
+			base.sat.active = GetIniKeyInt("satellite", "ACTIVE", CONFIG_FILE);
+
+			if(base.sat.active == 0)
+			{
+				if(base.sat.sat_state != SAT_STATE_CGACT_W && 
+					(base.sat.sat_available == 1 || base.sat.sat_available == 2))
+					base.sat.sat_state = SAT_STATE_CGACT;
+			}
+			else
+			{
+				 if(base.sat.sat_available == 3) base.sat.sat_available = 0;
+			}
+
+			memset(tmp,0,2048);
+			MsgQosInfoRsp *rsp = (MsgQosInfoRsp *)tmp;
+			rsp->header.length = sizeof(MsgQosInfoRsp);
+			rsp->header.mclass = QOS_RESPONSE;
+			rsp->Result = 0;
+			write(socket, tmp, rsp->header.length);						
+		}
+		break;
+
+		case STATUS_REQUEST:
+		{
+			MsgStatusReq *req = (MsgStatusReq *)pack;
+			satfi_log("MsID=%s\n", req->MsID);
+
+			memset(tmp,0,2048);
+			MsgStatusRsp *rsp = (MsgStatusRsp *)tmp;
+			rsp->header.length = sizeof(MsgStatusRsp);
+			rsp->header.mclass = STATUS_RESPONSE;
+			rsp->power_satus = 1;
+			
+			rsp->battery_level = get_battery_level();
+			rsp->battery_status = 0;
+			rsp->sat_status = base.sat.module_status;
+			strncpy(rsp->sat_imei, base.sat.sat_imei, IMSI_LEN);
+			strncpy(rsp->sat_imsi, base.sat.sat_imsi, IMSI_LEN);
+			rsp->net_status = base.sat.net_status;
+			rsp->data_status = base.sat.data_status;
+			rsp->sat_csq = base.sat.sat_csq_value-128;
+			rsp->lte_status = 0;
+			rsp->temperature = 0;
+			strncpy(rsp->version_sat, satfi_version_sat, 32);
+			strncpy(rsp->version, satfi_version, 32);
+
+			write(socket, tmp, rsp->header.length);	
+		}
+		break;
 		default:
 			satfi_log("received unrecognized message from app : mclass=0X%04X length=%d\n", p->mclass, p->length);
 			return -1;
@@ -5342,6 +5542,43 @@ int App_Fd_Set(fd_set *set, int TimeOut, int *maxfd)
 	return 0;
 }
 
+int update_system(void)
+{
+	if(isFileExists("/sdcard/update.zip"))
+	{
+		satfi_log("cp /sdcard/update.zip /cache/recovery/update.zip\n");
+		myexec("cp /sdcard/update.zip /cache/recovery/update.zip", NULL, NULL);
+		satfi_log("cp /sdcard/update.zip /cache/recovery/update.zip finish\n");
+	}
+	else
+	{
+		satfi_log("/sdcard/update.zip not Exists\n");
+	}
+
+	if(isFileExists("/cache/recovery/update.zip"))
+	{
+		satfi_log("echo --update_package=/cache/recovery/update.zip > /cache/recovery/command\n");
+		myexec("echo --update_package=/cache/recovery/update.zip > /cache/recovery/command", NULL, NULL);
+
+		if(isFileExists("/cache/recovery/command"))
+		{
+			satfi_log("reboot recovery\n");
+			myexec("reboot recovery", NULL, NULL);
+			return 0;
+		}
+		else
+		{
+			satfi_log("/cache/recovery/command not Exists\n");
+		}
+	}
+	else
+	{
+		satfi_log("/cache/recovery/update.zip not Exists\n");
+	}
+
+	return -1;
+}
+
 void Date_Parse(char *data)
 {
 	cJSON *root,*jstmp;
@@ -5359,7 +5596,7 @@ void Date_Parse(char *data)
 			return;
 		}
 		
-		satfi_log("type=%s\n", jstmp->valuestring);
+		//satfi_log("type=%s\n", jstmp->valuestring);
 		strncpy(type, jstmp->valuestring, 32);
 		if(strcmp(type, "state") == 0)
 		{
@@ -5383,7 +5620,7 @@ void Date_Parse(char *data)
 				cJSON_AddNumberToObject(jstmp,"net", base.sat.sat_status);
 				cJSON_AddNumberToObject(jstmp,"active", base.sat.sat_available);
 			}
-			cJSON_AddNumberToObject(jstmp,"battery", base.sat.battery);
+			cJSON_AddNumberToObject(jstmp,"battery", get_battery_level());
 			out=cJSON_Print(jstmp);
 			cJSON_Delete(jstmp);
 			response(web_socketfd, out);
@@ -5482,9 +5719,9 @@ void Date_Parse(char *data)
 			satfi_log("qos1=%d\n", jstmp->valueint);
 			if(jstmp->valueint == 1 || jstmp->valueint == 3)
 			{
+				if(base.sat.qos1 != jstmp->valueint)SetKeyInt("satellite", "QOS1", CONFIG_FILE, jstmp->valueint);
 				base.sat.qos1 = jstmp->valueint;
-				SetKeyInt("satellite", "QOS1", CONFIG_FILE, jstmp->valueint);
-			}	
+			}
 			jstmp=cJSON_CreateObject();
 			cJSON_AddStringToObject(jstmp,"type", "qos1");
 			cJSON_AddStringToObject(jstmp,"state", "OK");
@@ -5499,8 +5736,8 @@ void Date_Parse(char *data)
 			satfi_log("qos2=%d\n", jstmp->valueint);
 			if(jstmp->valueint == 384 || jstmp->valueint == 64)
 			{
+				if(base.sat.qos2 != jstmp->valueint)SetKeyInt("satellite", "QOS2", CONFIG_FILE, jstmp->valueint);
 				base.sat.qos2 = jstmp->valueint;
-				SetKeyInt("satellite", "QOS2", CONFIG_FILE, jstmp->valueint);
 			}
 			jstmp=cJSON_CreateObject();
 			cJSON_AddStringToObject(jstmp,"type", "qos2");
@@ -5516,8 +5753,8 @@ void Date_Parse(char *data)
 			satfi_log("qos3=%d\n", jstmp->valueint);
 			if(jstmp->valueint == 384 || jstmp->valueint == 64)
 			{
+				if(base.sat.qos3 != jstmp->valueint)SetKeyInt("satellite", "QOS3", CONFIG_FILE, jstmp->valueint);
 				base.sat.qos3 = jstmp->valueint;
-				SetKeyInt("satellite", "QOS3", CONFIG_FILE, jstmp->valueint);
 			}
 			//base.sat.qos3 = GetIniKeyInt("satellite","QOS3",CONFIG_FILE);
 			jstmp=cJSON_CreateObject();
@@ -5531,10 +5768,21 @@ void Date_Parse(char *data)
 		else if(strcmp(type, "qos") == 0)
 		{
 			jstmp=cJSON_CreateObject();
+			if(isFileExists(CONFIG_FILE))
+			{
+				int val;
+				val = GetIniKeyInt("satellite","QOS1",CONFIG_FILE);
+				if(val >= 0) base.sat.qos1 = val;
+				val = GetIniKeyInt("satellite","QOS2",CONFIG_FILE);
+				if(val >= 0) base.sat.qos2 = val;
+				val = GetIniKeyInt("satellite","QOS3",CONFIG_FILE);
+				if(val >= 0) base.sat.qos3 = val;
+			}
+
 			cJSON_AddStringToObject(jstmp,"type", "qos");
-			cJSON_AddNumberToObject(jstmp,"qos1", GetIniKeyInt("satellite","QOS1",CONFIG_FILE));
-			cJSON_AddNumberToObject(jstmp,"qos2", GetIniKeyInt("satellite","QOS2",CONFIG_FILE));
-			cJSON_AddNumberToObject(jstmp,"qos3", GetIniKeyInt("satellite","QOS3",CONFIG_FILE));
+			cJSON_AddNumberToObject(jstmp,"qos1", base.sat.qos1);
+			cJSON_AddNumberToObject(jstmp,"qos2", base.sat.qos2);
+			cJSON_AddNumberToObject(jstmp,"qos3", base.sat.qos3);
 			out=cJSON_Print(jstmp);
 			cJSON_Delete(jstmp);
 			response(web_socketfd, out);
@@ -5542,17 +5790,7 @@ void Date_Parse(char *data)
 		}
 		else if(strcmp(type, "reboot") == 0)
 		{
-			ioctl(mtgpiofd, GPIO_IOCSDATALOW, HW_GPIO2);
-			ioctl(mtgpiofd, GPIO_IOCSDATALOW, HW_GPIO6);
-			ioctl(mtgpiofd, GPIO_IOCSDATALOW, HW_GPIO5);
-			ioctl(mtgpiofd, GPIO_IOCSDATALOW, HW_GPIO82);
-			ioctl(mtgpiofd, GPIO_IOCSDATALOW, HW_GPIO83);
-			ioctl(mtgpiofd, GPIO_IOCSDATALOW, HW_GPIO81);
-			ioctl(mtgpiofd, GPIO_IOCSDATALOW, HW_GPIO80);
-			ioctl(mtgpiofd, GPIO_IOCSDATALOW, HW_GPIO78);
-			ioctl(mtgpiofd, GPIO_IOCSDATALOW, HW_GPIO79);
-			ioctl(mtgpiofd, GPIO_IOCSDATALOW, HW_GPIO7);
-			myexec("reboot", NULL, NULL);
+			myexec("reboot", NULL, NULL);			
 		}
 		else if(strcmp(type, "apswitch") == 0)
 		{
@@ -5585,22 +5823,19 @@ void Date_Parse(char *data)
 		}
 		else if(strcmp(type, "active") == 0)
 		{
-			int active = 0;
 			jstmp = cJSON_GetObjectItem(root,"state");
 			if(jstmp)
 			{
 				satfi_log("active=%d\n", jstmp->valueint);
-				active = jstmp->valueint;
+				if(base.sat.active != jstmp->valueint)SetKeyInt("satellite", "ACTIVE", CONFIG_FILE, jstmp->valueint);
+				base.sat.active = jstmp->valueint;
 				jstmp=cJSON_CreateObject();
 				cJSON_AddStringToObject(jstmp,"type", "active");
 				cJSON_AddStringToObject(jstmp,"state", "OK");
 				out=cJSON_Print(jstmp);
 				cJSON_Delete(jstmp);
 				response(web_socketfd, out);
-				free(out);
-				base.sat.active = active;
-				SetKeyInt("satellite", "ACTIVE", CONFIG_FILE, base.sat.active);
-				if(active == 0)
+				if(jstmp->valueint == 0)
 				{
 					if(base.sat.sat_state != SAT_STATE_CGACT_W && (base.sat.sat_available == 1 || base.sat.sat_available == 2)) 
 						base.sat.sat_state = SAT_STATE_CGACT;
@@ -5609,12 +5844,20 @@ void Date_Parse(char *data)
 				{
 					 if(base.sat.sat_available == 3) base.sat.sat_available = 0;
 				}
+				free(out);
 			}
 			else
 			{
 				jstmp=cJSON_CreateObject();
 				cJSON_AddStringToObject(jstmp,"type", "active");
-				cJSON_AddNumberToObject(jstmp,"state", GetIniKeyInt("satellite","ACTIVE",CONFIG_FILE));
+
+				if(isFileExists(CONFIG_FILE))
+				{
+					int val;
+					val = GetIniKeyInt("satellite","ACTIVE",CONFIG_FILE);
+					if(val >= 0) base.sat.active = val;
+				}
+				cJSON_AddNumberToObject(jstmp,"state", base.sat.active);
 				out=cJSON_Print(jstmp);
 				cJSON_Delete(jstmp);
 				response(web_socketfd, out);
@@ -5643,10 +5886,10 @@ void *handle_app_data(void *p)
 	int len = sizeof(struct sockaddr_in);
 	Header *pHeader = NULL;
 	char tscbuf[8192] = {0};
-    int sock_app_tcp = socket_init(base->app.app_port);
+    int sock_app_tcp = socket_init(12080);
 	int web_socket_listen = socket_init(8000);
 	int connected = 0;
-
+	base->app.app_timeout = 30;
 	FD_ZERO(&fds);
 	FD_ZERO(&fdread);
 
@@ -5663,11 +5906,11 @@ void *handle_app_data(void *p)
 		App_Fd_Set(&fdread, base->app.app_timeout, &max_fd);
 		fds = fdread;
 		ret = select(max_fd + 1, &fds, NULL, NULL, &timeout);
-        if (ret == 0)  
+        if (ret == 0)
         {
             //satfi_log("app select timeout %d %d\n", web_socket_listen, sock_app_tcp);  
         }
-        else if (ret < 0)  
+        else if (ret < 0)
         {  
             satfi_log("app error occur\n"); 
 			sleep(1);
@@ -8080,8 +8323,6 @@ void *SystemServer(void *p)
 
 	int pin_stat = -1, stat = -1;
 
-	int sleep = 1000000;
-
 	while(1)
 	{
 #if 0
@@ -8146,7 +8387,7 @@ void *SystemServer(void *p)
 			{
 				//短信发送中，超时删除
 				msg_send_timeout++;
-				if(msg_send_timeout >= 30)
+				if(msg_send_timeout >= 90)
 				{
 					if(MessagesHead)
 					{
@@ -8222,43 +8463,84 @@ void *SystemServer(void *p)
 			stat = pin_stat;
 		}
 
+		//satfi_log("SAT_SIM_NOT_INSERTED:%d %d\n", base->sat.sat_state, base->sat.sat_csq_value);
 		if(base->sat.sat_state == SAT_SIM_NOT_INSERTED)
 		{
 			//no simcard
-			sleep = 100000;
 			ioctl(fd, GPIO_IOCSDATAHIGH, HW_GPIO82);
-			usleep(sleep);
+			ioctl(fd, GPIO_IOCSDATAHIGH, HW_GPIO83);
+			ioctl(fd, GPIO_IOCSDATAHIGH, HW_GPIO81);
+			ioctl(fd, GPIO_IOCSDATAHIGH, HW_GPIO80);
+			sleep(1);
 			ioctl(fd, GPIO_IOCSDATALOW, HW_GPIO82);
+			ioctl(fd, GPIO_IOCSDATALOW, HW_GPIO83);
+			ioctl(fd, GPIO_IOCSDATALOW, HW_GPIO81);
+			ioctl(fd, GPIO_IOCSDATALOW, HW_GPIO80);
 		}
 	    else if(base->sat.sat_csq_value < 0)
 		{
-			sleep = 1000000;
 			ioctl(fd, GPIO_IOCSDATAHIGH, HW_GPIO82);
-			usleep(sleep);
+			sleep(1);
 			ioctl(fd, GPIO_IOCSDATALOW, HW_GPIO82);
 		}
-		else if(base->sat.sat_csq_value == 0 || base->sat.sat_status == 0)
+		else if(base->sat.sat_status == 0)
 		{
 			//入网灯
-			sleep = 1000000;
-			ioctl(fd, GPIO_IOCSDATALOW, HW_GPIO82);
-			usleep(sleep);
-			ioctl(fd, GPIO_IOCSDATAHIGH, HW_GPIO82);
-			
+			if(base->sat.sat_csq_value == 0)
+			{
+				ioctl(fd, GPIO_IOCSDATALOW, HW_GPIO82);
+				sleep(1);
+				ioctl(fd, GPIO_IOCSDATAHIGH, HW_GPIO82);
+			}
+			else
+			{
+				ioctl(fd, GPIO_IOCSDATALOW, HW_GPIO82);
+				sleep(1);
+				ioctl(fd, GPIO_IOCSDATAHIGH, HW_GPIO82);
+
+				//0-15
+				//16-32
+				//33-48
+				//49-64
+				
+				if(base->sat.sat_csq_value >= 16 && base->sat.sat_csq_value <= 32)
+				{
+					ioctl(fd, GPIO_IOCSDATAHIGH, HW_GPIO83);
+					ioctl(fd, GPIO_IOCSDATALOW, HW_GPIO81);
+					ioctl(fd, GPIO_IOCSDATALOW, HW_GPIO80);
+				}
+				else if(base->sat.sat_csq_value >= 33 && base->sat.sat_csq_value <= 48)
+				{
+					ioctl(fd, GPIO_IOCSDATAHIGH, HW_GPIO83);
+					ioctl(fd, GPIO_IOCSDATAHIGH, HW_GPIO81);
+					ioctl(fd, GPIO_IOCSDATALOW, HW_GPIO80);
+				}
+				else if(base->sat.sat_csq_value >= 49 && base->sat.sat_csq_value <= 64)
+				{
+					ioctl(fd, GPIO_IOCSDATAHIGH, HW_GPIO83);
+					ioctl(fd, GPIO_IOCSDATAHIGH, HW_GPIO81);
+					ioctl(fd, GPIO_IOCSDATAHIGH, HW_GPIO80);
+				}
+			}
 		}
 		else if(base->sat.sat_available != 1)
 		{
 			//激活灯
 			if(base->sat.active == 1)
 			{
-				sleep = 1000000;
 				ioctl(fd, GPIO_IOCSDATALOW, HW_GPIO78);
-				usleep(sleep);
+				sleep(1);
 				ioctl(fd, GPIO_IOCSDATAHIGH, HW_GPIO78);
+			}
+			else
+			{
+				ioctl(fd, GPIO_IOCSDATALOW, HW_GPIO78);
+				sleep(1);
 			}
 		}
 		
-		usleep(sleep);
+		sleep(1);
+
 	}
 	
 	return NULL;
@@ -8268,30 +8550,19 @@ void *SystemServer(void *p)
  *
  */
 void init(void)
-{
-	base.sat.sat_fd = -1;
-	base.sat.sat_message = -1;
-	base.sat.sat_phone = -1;
-	base.sat.sat_pcmdata = -1;
-	base.sat.sat_status = 0;
-	base.sat.sat_available = 0;
-	base.sat.sat_state = -1;
-	base.sat.sat_calling = 0;
-	base.sat.sat_dialing = 0;
-	base.sat.sat_state_phone = SAT_STATE_PHONE_IDLE;
-	base.sat.captain_socket = -1;;
-	base.sat.start_time = 0;
-	base.sat.end_time = 0;
-	base.sat.sat_csq_value = -1;
-	base.sat.battery = 0;
-	base.sat.socket = 0;
-	
+{	
 	base.n3g.n3g_fd = -1;
 	base.n3g.n3g_status = 0;
 	base.n3g.n3g_state = -1;
 	base.n3g.n3g_dialing = 0;
 
 	base.gps.gps_fd = -1;
+
+	while(!isFileExists(CONFIG_FILE))
+	{
+		satfi_log("%s FileNoExists\n", CONFIG_FILE);//wait sdcard mount
+		sleep(1);
+	}
 
 	char ucTmp[256];
 	GetIniKeyString("server","TSCDOMAIN",CONFIG_FILE,ucTmp);
@@ -8402,15 +8673,13 @@ void init(void)
 		SetKeyInt("satellite", "QOS3", CONFIG_FILE, base.sat.qos3);
 	}
 
-	//base.sat.active = GetIniKeyInt("satellite","ACTIVE",CONFIG_FILE);
-	//satfi_log("ACTIVE:%d\n", base.sat.active);
-	//if(base.sat.active < 0)
-	//{
-	//	base.sat.active = 1;
-	//	SetKeyInt("satellite", "ACTIVE", CONFIG_FILE, base.sat.active);
-	//}
-
-	base.sat.active = 1;
+	base.sat.active = GetIniKeyInt("satellite","ACTIVE",CONFIG_FILE);
+	satfi_log("ACTIVE:%d\n", base.sat.active);
+	if(base.sat.active < 0)
+	{
+		base.sat.active = 1;
+		SetKeyInt("satellite", "ACTIVE", CONFIG_FILE, base.sat.active);
+	}
 
 	if(base.sat.active == 0)base.sat.sat_available = 3;
 
@@ -9309,6 +9578,7 @@ static int Get_Second_LinePhone_Num(char * PhoneNumber)
 	{
 		if(ioctl(mtgpiofd, GPIO_IOCQDATAIN, SHR) == 0)
 		{
+			base.sat.isSecondLinePickUp = 1;
 			if(ioctl(mtgpiofd, GPIO_IOCQDATAIN, DV) == 1)
 			{
 				if(keypress == 0)
@@ -9328,6 +9598,7 @@ static int Get_Second_LinePhone_Num(char * PhoneNumber)
 							tmp[i] = val + 0x30;
 							i++;
 							satfi_log("GetKeyVal=%d tmp=%s\n", val, tmp);
+							base.sat.isSecondLineFirstKeyPress = 1;
 						}
 					}
 					keypress = 1;
@@ -9340,9 +9611,11 @@ static int Get_Second_LinePhone_Num(char * PhoneNumber)
 		}
 		else
 		{
+			base.sat.isSecondLineFirstKeyPress = 0;
+			base.sat.isSecondLinePickUp = 0;
 			break;
 		}
-		usleep(50000);
+		usleep(20000);
 	}
 	
 	return 0;
@@ -9375,6 +9648,8 @@ void *Second_linePhone_Dial_Detect(void *p)
 				{
 					satfi_log("Second_linePhone_Dial_Detect ATH len=%d\n", len);
 					base->sat.secondLinePhoneMode = 0;
+					base->sat.isSecondLinePickUp = 0;
+					base->sat.isSecondLineFirstKeyPress = 0;
 					if(base->sat.sat_calling == 1)
 					{
 						base->sat.sat_state_phone = SAT_STATE_PHONE_ATH_W;//电话机挂断
@@ -9387,6 +9662,17 @@ void *Second_linePhone_Dial_Detect(void *p)
 						base->sat.secondLinePhoneMode = 0;
 					}
 				}
+			}
+		}
+		else
+		{
+			if(ioctl(mtgpiofd, GPIO_IOCQDATAIN, SHR) == 0)
+			{
+				base->sat.isSecondLinePickUp = 1;
+			}
+			else
+			{
+				base->sat.isSecondLinePickUp = 0;
 			}
 		}
 
@@ -9522,16 +9808,14 @@ void hw_init(void)
 	gpio_out(HW_GPIO2, 0);
 	gpio_out(HW_GPIO5, 0);
 	gpio_out(HW_GPIO6, 0);
+	gpio_out(HW_GPIO7, 1);
 
+	gpio_out(HW_GPIO78, 0);
+	gpio_out(HW_GPIO79, 0);
 	gpio_out(HW_GPIO82, 0);
 	gpio_out(HW_GPIO83, 0);
 	gpio_out(HW_GPIO81, 0);
 	gpio_out(HW_GPIO80, 0);
-
-	//gpio_out(HW_GPIO7, 0);
-
-	gpio_out(HW_GPIO78, 0);
-	gpio_out(HW_GPIO79, 0);
 
 	gpio_out(HW_GPIO3, 1);
 	gpio_out(HW_GPIO4, 1);
@@ -9551,7 +9835,8 @@ void hw_init(void)
 	gpio_in(D1);
 	gpio_in(D2);
 	gpio_in(D3);
-	
+
+	myexec("echo \"noSuspend\" > /sys/power/wake_lock", NULL, NULL);	
 }
 
 int main_satfi(void)
@@ -9590,6 +9875,160 @@ int main_satfi(void)
 	main_thread_loop();
 	return 0;
 }
+
+//返回值 mV
+int Get_AUXIN2_Value(void)
+{
+	char rbuf[64]={0};
+	int maxline = 1;
+	myexec("cat /sys/devices/virtual/mtk-adc-cali/mtk-adc-cali/AUXADC_read_channel", rbuf, &maxline);
+	return atoi(rbuf);
+}
+
+
+int LocalSocketCreate(const char *path)
+{
+	satfi_log("LocalSocketCreate %s", path);
+
+	int fd;
+	if((fd = socket(AF_LOCAL, SOCK_STREAM, 0)) < 0)
+	{
+		satfi_log("LocalSocketCreate error");
+		exit(-1);
+	}
+	
+	int reuse = 1;
+	setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(int)); 
+	
+    struct sockaddr_un sun;
+	bzero(&sun,sizeof(sun));
+	sun.sun_family = AF_LOCAL;
+
+	unlink(path);
+	strncpy(sun.sun_path, path, strlen(path));
+
+	if(bind(fd, (struct sockaddr *)&sun, sizeof(sun)))
+	{
+		satfi_log("LocalSocketCreate bind error");
+		exit(-1);
+	}
+
+	if(listen(fd, 5) < 0)
+	{
+		satfi_log("LocalSocketCreate listen error");
+		exit(-1);
+	}
+	
+	return fd;
+}
+
+
+void *local_socket_server(void *p)
+{
+	BASE *base = (BASE *)p;
+
+	struct timeval timeout;
+	int ret = -1;
+	int max_fd = -1;
+	fd_set fds;
+	fd_set fdread;
+	struct sockaddr_in cli_addr;  
+	int len = sizeof(struct sockaddr_in);
+	char buf[2048] = {0};
+	//int LocalSocketfd = LocalSocketCreate("/dev/socket/socket_audio_cancel");
+	//int LocalSocketfd = android_get_control_socket("socket_audio_cancel"); //socket socket_audio_cancel stream 660 system system
+
+	int LocalSocketfd = socket_local_server("/dev/socket/socket_audio_cancel", ANDROID_SOCKET_NAMESPACE_FILESYSTEM, SOCK_STREAM);
+	satfi_log("LocalSocketCreate=%d\n", LocalSocketfd);
+
+	if(LocalSocketfd < 0)
+	{
+		perror("socket_local_server");
+		return NULL;
+	}
+	
+	system("chmod 660 /dev/socket/socket_audio_cancel");
+	system("chgrp system /dev/socket/socket_audio_cancel");
+	
+	FD_ZERO(&fds);
+	FD_ZERO(&fdread);
+
+	FD_SET(LocalSocketfd, &fdread);
+
+	max_fd = LocalSocketfd;
+
+	while(1)
+	{
+		timeout.tv_sec = 3;
+		timeout.tv_usec = 0;
+		fds = fdread;
+		ret = select(max_fd + 1, &fds, NULL, NULL, &timeout);		
+        if (ret == 0)
+        {
+            //satfi_log("app select timeout %d %d\n", web_socket_listen, sock_app_tcp);
+            //int testfd = socket_local_client("/dev/socket/socket_audio_cancel" , ANDROID_SOCKET_NAMESPACE_FILESYSTEM, SOCK_STREAM);
+			//write(testfd, "weiqing", 7);
+			//close(testfd);
+        }
+        else if (ret < 0)
+        {  
+            satfi_log("LocalSocketCreate error occur\n"); 
+			sleep(1);
+        }
+		else
+		{
+			if(FD_ISSET(LocalSocketfd, &fds))
+			{
+				if(base->sat.locak_socket_audio_cancel > 0)
+				{
+					FD_CLR(base->sat.locak_socket_audio_cancel, &fdread);
+					close(base->sat.locak_socket_audio_cancel);
+					max_fd = LocalSocketfd;
+				}
+			
+				base->sat.locak_socket_audio_cancel = accept(LocalSocketfd, (struct sockaddr*)&cli_addr, &len);
+				satfi_log("LocalSocketfd comes %d\n", base->sat.locak_socket_audio_cancel);
+				if(base->sat.locak_socket_audio_cancel > 0)
+				{
+					FD_SET(base->sat.locak_socket_audio_cancel, &fdread);
+					if(base->sat.locak_socket_audio_cancel > max_fd)
+					{
+						max_fd = base->sat.locak_socket_audio_cancel;
+					}
+				}
+				else
+				{
+					satfi_log("LocalSocketfd Fail to accept\n");
+					exit(0);
+				}
+			}
+
+			if(base->sat.locak_socket_audio_cancel > 0)
+			{
+				if(FD_ISSET(base->sat.locak_socket_audio_cancel, &fds))
+				{
+					int n = read(base->sat.locak_socket_audio_cancel, buf, 2048);
+					if(n>0)
+					{
+						satfi_log("%d %d\n", n, *(int *)buf);
+						write(base->sat.sat_pcmdata, buf+4, n-4);
+					}
+					else
+					{
+						satfi_log("close(LocalSocketfd)\n");
+						FD_CLR(base->sat.locak_socket_audio_cancel, &fdread);
+						close(base->sat.locak_socket_audio_cancel);
+						base->sat.locak_socket_audio_cancel = -1;
+						max_fd = LocalSocketfd;
+					}
+				}
+			}
+		}
+	}
+
+	return NULL;
+}
+
 
 #if 0
 int main(int argc, char *argv[])

@@ -39,7 +39,7 @@ public class IMEIUtils {
 	}
 
 	public String getIMEI() {
-		return getImeiMethod();// mTelephony.getDeviceId();"861648032528007";//
+		return mTelephony.getDeviceId();// mTelephony.getDeviceId();"861648032528007";//
 	}
 
 	private String getImeiMethod() {

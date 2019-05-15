@@ -2,8 +2,6 @@
 #include <media/AudioRecord.h>
 #include <media/AudioTrack.h>
 
-using namespace android;
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -12,7 +10,10 @@ extern "C" {
 }
 #endif
 
+using namespace android;
+
 extern BASE base;
+extern char satfi_version[32];
 #define BUS_SIZE (6*960)//11520
 
 int audio_test(void)
@@ -98,18 +99,19 @@ void *handle_pcm_data(void *p)
     int sock;
     if ((sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
     {
-        perror("socket udp");
+        satfi_log("socket udp error");
         exit(1);
     }
 
     if (bind(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0)
     {
-        perror("bind udp");
+        satfi_log("bind udp error");
 		close(sock);
         exit(1);
     }
 
 	char tmp[BUS_SIZE];
+	char outfram[BUS_SIZE];
 	//char playbackbuf[3200];
 	int plybackbufofs=0;
 	struct sockaddr_in clientAddr;
@@ -143,20 +145,27 @@ void *handle_pcm_data(void *p)
 	//speex_preprocess_ctl(st, SPEEX_PREPROCESS_SET_PROB_START , &vadProbStart); //Set probability required for the VAD to go from silence to voice
 	//speex_preprocess_ctl(st, SPEEX_PREPROCESS_SET_PROB_CONTINUE, &vadProbContinue); //Set probability required for the VAD to stay in the voice state (integer percent)
 
-	struct timeval start,end;
-
-	size_t  minFrameCount 	= 0;
-	int framesize = 2;
+	//size_t  minFrameCount 	= 0;
+	//int framesize = 2;
 	
-	sp<AudioRecord> record = new AudioRecord(AUDIO_SOURCE_MIC, 8000, AUDIO_FORMAT_PCM_16_BIT, audio_channel_in_mask_from_count(1),
-						String16(),(size_t)(2 * framesize * BUS_SIZE), NULL, NULL, minFrameCount, AUDIO_SESSION_ALLOCATE,
-						AudioRecord::TRANSFER_DEFAULT, AUDIO_INPUT_FLAG_NONE, -1, -1);
-	if(record->initCheck() != OK)
-	{
-		satfi_log("AudioRecord initCheck error!");
-	}	
+	//sp<AudioRecord> record = new AudioRecord(AUDIO_SOURCE_MIC, 8000, AUDIO_FORMAT_PCM_16_BIT, audio_channel_in_mask_from_count(1),
+	//					String16(),(size_t)(2 * framesize * BUS_SIZE), NULL, NULL, minFrameCount, AUDIO_SESSION_ALLOCATE,
+	//					AudioRecord::TRANSFER_DEFAULT, AUDIO_INPUT_FLAG_NONE, -1, -1);
+	//if(record->initCheck() != OK)
+	//{
+	//	satfi_log("AudioRecord initCheck error!");
+	//}	
 
-	int AudioRecordStart = 0;
+	//int AudioRecordStart = 0;
+
+	//SpeexEchoState *st;
+	//SpeexPreprocessState *den;
+	//int sampleRate = 8000;
+
+	//st = speex_echo_state_init(NN, TAIL);
+	//den = speex_preprocess_state_init(NN, sampleRate);
+	//speex_echo_ctl(st, SPEEX_ECHO_SET_SAMPLING_RATE, &sampleRate);
+	//speex_preprocess_ctl(den, SPEEX_PREPROCESS_SET_ECHO_STATE, st);
 
 	while (1)
     {
@@ -218,11 +227,11 @@ void *handle_pcm_data(void *p)
 
 					plybackbufofs = 0;
 					
-					if(AudioRecordStart == 1)
-					{
-						AudioRecordStart = 0;
-						record->stop();
-					}
+					//if(AudioRecordStart == 1)
+					//{
+					//	AudioRecordStart = 0;
+					//	record->stop();
+					//}
 				}
 				
 				break;
@@ -318,6 +327,7 @@ void *handle_pcm_data(void *p)
 				}
 		}
 
+#if 0
 		while(base->sat.secondLinePhoneMode == 1)
 		{
 			if(base->sat.sat_state_phone == SAT_STATE_PHONE_ONLINE)
@@ -331,11 +341,14 @@ void *handle_pcm_data(void *p)
 						record.clear();
 					}
 				}
-				
+
 				record->read(tmp, 320);
+				//speex_echo_cancellation(st, (spx_int16_t*)tmp, (spx_int16_t*)PcmData, (spx_int16_t*)outfram);
+				//speex_preprocess_run(den, (spx_int16_t*)outfram);
 				write(base->sat.sat_pcmdata, tmp, 320);
 			}
 		}
+#endif		
     }	
 }
 
@@ -354,19 +367,27 @@ void main_thread_loop(void)
 	//int gpsSocketfd = create_satfi_udp_fd();
 	//satfi_log("gpsSocketfd=%d\n", gpsSocketfd);
 	//gps_start();
-
+	
+	char PcmData[1024];
 	struct sockaddr_in *clientAddr1 = &(base.sat.clientAddr1);
 	socklen_t len = sizeof(struct sockaddr_in);
 
 	int n,ret;
 
+	int CALL_START = 10001;
+	int CALL_STOP = 10002;
+	int RECEIVE_AUDIO = 10003;
+
+	int RECEIVE_AUDIO_FLAG = 0;
+	
+	//AUDIO_CHANNEL_OUT_STEREO, 16 bit, stereo 22050 Hz
 	sp<AudioTrack> track = new AudioTrack(AUDIO_STREAM_MUSIC, 8000, AUDIO_FORMAT_PCM_16_BIT, AUDIO_CHANNEL_OUT_MONO, 0);
 	if(track->initCheck() != OK)
 	{
 		satfi_log("AudioRecord initCheck error!\n");
 	}
 
-	//track->setVolume(100.0f, 100.0f);
+	//track->setVolume(2.0f, 2.0f);
 
 	int AudioTrackStart = 0;
 
@@ -428,6 +449,9 @@ void main_thread_loop(void)
 					{
 						track->stop();
 						AudioTrackStart = 0;
+						*(int *)PcmData = CALL_STOP;
+						write(base.sat.locak_socket_audio_cancel, PcmData, 320 + sizeof(int));
+						RECEIVE_AUDIO_FLAG = 0;
 					}
 				}
 				break;
@@ -449,14 +473,14 @@ void main_thread_loop(void)
 				}
 
 				if(base.sat.sat_pcmdata > 0 && FD_ISSET(base.sat.sat_pcmdata, &fds)) {
-					n = read(base.sat.sat_pcmdata, SatDataBuf[3], 4096);
+					n = read(base.sat.sat_pcmdata, PcmData + 4, 320);
 					//satfi_log("read sat_pcmdata=%d\n", n);
 					if(n > 0)
 					{
 						if(ntohs(clientAddr1->sin_port) != 0)
 						{
 							//write(fd, SatDataBuf[3], n);
-							ret = sendto(base.sat.voice_socket_udp, SatDataBuf[3], n, 0, (struct sockaddr *)clientAddr1, len);
+							ret = sendto(base.sat.voice_socket_udp, PcmData + 4, n, 0, (struct sockaddr *)clientAddr1, len);
 							if(ret <= 0)
 							{
 								satfi_log("sendto clientAddr11 %s\n", strerror(errno));								
@@ -483,7 +507,22 @@ void main_thread_loop(void)
 									}
 									AudioTrackStart = 1;
 								}
-								track->write(SatDataBuf[3], n);
+
+								if(base.sat.sat_state_phone == SAT_STATE_PHONE_ONLINE)
+								{
+									if(RECEIVE_AUDIO_FLAG == 0)
+									{
+										RECEIVE_AUDIO_FLAG = 1;
+										*(int *)PcmData = CALL_START;
+										write(base.sat.locak_socket_audio_cancel, PcmData, 320 + sizeof(int));
+										
+										*(int *)PcmData = RECEIVE_AUDIO;
+									}
+									
+									write(base.sat.locak_socket_audio_cancel, PcmData, n+4);
+								}
+								
+								track->write(PcmData + 4, n);
 							}
 						}
 					}
@@ -512,28 +551,129 @@ void main_thread_loop(void)
 	
 }
 
-int main()
+int AudioTrackPlay(const char *filename)
 {
-	pthread_t id_1;
-
-	hw_init();
-	if(pthread_create(&id_1, NULL, SystemServer, (void *)&base) == -1) exit(1);					//系统检测
+	int framesize = 2;
+	int len;
+	size_t  minFrameCount = 0;
+	char buf[44100];
 	
-	while(!isFileExists(CONFIG_FILE))
+	int fd = open(filename, O_RDONLY);
+	if(fd < 0)
 	{
-		satfi_log("%s FileNoExists\n", CONFIG_FILE);
-		sleep(1);
+		satfi_log("%s not exist\n", filename);
+		return -1;
+	}
+
+	lseek(fd, 0, 44);//跳过wav头大小
+	
+	AudioTrack::getMinFrameCount(&minFrameCount, AUDIO_STREAM_DEFAULT, 44100);
+	satfi_log("minFrameCount = %d", (int)minFrameCount);
+	sp<AudioTrack> track = new AudioTrack(AUDIO_STREAM_MUSIC, 44100, AUDIO_FORMAT_PCM_16_BIT, AUDIO_CHANNEL_OUT_STEREO, 0);
+	
+	if(track->initCheck() != OK)
+	{
+		satfi_log("AudioTrack initCheck error!");
+		track.clear();
+		return -1;
 	}
 	
-	init();
+	if(track->start()!= android::NO_ERROR)
+	{
+		satfi_log("AudioTrack start error!");
+		return -1;
+	}
+		
+	while(1)
+	{
+		len = read(fd, buf, 4 * minFrameCount);
+		if(len > 0)
+		{
+			//ALOGE("len = %d", len);
+			track->write(buf, len);
+		}
+		else
+		{
+			satfi_log("%s END\n", filename);
+			break;
+		}
+	}
+	
+	track->stop();
+	close(fd);
+	return 0;
+}
+
+void *SecondLineHintTonePlay(void *p)
+{
+	BASE *base = (BASE *)p;
+	while(1)
+	{
+		if(base->sat.isSecondLinePickUp == 1)
+		{
+			if(base->sat.playBusyToneFlag == 1)
+			{
+				AudioTrackPlay(BUSY_WAV);
+			}
+			else
+			{
+				if(base->sat.ring == 0 && base->sat.isSecondLineFirstKeyPress == 0)
+				{
+					AudioTrackPlay(DUDU_WAV);
+				}
+				else
+				{
+					sleep(1);
+				}
+			}
+		}
+		else
+		{
+			base->sat.playBusyToneFlag = 0;
+			sleep(1);
+		}
+	}
+	return NULL;
+}
+
+int main()
+{
+	pthread_t id_1;	
+	hw_init();
+
+	base.sat.sat_fd = -1;
+	base.sat.sat_message = -1;
+	base.sat.sat_phone = -1;
+	base.sat.sat_pcmdata = -1;
+	base.sat.sat_state = SAT_STATE_IDLE;
+	base.sat.sat_state_phone = SAT_STATE_PHONE_IDLE;
+	base.sat.captain_socket = -1;
+	base.sat.sat_csq_value = -1;
+	base.sat.active = 1;
+	base.sat.qos1 = 3;
+	base.sat.qos2 = 384;
+	base.sat.qos3 = 384;
+
+	strcpy(satfi_version, "HTL8100 1.1");
+	satfi_log("satfi_version=%s", satfi_version);
+
+	base.sat.sat_baud_rate = 921600;
+	strcpy(base.sat.sat_dev_name, "/dev/ttygsm1");
 	ttygsmcreate();
 	
+	//myexec("echo --update_package=/cache/recovery/update.zip > /cache/recovery/command", NULL, NULL);
+	
 	if(pthread_create(&id_1, NULL, func_y, (void *)&base) == -1) exit(1);						//卫星模块启动
-	if(pthread_create(&id_1, NULL, sat_ring_detect, (void *)&base) == -1) exit(1); 				//卫星来电检测
-	if(pthread_create(&id_1, NULL, Second_linePhone_Dial_Detect, (void *)&base) == -1) exit(1);//二线电话拨号检测
+	if(pthread_create(&id_1, NULL, SystemServer, (void *)&base) == -1) exit(1);					//系统检测
 	if(pthread_create(&id_1, NULL, handle_app_data, (void *)&base) == -1) exit(1); 				//处理app数据
+	if(pthread_create(&id_1, NULL, sat_ring_detect, (void *)&base) == -1) exit(1); 				//卫星来电检测
+	if(pthread_create(&id_1, NULL, SecondLineHintTonePlay, (void *)&base) == -1) exit(1);		//二线电话提示音
+	if(pthread_create(&id_1, NULL, Second_linePhone_Dial_Detect, (void *)&base) == -1) exit(1);//二线电话拨号检测
 	if(pthread_create(&id_1, NULL, handle_pcm_data, (void *)&base) == -1) exit(1);				//处理通话语音
 
+	if(pthread_create(&id_1, NULL, local_socket_server, (void *)&base) == -1) exit(1);
+	
+	//init();
 	main_thread_loop();
 	return 0;
 }

@@ -1,8 +1,19 @@
----- SAT_SIM_NOT_INSERTED Matches (7 in 2 files) ----
-get_sat_status in satfi.c (Y:\satfi) :   	base.sat.sat_state == SAT_SIM_NOT_INSERTED) status = 3;  //没有读到IMSI
-func_y in satfi.c (Y:\satfi) : 				case SAT_SIM_NOT_INSERTED:
-handle_sat_data in satfi.c (Y:\satfi) : 							base.sat.sat_state = SAT_SIM_NOT_INSERTED;
-handle_sat_data in satfi.c (Y:\satfi) : 						base.sat.sat_state = SAT_SIM_NOT_INSERTED;
-handle_sat_data in satfi.c (Y:\satfi) : 						satfi_log("%s SAT_SIM_NOT_INSERTED\n", data);
-handle_sat_data in satfi.c (Y:\satfi) : 						base.sat.sat_state = SAT_SIM_NOT_INSERTED;
-SAT_STATE in satfi.h (Y:\satfi) :   SAT_SIM_NOT_INSERTED,
+---- base->sat.sat_status Matches (18 in 1 files) ----
+CheckisHaveMessageAndTriggerSend in satfi.c (Y:\satfi) : 		satfi_log("CheckisHaveMessageAndTriggerSend %d\n", base.sat.sat_status);
+get_sat_status in satfi.c (Y:\satfi) :   else if(base.sat.sat_status == 1) status = 0;			  //工作正常
+func_y in satfi.c (Y:\satfi) : 			base->sat.sat_status = -1;
+func_y in satfi.c (Y:\satfi) : 		if(base->sat.sat_status == 1)
+handle_sat_data in satfi.c (Y:\satfi) : 								base.sat.sat_status = 0;								
+handle_sat_data in satfi.c (Y:\satfi) : 								base.sat.sat_status = 1;								
+handle_sat_data in satfi.c (Y:\satfi) : 								if(base.sat.sat_status == 1)
+handle_sat_data in satfi.c (Y:\satfi) : 									base.sat.sat_status = 0;
+handle_sat_data in satfi.c (Y:\satfi) : 								base.sat.sat_status = 0;
+handle_sat_data in satfi.c (Y:\satfi) : 								base.sat.sat_status = 0;
+Date_Parse in satfi.c (Y:\satfi) : 				cJSON_AddNumberToObject(jstmp,"net", base.sat.sat_status);
+check_route in satfi.c (Y:\satfi) : 					base->sat.sat_status = 1;
+check_route in satfi.c (Y:\satfi) : 					base->sat.sat_status = 0;
+check_route in satfi.c (Y:\satfi) : 					base->sat.sat_status = 0;
+check_route in satfi.c (Y:\satfi) : 			base->sat.sat_status = 1;
+SystemServer in satfi.c (Y:\satfi) : 					if(base->sat.sat_status == 1)
+SystemServer in satfi.c (Y:\satfi) : 				if(base->sat.sat_status == 1)
+SystemServer in satfi.c (Y:\satfi) : 		else if(base->sat.sat_csq_value == 0 || base->sat.sat_status == 0)

@@ -60,7 +60,8 @@ int SetKeyString(char *appName, char *keyName, char *profile, char *keyValOld, c
   int found=0;
   if((fp=fopen(profile,"r"))==NULL)
   {
-    printf("openfile [%s] error [%s]\n", profile, strerror(errno));
+    //printf("openfile [%s] error [%s]\n", profile, strerror(errno));
+	
 	fp=fopen(profile,"w");
 	fclose(fp);
 	
@@ -68,6 +69,7 @@ int SetKeyString(char *appName, char *keyName, char *profile, char *keyValOld, c
 	{
 		return 1;
 	}
+	//return -1;
   }
 
   fseek(fp, 0, SEEK_SET);

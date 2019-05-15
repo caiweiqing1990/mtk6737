@@ -25,6 +25,7 @@
 #include <linux/sockios.h>
 #include <speex/speex.h>
 #include <speex/speex_preprocess.h>
+#include <speex/speex_echo.h>
 #include <arpa/inet.h>
 #include <sys/un.h>
 #include <strings.h>
@@ -38,6 +39,9 @@
 #define CONFIG_FILE			"/storage/self/primary/config.ini"
 #define SOS_FILE			"/storage/self/primary/sos.ini"
 
+#define DUDU_WAV			"/vendor/res/sound/dudu.wav"
+#define BUSY_WAV			"/vendor/res/sound/busy.wav"
+
 #define SAT_LINK_DISCONNECT	1
 #define SAT_LINK_NORMAL		0
 
@@ -48,6 +52,7 @@
 #define UDP_VOICE_DSTPORT	12056	//对讲语音目的端口
 
 #define NN 160
+#define TAIL 1024
 
 //3G模块状态
 enum N3G_STATE {
@@ -152,7 +157,6 @@ typedef struct _sat
   int qos3;					//384/64
   int active;				//是否准许激活
   int sat_phone;
-  int secondLinePhoneMode;
   int sat_message;
   int sat_pcmdata;
   int sat_available;		//-1|0|1|2|3 模块加载失败|未激活|已激活|正在激活|未准许激活
@@ -193,6 +197,17 @@ typedef struct _sat
   int voice_socket_udp;
   struct sockaddr_in clientAddr1;
   struct sockaddr_in clientAddr2;
+
+  int secondLinePhoneMode;
+  int isSecondLinePickUp;
+  int isSecondLineFirstKeyPress;
+  int playBusyToneFlag;
+
+  int net_status;//0-无天通卫星卡 1-正在入网 2-已入网
+  int data_status;//0-天通数据未激活 1-正在激活 2-已激活
+  int module_status; //0-卫星模块加载失败 1-正在开机 2-正在复位 3-工作正常
+
+  int locak_socket_audio_cancel;  
 }SAT;
 
 typedef struct _gps
@@ -317,6 +332,13 @@ typedef struct _appsocket {
   struct _appsocket *next;
 }APPSOCKET;
 
+#undef LOG_TAG
+#define LOG_TAG "satfi"
+ 
+#define LOGD(fmt, arg ...) ALOGD("%s: " fmt, __FUNCTION__ , ##arg)
+#define LOGW(fmt, arg ...) ALOGW("%s: " fmt, __FUNCTION__ , ##arg)
+#define LOGE(fmt, arg ...) ALOGE("%s: " fmt, __FUNCTION__ , ##arg)
+
 #define __DEBUG__  
 #ifdef __DEBUG__  
 //#define satfi_log(x...) printf(x)
@@ -344,5 +366,8 @@ int socket_set_blocking(int fd, int blocking);
 int create_satfi_udp_fd(void);
 void *sat_ring_detect(void *p);
 void *Second_linePhone_Dial_Detect(void *p);
+int myexec(const char *command, char *result, int *maxline);
+int Get_AUXIN2_Value(void);
+void *local_socket_server(void *p);
 
 #endif
