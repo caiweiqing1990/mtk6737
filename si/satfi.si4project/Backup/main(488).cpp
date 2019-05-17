@@ -13,6 +13,7 @@ extern "C" {
 using namespace android;
 
 extern BASE base;
+extern char satfi_version[32];
 #define BUS_SIZE (6*960)//11520
 
 int audio_test(void)
@@ -335,8 +336,7 @@ void *handle_pcm_data(void *p)
 				}
 		}
 
-		//while(base->sat.secondLinePhoneMode == 1)
-		while(0)	
+		while(base->sat.secondLinePhoneMode == 1)
 		{
 			if(base->sat.sat_state_phone == SAT_STATE_PHONE_ONLINE)
 			{
@@ -753,10 +753,19 @@ int main()
 {
 	pthread_t id_1;	
 
-	base_init();
+	base.sat.active = 1;//default value
+	base.sat.qos1 = 3;
+	base.sat.qos2 = 384;
+	base.sat.qos3 = 384;
+
+	base.sat.sat_baud_rate = 921600;
+	strcpy(base.sat.sat_dev_name, "/dev/ttygsm1");
+
+	strcpy(satfi_version, "HTL8100 1.1");
+	satfi_log("satfi_version=%s", satfi_version);
+	
 	hw_init();
 	ttygsmcreate();
-	update_system_check();
 	if(pthread_create(&id_1, NULL, local_socket_server, (void *)&base) == -1) exit(1);
 	if(pthread_create(&id_1, NULL, func_y, (void *)&base) == -1) exit(1);						//卫星模块启动
 	if(pthread_create(&id_1, NULL, SystemServer, (void *)&base) == -1) exit(1);					//系统检测
@@ -766,6 +775,7 @@ int main()
 	if(pthread_create(&id_1, NULL, Second_linePhone_Dial_Detect, (void *)&base) == -1) exit(1);//二线电话拨号检测
 	if(pthread_create(&id_1, NULL, handle_pcm_data, (void *)&base) == -1) exit(1);				//处理通话语音
 	
+	//init();
 	main_thread_loop();
 	return 0;
 }

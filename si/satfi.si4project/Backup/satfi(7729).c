@@ -5555,40 +5555,40 @@ int App_Fd_Set(fd_set *set, int TimeOut, int *maxfd)
 	return 0;
 }
 
-int update_system_check(void)
+int update_system(void)
 {
 	if(isFileExists("/sdcard/update.zip"))
 	{
-		satfi_log("mv /sdcard/update.zip /cache/recovery/update.zip\n");
-		myexec("mv /sdcard/update.zip /cache/recovery/update.zip", NULL, NULL);
-		satfi_log("mv /sdcard/update.zip /cache/recovery/update.zip finish\n");
-
-		if(isFileExists("/cache/recovery/update.zip"))
-		{
-			satfi_log("echo --update_package=/cache/recovery/update.zip > /cache/recovery/command\n");
-			myexec("echo --update_package=/cache/recovery/update.zip > /cache/recovery/command", NULL, NULL);
-		
-			if(isFileExists("/cache/recovery/command"))
-			{
-				satfi_log("reboot recovery\n");
-				myexec("reboot recovery", NULL, NULL);
-				return 0;
-			}
-			else
-			{
-				satfi_log("/cache/recovery/command not Exists\n");
-			}
-		}
-		else
-		{
-			satfi_log("/cache/recovery/update.zip not Exists\n");
-		}
+		satfi_log("cp /sdcard/update.zip /cache/recovery/update.zip\n");
+		myexec("cp /sdcard/update.zip /cache/recovery/update.zip", NULL, NULL);
+		satfi_log("cp /sdcard/update.zip /cache/recovery/update.zip finish\n");
 	}
 	else
 	{
 		satfi_log("/sdcard/update.zip not Exists\n");
 	}
-	
+
+	if(isFileExists("/cache/recovery/update.zip"))
+	{
+		satfi_log("echo --update_package=/cache/recovery/update.zip > /cache/recovery/command\n");
+		myexec("echo --update_package=/cache/recovery/update.zip > /cache/recovery/command", NULL, NULL);
+
+		if(isFileExists("/cache/recovery/command"))
+		{
+			satfi_log("reboot recovery\n");
+			myexec("reboot recovery", NULL, NULL);
+			return 0;
+		}
+		else
+		{
+			satfi_log("/cache/recovery/command not Exists\n");
+		}
+	}
+	else
+	{
+		satfi_log("/cache/recovery/update.zip not Exists\n");
+	}
+
 	return -1;
 }
 
@@ -5846,18 +5846,17 @@ void Date_Parse(char *data)
 				cJSON_AddStringToObject(jstmp,"type", "active");
 				cJSON_AddStringToObject(jstmp,"state", "OK");
 				out=cJSON_Print(jstmp);
+				cJSON_Delete(jstmp);
 				response(web_socketfd, out);
 				if(jstmp->valueint == 0)
 				{
-					if(base.sat.sat_state != SAT_STATE_CGACT_W && (base.sat.sat_available == 1 || base.sat.sat_available == 2)) 
+					//if(base.sat.sat_state != SAT_STATE_CGACT_W && (base.sat.sat_available == 1 || base.sat.sat_available == 2)) 
 						base.sat.sat_state = SAT_STATE_CGACT;
-					satfi_log("SAT_STATE_CGACT\n");
 				}
 				else
 				{
 					 if(base.sat.sat_available == 3) base.sat.sat_available = 0;
 				}
-				cJSON_Delete(jstmp);
 				free(out);
 			}
 			else
@@ -8061,6 +8060,13 @@ int socket_set_blocking(int fd, int blocking)
     return (fcntl(fd, F_SETFL, flags) == 0) ? 0 : -1;
 }
 
+int create_satfi_udp_fd(void) {
+    int fd = socket_bind_udp("satfi");
+    socket_set_blocking(fd, 0);
+    return fd;
+}
+
+
 void gps_start(void) 
 {
     satfi_log("gps_start\n");
@@ -8601,21 +8607,7 @@ void init(void)
 	//SetKeyInt("SOS", "INTERVAL", SOS_FILE, 3);
 	//SetKeyInt("SOS", "BOOLCALLPHONE", SOS_FILE, 0);
 }
-
-void base_init(void)
-{
-	base.sat.active = 1;//default value
-	base.sat.qos1 = 3;
-	base.sat.qos2 = 384;
-	base.sat.qos3 = 384;
-
-	base.sat.sat_baud_rate = 921600;
-	strcpy(base.sat.sat_dev_name, "/dev/ttygsm1");
-
-	strcpy(satfi_version, "HTL8100 1.1");
-	satfi_log("satfi_version=%s", satfi_version);
-}
-
+ 
 int AppCallUpRsp(int socket, short sat_state_phone)
 {	
 	static short stat = -1;
@@ -9078,7 +9070,7 @@ int socket_init(int port)
 {
 	int ret = 0;
 	struct sockaddr_in server_addr;		// 服务器地址结构体
-	
+		
 	int socket_tcp = socket(AF_INET, SOCK_STREAM, 0);   // 创建TCP套接字
 	if(socket_tcp < 0)
 	{
@@ -9086,15 +9078,15 @@ int socket_init(int port)
 		exit(1);
 	}
 	
-    unsigned int value = 1;
-    if (setsockopt(socket_tcp, SOL_SOCKET, SO_REUSEADDR,
-                (void *)&value, sizeof(value)) < 0)
-    {
-        satfi_log("fail to setsockopt\n");
-		close(socket_tcp);
-        exit(1);
+    unsigned int value = 1;  
+    if (setsockopt(socket_tcp, SOL_SOCKET, SO_REUSEADDR,  
+                (void *)&value, sizeof(value)) < 0)  
+    {  
+        satfi_log("fail to setsockopt\n");  
+		close(socket_tcp);		
+        exit(1);  
     }
-
+	
 	bzero(&server_addr, sizeof(server_addr));	   // 初始化服务器地址
 	server_addr.sin_family = AF_INET;
 	server_addr.sin_port   = htons(port);
@@ -9450,7 +9442,7 @@ static int Get_Second_LinePhone_Num(char * PhoneNumber)
 					{
 						tmp[i] = 0;
 						strncpy(PhoneNumber, tmp, i);
-						satfi_log("break # PhoneNumber=%s %d\n", PhoneNumber, strlen(PhoneNumber));
+						satfi_log("break # PhoneNumber=%s\n", PhoneNumber);
 						return i;
 					}
 					else

@@ -22,8 +22,8 @@ int LocalSocketCreate(const char *path)
 		exit(-1);
 	}
 	
-	int reuse = 1;
-	setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(int)); 
+	//int reuse = 1;
+	//setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(int)); 
 	
     struct sockaddr_un sun;
 	bzero(&sun,sizeof(sun));
@@ -146,8 +146,8 @@ int main(int argc, const char *argv[])
 		exit(-1);
 	}
 	
-	int reuse = 1;
-	setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(int)); 
+	//int reuse = 1;
+	//setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(int)); 
 	
     struct sockaddr_un sun;
 	bzero(&sun,sizeof(sun));
@@ -168,7 +168,7 @@ int main(int argc, const char *argv[])
 		exit(-1);
 	}
 	
-	local_socket_server(NULL);
+	//local_socket_server(NULL);
 	
 	return 0;
 }

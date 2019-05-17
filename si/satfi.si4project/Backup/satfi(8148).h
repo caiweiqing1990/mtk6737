@@ -33,11 +33,11 @@
 #include <cutils/sockets.h>
 #include <cutils/log.h>     /*logging in logcat*/
 
-#define GPS_DATA_FILE		"/sdcard/GpsData.txt"
-#define CALL_RECORDS_FILE	"/sdcard/CallRecords.txt"
-#define SAT_IMEI_FILE		"/sdcard/configSat.ini"
-#define CONFIG_FILE			"/sdcard/config.ini"
-#define SOS_FILE			"/sdcard/sos.ini"
+#define GPS_DATA_FILE		"/storage/self/primary/GpsData.txt"
+#define CALL_RECORDS_FILE	"/storage/self/primary/CallRecords.txt"
+#define SAT_IMEI_FILE		"/storage/self/primary/configSat.ini"
+#define CONFIG_FILE			"/storage/self/primary/config.ini"
+#define SOS_FILE			"/storage/self/primary/sos.ini"
 
 #define DUDU_WAV			"/vendor/res/sound/dudu.wav"
 #define BUSY_WAV			"/vendor/res/sound/busy.wav"
@@ -347,8 +347,9 @@ typedef struct _appsocket {
 #define satfi_log(x...)
 #endif
 
-void base_init(void);
 void hw_init(void);
+void init(void);
+int isFileExists(const char *path);
 void *func_y(void *p);
 void ttygsmcreate(void);
 int AppCallUpRspForce(int socket, short sat_state_phone);
@@ -361,9 +362,14 @@ void *handle_pcm_data(void *p);
 void main_thread_loop(void);
 void gps_start(void) ;
 int socket_bind_udp(const char* path);
+int socket_set_blocking(int fd, int blocking);
+int create_satfi_udp_fd(void);
 void *sat_ring_detect(void *p);
 void *Second_linePhone_Dial_Detect(void *p);
+int myexec(const char *command, char *result, int *maxline);
 int Get_AUXIN2_Value(void);
-int update_system_check(void);
+void *local_socket_server(void *p);
+void cgeqreq_set(void);
+
 
 #endif
