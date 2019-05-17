@@ -729,7 +729,7 @@ void *local_socket_server(void *p)
 						int n = read(base->sat.locak_socket_audio_cancel[i], buf, 320);
 						if(n>0)
 						{
-							satfi_log("n=%d\n", n);
+							//satfi_log("n=%d\n", n);
 							write(base->sat.sat_pcmdata, buf, n);
 						}
 						else

@@ -1,3 +1,13 @@
----- power_satus Matches (2 in 2 files) ----
-_app_status_rsp in msg.h (Y:\satfi) : 	unsigned short power_satus;
-handle_app_msg_tcp in satfi.c (Y:\satfi) : 			rsp->power_satus = 1;
+---- base.sat.sat_available Matches (16 in 2 files) ----
+func_y in satfi.c (Y:\satfi) : 				base->sat.sat_available = 1;
+func_y in satfi.c (Y:\satfi) : 					base->sat.sat_available = 0;
+func_y in satfi.c (Y:\satfi) : 					base->sat.sat_available = 2;//正在激活
+func_y in satfi.c (Y:\satfi) : 					base->sat.sat_available = 3;//未准许激活
+handle_app_msg_tcp in satfi.c (Y:\satfi) : 					(base.sat.sat_available == 1 || base.sat.sat_available == 2))
+handle_app_msg_tcp in satfi.c (Y:\satfi) : 				 if(base.sat.sat_available == 3) base.sat.sat_available = 0;
+Date_Parse in satfi.c (Y:\satfi) : 				cJSON_AddNumberToObject(jstmp,"active", base.sat.sat_available);
+Date_Parse in satfi.c (Y:\satfi) : 					if(base.sat.sat_state != SAT_STATE_CGACT_W && (base.sat.sat_available == 1 || base.sat.sat_available == 2)) 
+Date_Parse in satfi.c (Y:\satfi) : 					 if(base.sat.sat_available == 3) base.sat.sat_available = 0;
+SystemServer in satfi.c (Y:\satfi) : 		else if(base->sat.sat_available != 1)
+init in satfi.c (Y:\satfi) : 	if(base.sat.active == 0)base.sat.sat_available = 3;
+_sat in satfi.h (Y:\satfi) :   int sat_available;		//-1|0|1|2|3 模块加载失败|未激活|已激活|正在激活|未准许激活

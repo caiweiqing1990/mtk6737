@@ -5850,7 +5850,7 @@ void Date_Parse(char *data)
 				response(web_socketfd, out);
 				if(jstmp->valueint == 0)
 				{
-					if(base.sat.sat_state != SAT_STATE_CGACT_W && (base.sat.sat_available == 1 || base.sat.sat_available == 2)) 
+					//if(base.sat.sat_state != SAT_STATE_CGACT_W && (base.sat.sat_available == 1 || base.sat.sat_available == 2)) 
 						base.sat.sat_state = SAT_STATE_CGACT;
 				}
 				else
