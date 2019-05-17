@@ -207,7 +207,7 @@ typedef struct _sat
   int data_status;//0-天通数据未激活 1-正在激活 2-已激活
   int module_status; //0-卫星模块加载失败 1-正在开机 2-正在复位 3-工作正常
 
-  int locak_socket_audio_cancel[2];  
+  int locak_socket_audio_cancel;  
 }SAT;
 
 typedef struct _gps
@@ -369,7 +369,5 @@ void *Second_linePhone_Dial_Detect(void *p);
 int myexec(const char *command, char *result, int *maxline);
 int Get_AUXIN2_Value(void);
 void *local_socket_server(void *p);
-void cgeqreq_set(void);
-
 
 #endif

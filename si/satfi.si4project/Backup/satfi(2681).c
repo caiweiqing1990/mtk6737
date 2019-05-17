@@ -2192,26 +2192,26 @@ void cgeqreq_set(void)
 
 		if(strlen(qos1) == 0)
 		{
-			sprintf(qos1, "%d", base.sat.qos1);
+			sprintf(qos1, "%s", base.sat.qos1);
 		}
 		
 		if(strlen(qos2) == 0)
 		{
-			sprintf(qos2, "%d", base.sat.qos2);
+			sprintf(qos2, "%s", base.sat.qos2);
 		}
 		
 		if(strlen(qos3) == 0)
 		{
-			sprintf(qos3, "%d", base.sat.qos3);
+			sprintf(qos3, "%s", base.sat.qos3);
 		}
 	}
 	else
 	{
-		sprintf(qos1, "%d", base.sat.qos1);
-		sprintf(qos2, "%d", base.sat.qos2);
-		sprintf(qos3, "%d", base.sat.qos3);
+		sprintf(qos1, "%s", base.sat.qos1);
+		sprintf(qos2, "%s", base.sat.qos2);
+		sprintf(qos3, "%s", base.sat.qos3);
 	}
-
+	
 	sprintf(cmd, "AT+CGEQREQ=4,%s,%s,%s,%s,%s\r\n", qos1, qos2, qos3, qos2, qos3);
 	satfi_log("%s", cmd);
 	
@@ -2333,7 +2333,7 @@ void *func_y(void *p)
 		}
 		else
 		{
-			if(base->sat.sat_fd <= 0)
+			if(base->sat.sat_fd < 0)
 			{
 				if(cmux == 0)
 				{
@@ -2349,9 +2349,9 @@ void *func_y(void *p)
 
 			if(cmux == 1)
 			{
-				if(base->sat.sat_phone <= 0)init_serial(&base->sat.sat_phone, "/dev/ttygsm2", base->sat.sat_baud_rate);
-				if(base->sat.sat_message <= 0)init_serial(&base->sat.sat_message, "/dev/ttygsm3", base->sat.sat_baud_rate);
-				if(base->sat.sat_pcmdata <= 0)init_serial(&base->sat.sat_pcmdata, "/dev/ttygsm9", base->sat.sat_baud_rate);
+				if(base->sat.sat_phone < 0)init_serial(&base->sat.sat_phone, "/dev/ttygsm2", base->sat.sat_baud_rate);
+				if(base->sat.sat_message < 0)init_serial(&base->sat.sat_message, "/dev/ttygsm3", base->sat.sat_baud_rate);
+				if(base->sat.sat_pcmdata < 0)init_serial(&base->sat.sat_pcmdata, "/dev/ttygsm9", base->sat.sat_baud_rate);
 			}
 			
 		}
@@ -2522,15 +2522,11 @@ void *func_y(void *p)
 		{
 			if(base->sat.sat_dialing == 0)
 			{
-				if(base->sat.sat_available != 3)
+				if(isFileExists(CONFIG_FILE))
 				{
-					if(isFileExists(CONFIG_FILE))
-					{
-						int val;
-						val = GetIniKeyInt("satellite","ACTIVE",CONFIG_FILE);
-						if(val >= 0)base->sat.active = val;
-						satfi_log("base->sat.active=%d\n", base->sat.active);
-					}
+					int val;
+					val = GetIniKeyInt("satellite","ACTIVE",CONFIG_FILE);
+					if(val >= 0)base->sat.active = val;
 				}
 			
 				if(base->sat.active == 1)
@@ -3747,7 +3743,7 @@ int handle_app_msg_tcp(int socket, char *pack, char *tscbuf)
 			//satfi_log("req->Type=%d %d",req->Type,base.sat.captain_socket);
 			if(req->Type == 6)
 			{
-				if(base.sat.captain_socket <= 0)
+				if(base.sat.captain_socket < 0)
 				{
 					satfi_log("captain_socket=%d\n",socket);
 					base.sat.captain_socket = socket;
@@ -7827,6 +7823,124 @@ static void *select_tsc(void *p)
 	}
 }
 
+static int CheckProgramUpdate(void)
+{
+	char md5sum[256] = {0};
+	char satfimd5sum[256] = {0};
+	char version[256] = {0};
+	char satfiurl[256] = {0};
+	char cmd[256] = {0};
+	char tmpBuf[256] = {0};
+	int maxline = 3;
+
+	myexec("rm -f /storage/self/primary/satfi_1_ramips_24kec.ipk", NULL, NULL);
+	myexec("rm -f /storage/self/primary/update.ini", NULL, NULL);
+	
+	//bzero(cmd, sizeof(cmd));
+	//sprintf(cmd,"wget -c -P /tmp/ %s", config_url);
+	//myexec(cmd, NULL, NULL);
+
+	if(!isFileExists("/storage/self/primary/update.ini"))
+	{
+		satfi_log("wget /storage/self/primary/update.ini not exit\n");
+		bzero(cmd, sizeof(cmd));
+		sprintf(cmd,"httpdown xx /storage/self/primary/update.ini http://202.85.218.6/TSCWEB/satfi/update.ini\n", base.tsc.route, config_url);
+		satfi_log("%s\n",cmd);
+		myexec(cmd, NULL, NULL);
+	}
+
+	if(!isFileExists("/storage/self/primary/update.ini"))
+	{
+		satfi_log("httpdown /storage/self/primary/update.ini not exit\n");
+		bzero(cmd, sizeof(cmd));
+		sprintf(cmd,"curl -o /storage/self/primary/update.ini %s", config_url);
+		myexec(cmd, NULL, NULL);
+	}
+
+	if(!isFileExists("/storage/self/primary/update.ini"))
+	{
+		satfi_log("/storage/self/primary/update.ini not exit %d\n",__LINE__);
+		return 2;
+	}
+
+	GetIniKeyString("update","VERSION","/storage/self/primary/update.ini",version);
+	GetIniKeyString("update","MD5SUM","/storage/self/primary/update.ini",md5sum);
+	GetIniKeyString("update","SATFIMD5SUM","/storage/self/primary/update.ini",satfimd5sum);
+	GetIniKeyString("update","URL","/storage/self/primary/update.ini",satfiurl);
+
+	satfi_log("version=%s satfi_version=%s\n",version, satfi_version);
+	satfi_log("md5sum=%s\n",md5sum);
+	satfi_log("satfimd5sum=%s\n",satfimd5sum);
+	satfi_log("satfiurl=%s\n",satfiurl);
+	if((strlen(version) != 0) && (strlen(md5sum) != 0)
+		&& (strlen(satfiurl) != 0) && (strlen(satfi_version) != 0))
+	{
+		if(strcmp(satfi_version,version) != 0)
+		{
+			//download
+			if(!isFileExists("/storage/self/primary/satfi_1_ramips_24kec.ipk"))
+			{
+				satfi_log("wget /storage/self/primary/satfi_1_ramips_24kec.ipk not exit\n");
+				bzero(cmd, sizeof(cmd));
+				sprintf(cmd,"httpdown %s /storage/self/primary/satfi_1_ramips_24kec.ipk %s\n", base.tsc.route, satfiurl);
+				satfi_log("%s",cmd);
+				myexec(cmd, NULL, NULL); 
+			}
+
+			if(!isFileExists("/storage/self/primary/satfi_1_ramips_24kec.ipk"))
+			{
+				satfi_log("httpdown /storage/self/primary/satfi_1_ramips_24kec.ipk not exit\n");
+				bzero(cmd, sizeof(cmd));
+				sprintf(cmd,"curl -o /storage/self/primary/satfi_1_ramips_24kec.ipk %s", satfiurl);
+				myexec(cmd, NULL, NULL); 
+			}
+
+			if(!isFileExists("/storage/self/primary/satfi_1_ramips_24kec.ipk"))
+			{
+				satfi_log("/storage/self/primary/satfi_1_ramips_24kec.ipk not exit\n");
+				return 2;
+			}
+
+			myexec("md5sum /storage/self/primary/satfi_1_ramips_24kec.ipk", tmpBuf, &maxline);
+
+			if(strstr(tmpBuf, md5sum) != NULL)
+			{
+				myexec("opkg install /storage/self/primary/satfi_1_ramips_24kec.ipk --force-overwrite --force-downgrade", tmpBuf, &maxline);
+				myexec("opkg install /storage/self/primary/satfi_1_ramips_24kec.ipk",tmpBuf, &maxline);
+
+				bzero(tmpBuf,sizeof(tmpBuf));
+				myexec("md5sum /bin/satfi", tmpBuf, &maxline);
+				if(strstr(tmpBuf, satfimd5sum) != NULL)
+				{
+					satfi_log("update success\n");
+					myexec("rm -f /storage/self/primary/satfi_1_ramips_24kec.ipk", NULL, NULL);
+					myexec("rm -f /storage/self/primary/update.ini", NULL, NULL);
+					return 0;//update success
+				}
+				else
+				{
+					satfi_log("1 %s %s %d\n",tmpBuf,satfimd5sum,maxline);
+				}
+
+				sleep(1);
+			}
+			else
+			{
+				satfi_log("2 %s %s\n",tmpBuf,md5sum);
+			}
+		}
+		else
+		{
+			satfi_log("not need update\n");
+			myexec("rm -f /storage/self/primary/update.ini", NULL, NULL);
+			return 1;//not need update
+		}
+	}	
+
+	satfi_log("update error\n");
+	return 2;
+}
+
 void udpVoiceHeartBeat(BASE *base)
 {
 	static int UDPheartbeatCnt = 0;
@@ -7922,6 +8036,36 @@ void HeartBeat(BASE *base)
 	}
 }
 
+
+void *CheckProgramUpdateServer(void *p)
+{
+	BASE *base = (BASE *)p;
+	int CheckProgramUpdateCnt = 0;
+	int NeedCheckProgramUpdate = 1;
+	
+	while(1)
+	{
+		if(bTscConnected == 1)
+		{
+			if(NeedCheckProgramUpdate && CheckProgramUpdate() == 0)//版本升级，升级成功并重启
+			{
+				satfi_log("update success reatart\n");
+				exit(8);
+			}
+			
+			NeedCheckProgramUpdate = 0;
+			CheckProgramUpdateCnt++;
+			if(CheckProgramUpdateCnt >= base->tsc.update_interval)
+			{
+				CheckProgramUpdateCnt = 0;
+				NeedCheckProgramUpdate = 1;
+			}
+		}
+
+		sleep(1);
+	}
+	
+}
 
 int CreateGpsMessage(void)
 { 
@@ -8357,24 +8501,24 @@ void *SystemServer(void *p)
 				sleep(1);
 				ioctl(fd, GPIO_IOCSDATAHIGH, HW_GPIO82);
 
-				//0-14
-				//15-17
-				//18-20
-				//21--
+				//0-15
+				//16-32
+				//33-48
+				//49-64
 				
-				if(base->sat.sat_csq_value >= 15 && base->sat.sat_csq_value <= 17)
+				if(base->sat.sat_csq_value >= 16 && base->sat.sat_csq_value <= 32)
 				{
 					ioctl(fd, GPIO_IOCSDATAHIGH, HW_GPIO83);
 					ioctl(fd, GPIO_IOCSDATALOW, HW_GPIO81);
 					ioctl(fd, GPIO_IOCSDATALOW, HW_GPIO80);
 				}
-				else if(base->sat.sat_csq_value >= 18 && base->sat.sat_csq_value <= 20)
+				else if(base->sat.sat_csq_value >= 33 && base->sat.sat_csq_value <= 48)
 				{
 					ioctl(fd, GPIO_IOCSDATAHIGH, HW_GPIO83);
 					ioctl(fd, GPIO_IOCSDATAHIGH, HW_GPIO81);
 					ioctl(fd, GPIO_IOCSDATALOW, HW_GPIO80);
 				}
-				else if(base->sat.sat_csq_value >= 21)
+				else if(base->sat.sat_csq_value >= 49 && base->sat.sat_csq_value <= 64)
 				{
 					ioctl(fd, GPIO_IOCSDATAHIGH, HW_GPIO83);
 					ioctl(fd, GPIO_IOCSDATAHIGH, HW_GPIO81);
@@ -8416,7 +8560,13 @@ void init(void)
 	base.n3g.n3g_dialing = 0;
 
 	base.gps.gps_fd = -1;
-	
+
+	while(!isFileExists(CONFIG_FILE))
+	{
+		satfi_log("%s FileNoExists\n", CONFIG_FILE);//wait sdcard mount
+		sleep(1);
+	}
+
 	char ucTmp[256];
 	GetIniKeyString("server","TSCDOMAIN",CONFIG_FILE,ucTmp);
 	if(strlen(ucTmp)!=0)
@@ -9511,9 +9661,9 @@ void *Second_linePhone_Dial_Detect(void *p)
 				}
 				else
 				{
+					satfi_log("CallUp ATH\n");
 					if(base->sat.sat_calling == 0)
 					{
-						satfi_log("CallUp ATH\n");
 						base->sat.secondLinePhoneMode = 0;
 					}
 				}
@@ -9717,6 +9867,7 @@ int main_satfi(void)
 	
 	//System检测，心跳包
 	if(pthread_create(&id_1, NULL, SystemServer, (void *)&base) == -1) exit(1);
+	//if(pthread_create(&id_1, NULL, CheckProgramUpdateServer, (void *)&base) == -1) exit(1);
 
 	//sat拨号线程,ring检测
 	if(pthread_create(&id_1, NULL, func_y, (void *)&base) == -1) exit(1);
@@ -9738,6 +9889,151 @@ int Get_AUXIN2_Value(void)
 	myexec("cat /sys/devices/virtual/mtk-adc-cali/mtk-adc-cali/AUXADC_read_channel", rbuf, &maxline);
 	return atoi(rbuf);
 }
+
+
+int LocalSocketCreate(const char *path)
+{
+	satfi_log("LocalSocketCreate %s", path);
+
+	int fd;
+	if((fd = socket(AF_LOCAL, SOCK_STREAM, 0)) < 0)
+	{
+		satfi_log("LocalSocketCreate error");
+		exit(-1);
+	}
+	
+	int reuse = 1;
+	setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(int)); 
+	
+    struct sockaddr_un sun;
+	bzero(&sun,sizeof(sun));
+	sun.sun_family = AF_LOCAL;
+
+	unlink(path);
+	strncpy(sun.sun_path, path, strlen(path));
+
+	if(bind(fd, (struct sockaddr *)&sun, sizeof(sun)))
+	{
+		satfi_log("LocalSocketCreate bind error");
+		exit(-1);
+	}
+
+	if(listen(fd, 5) < 0)
+	{
+		satfi_log("LocalSocketCreate listen error");
+		exit(-1);
+	}
+	
+	return fd;
+}
+
+
+void *local_socket_server(void *p)
+{
+	BASE *base = (BASE *)p;
+
+	struct timeval timeout;
+	int ret = -1;
+	int max_fd = -1;
+	fd_set fds;
+	fd_set fdread;
+	struct sockaddr_in cli_addr;  
+	int len = sizeof(struct sockaddr_in);
+	char buf[2048] = {0};
+	//int LocalSocketfd = LocalSocketCreate("/dev/socket/socket_audio_cancel");
+	//int LocalSocketfd = android_get_control_socket("socket_audio_cancel"); //socket socket_audio_cancel stream 660 system system
+
+	int LocalSocketfd = socket_local_server("com.hwacreate.localsocket", ANDROID_SOCKET_NAMESPACE_ABSTRACT, SOCK_STREAM);
+	satfi_log("LocalSocketCreate=%d\n", LocalSocketfd);
+
+	if(LocalSocketfd < 0)
+	{
+		perror("socket_local_server");
+		return NULL;
+	}
+	
+	//system("chmod 660 /dev/socket/socket_audio_cancel");
+	//system("chgrp system /dev/socket/socket_audio_cancel");
+	
+	FD_ZERO(&fds);
+	FD_ZERO(&fdread);
+
+	FD_SET(LocalSocketfd, &fdread);
+
+	max_fd = LocalSocketfd;
+
+	while(1)
+	{
+		timeout.tv_sec = 3;
+		timeout.tv_usec = 0;
+		fds = fdread;
+		ret = select(max_fd + 1, &fds, NULL, NULL, &timeout);		
+        if (ret == 0)
+        {
+            //satfi_log("app select timeout %d %d\n", web_socket_listen, sock_app_tcp);
+            //int testfd = socket_local_client("com.hwacreate.localsocket" , ANDROID_SOCKET_NAMESPACE_ABSTRACT, SOCK_STREAM);
+			//write(testfd, "weiqing", 7);
+			//close(testfd);
+        }
+        else if (ret < 0)
+        {  
+            satfi_log("LocalSocketCreate error occur\n"); 
+			sleep(1);
+        }
+		else
+		{
+			if(FD_ISSET(LocalSocketfd, &fds))
+			{
+				if(base->sat.locak_socket_audio_cancel > 0)
+				{
+					FD_CLR(base->sat.locak_socket_audio_cancel, &fdread);
+					close(base->sat.locak_socket_audio_cancel);
+					max_fd = LocalSocketfd;
+				}
+			
+				base->sat.locak_socket_audio_cancel = accept(LocalSocketfd, (struct sockaddr*)&cli_addr, &len);
+				satfi_log("LocalSocketfd comes %d\n", base->sat.locak_socket_audio_cancel);
+				if(base->sat.locak_socket_audio_cancel > 0)
+				{
+					FD_SET(base->sat.locak_socket_audio_cancel, &fdread);
+					if(base->sat.locak_socket_audio_cancel > max_fd)
+					{
+						max_fd = base->sat.locak_socket_audio_cancel;
+					}
+				}
+				else
+				{
+					satfi_log("LocalSocketfd Fail to accept\n");
+					exit(0);
+				}
+			}
+
+			if(base->sat.locak_socket_audio_cancel > 0)
+			{
+				if(FD_ISSET(base->sat.locak_socket_audio_cancel, &fds))
+				{
+					int n = read(base->sat.locak_socket_audio_cancel, buf, 2048);
+					if(n>0)
+					{
+						satfi_log("%d %d\n", n, *(int *)buf);
+						write(base->sat.sat_pcmdata, buf+4, n-4);
+					}
+					else
+					{
+						satfi_log("close(LocalSocketfd)\n");
+						FD_CLR(base->sat.locak_socket_audio_cancel, &fdread);
+						close(base->sat.locak_socket_audio_cancel);
+						base->sat.locak_socket_audio_cancel = -1;
+						max_fd = LocalSocketfd;
+					}
+				}
+			}
+		}
+	}
+
+	return NULL;
+}
+
 
 #if 0
 int main(int argc, char *argv[])
