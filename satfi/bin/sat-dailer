@@ -1,5 +1,5 @@
 debug
-#logfile /storage/self/primary/pppdlog
+#logfile /sdcard/pppdlog
 nolock
 nodetach
 #/dev/ttyMT1

@@ -11,6 +11,9 @@
 #include <cutils/properties.h>
 #include <media/AudioSystem.h>
 #include <media/AudioTrack.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 using namespace android;
 
@@ -201,7 +204,9 @@ int main(int argc, char **argv)
 		ALOGE("AudioTrack initCheck error!");
 		track.clear();
 		return -1;
-	}	
+	}
+	
+	track->setVolume(2.0f, 2.0f);
 	
 	if(record->start()!= android::NO_ERROR)
 	{
@@ -218,16 +223,35 @@ int main(int argc, char **argv)
 	
 	bufferSizeInBytes = framesize * minFrameCount;
 	void *inBuffer = malloc(bufferSizeInBytes);
+	void *inBuffer1 = malloc(bufferSizeInBytes);
 	ALOGE("bufferSizeInBytes=%d, %d %d", bufferSizeInBytes, minFrameCount1, minFrameCount2);
 	
+	int fdread = open(argv[1], O_RDONLY);
+	int fdwrite = open(argv[2], O_RDWR|O_CREAT, 0644);
+	
+	ALOGE("fdread=%d fdwrite=%d", fdread, fdwrite);
+	
+	if(fdread < 0 || fdwrite < 0)
+		return -1;
+	
+	int readLen;
 	while(1)
 	{
-		ALOGE("1");
-		int readLen = record->read(inBuffer, bufferSizeInBytes);	
-		ALOGE("2");
-		track->write(inBuffer, readLen);
+		if(read(fdread, inBuffer, 320) > 0)
+		{
+			track->write(inBuffer, 320);
+		}
+		else
+		{
+			break;
+		}
+		
+		record->read(inBuffer1, 320);
+		write(fdwrite, inBuffer1, 320);
 	}
 	
+	close(fdread);
+	close(fdwrite);
 	record->stop();
 	track->stop();
 	

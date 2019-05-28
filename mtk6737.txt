@@ -154,9 +154,9 @@ rmmod pcm_master_gpio.ko;insmod pcm_master_gpio.ko
 chmod +x pcm_test
 ./pcm_test in.raw out.raw
 
-adb pull /mnt/1.raw Y:\speextest\bin\1.raw
-
-
+adb pull /system/build.prop C:\Users\AnandLin\Desktop
+adb push C:\Users\AnandLin\Desktop\build.prop /system/build.prop
+adb pull /data/misc/ethernet/ipconfig.txt C:\Users\AnandLin\Desktop
 adb push Y:\gpsinf\bin\gps_test /system/bin/
 logcat pseudo:D *:S
 logcat RILD:* *:S
@@ -701,3 +701,12 @@ adb push Y:\satfi\bin\MergeBinFile.bin /storage/self/primary/tt_update.bin
 tt_update /dev/ttyMT1 /storage/self/primary/tt_update.bin
 
 cat /proc/net/arp 查看wifi热点 链接数量
+
+
+device/lentek/len6737t_66_sh_n/device.mk
+PRODUCT_COPY_FILES += device/lentek/len6737t_66_sh_n/busy.wav:$(TARGET_COPY_OUT_VENDOR)/res/sound/busy.wav
+PRODUCT_COPY_FILES += device/lentek/len6737t_66_sh_n/dudu.wav:$(TARGET_COPY_OUT_VENDOR)/res/sound/dudu.wav
+PRODUCT_COPY_FILES += device/lentek/len6737t_66_sh_n/disconnect-chat:system/etc/ppp/char/disconnect-chat
+PRODUCT_COPY_FILES += device/lentek/len6737t_66_sh_n/sat-chat:system/etc/ppp/char/sat-chat
+PRODUCT_COPY_FILES += device/lentek/len6737t_66_sh_n/sat-dailer:system/etc/ppp/peers/sat-dailer
+PRODUCT_COPY_FILES += device/lentek/len6737t_66_sh_n/busybox:system/bin/busybox

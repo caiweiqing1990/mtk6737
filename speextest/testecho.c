@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include <speex/speex_echo.h>
 #include <speex/speex_preprocess.h>
 #include <stdio.h>
@@ -6,9 +7,8 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-
 #define NN 160
-#define TAIL 1024
+#define TAIL 2000
 
 int main(int argc, char **argv)
 {
@@ -18,7 +18,7 @@ int main(int argc, char **argv)
    SpeexPreprocessState *den;
    int sampleRate = 8000;
 
-   if (argc != 4)
+   if (argc != 5)
    {
       fprintf(stderr, "testecho mic_signal.sw speaker_signal.sw output.sw\n");
       exit(1);
@@ -27,7 +27,7 @@ int main(int argc, char **argv)
    echo_fd = fopen(argv[2], "rb");
    e_fd    = fopen(argv[3], "wb");
 
-   st = speex_echo_state_init(NN, TAIL);
+   st = speex_echo_state_init(NN, atoi(argv[4]));
    den = speex_preprocess_state_init(NN, sampleRate);
    speex_echo_ctl(st, SPEEX_ECHO_SET_SAMPLING_RATE, &sampleRate);
    speex_preprocess_ctl(den, SPEEX_PREPROCESS_SET_ECHO_STATE, st);
@@ -38,6 +38,8 @@ int main(int argc, char **argv)
       fread(echo_buf, sizeof(short), NN, echo_fd);
       speex_echo_cancellation(st, ref_buf, echo_buf, e_buf);
       speex_preprocess_run(den, e_buf);
+	  //speex_echo_playback(st, echo_buf);
+	  //speex_echo_capture(st, ref_buf, e_buf);
       fwrite(e_buf, sizeof(short), NN, e_fd);
    }
    speex_echo_state_destroy(st);

@@ -164,6 +164,15 @@
 #define QOS_REQUEST					0x0067
 #define QOS_RESPONSE				0x8067
 
+#define SETTINGS_REQUEST			0x0068
+#define SETTINGS_RESPONSE			0x8068
+
+#define UPGRADE1_NOTICE				0x0069
+#define UPGRADE1_CONFIRM			0x8069
+
+#define UPGRADE2_NOTICE				0x0070
+#define UPGRADE2_CONFIRM			0x8070
+
 #pragma pack (1)
 
 typedef struct _msg_header
@@ -1059,6 +1068,7 @@ typedef struct _app_status_rsp
 	unsigned short temperature;
 	char version_sat[32];
 	char version[32];
+	unsigned short sos_mode;
 } MsgStatusRsp;
 
 //WIFI_REQUEST
@@ -1106,6 +1116,7 @@ typedef struct _app_qos_info
 	unsigned short Type;
 	unsigned short UpBandWidth;
 	unsigned short DownBandWidth;
+	unsigned short gprs_on;
 } MsgQosInfo;
 
 //QOS_RESPONSE
@@ -1115,6 +1126,48 @@ typedef struct _app_qos_info_rsp
 	char MsID[21];
 	unsigned short Result;
 } MsgQosInfoRsp;
+
+
+//SETTINGS_REQUEST
+typedef struct _app_settings_req
+{
+	MsgHeader header;
+	char MsID[21];
+} MsgSettingsReq;
+
+//SETTINGS_RESPONSE
+typedef struct _app_settings_rsp
+{
+	MsgHeader header;
+	char MsID[21];
+	char ssid[32];
+	char passwd[32];
+	unsigned short Operation;
+	unsigned short Type;
+	unsigned short UpBandWidth;
+	unsigned short DownBandWidth;
+	unsigned short gprs_on;
+	char Phone[21];
+	unsigned short interval;
+	unsigned short boolcallphone;
+	char Message[0];
+} MsgSettingsRsp;
+
+
+//UPGRADE1_NOTICE
+typedef struct _app_upgrade_info
+{
+	MsgHeader header;
+	char MsID[21];
+} MsgUpgradeInfo;
+
+//UPGRADE1_CONFIRM
+typedef struct _app_upgrade_info_rsp
+{
+	MsgHeader header;
+	char MsID[21];
+	unsigned short Result;
+} MsgUpgradeInfoRsp;
 
 #pragma pack ()
 

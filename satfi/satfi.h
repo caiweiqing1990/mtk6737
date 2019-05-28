@@ -35,7 +35,6 @@
 
 #define GPS_DATA_FILE		"/sdcard/GpsData.txt"
 #define CALL_RECORDS_FILE	"/sdcard/CallRecords.txt"
-#define SAT_IMEI_FILE		"/sdcard/configSat.ini"
 #define CONFIG_FILE			"/sdcard/config.ini"
 #define SOS_FILE			"/sdcard/sos.ini"
 
@@ -52,7 +51,7 @@
 #define UDP_VOICE_DSTPORT	12056	//对讲语音目的端口
 
 #define NN 160
-#define TAIL 1024
+#define TAIL 3200
 
 //3G模块状态
 enum N3G_STATE {
@@ -156,6 +155,7 @@ typedef struct _sat
   int qos2;					//384/64
   int qos3;					//384/64
   int active;				//是否准许激活
+  int gprs_on;
   int sat_phone;
   int sat_message;
   int sat_pcmdata;
@@ -207,7 +207,9 @@ typedef struct _sat
   int data_status;//0-天通数据未激活 1-正在激活 2-已激活
   int module_status; //0-卫星模块加载失败 1-正在开机 2-正在复位 3-工作正常
 
-  int locak_socket_audio_cancel[2];  
+  int locak_socket_audio_cancel;
+  int lte_status;//0-无4G卡 1-4G已开启 2-4G未开启
+  int Upgrade1Confirm;
 }SAT;
 
 typedef struct _gps
@@ -347,23 +349,10 @@ typedef struct _appsocket {
 #define satfi_log(x...)
 #endif
 
-void base_init(void);
-void hw_init(void);
-void *func_y(void *p);
-void ttygsmcreate(void);
-int AppCallUpRspForce(int socket, short sat_state_phone);
-int handle_sat_data(int *satfd, char *data, int *ofs);
-int safe_recvfrom(int fd, char* buff, int len);
-int parseGpsData(char *buf, int len);
-void *handle_app_data(void *p);
-void *SystemServer(void *p);
-void *handle_pcm_data(void *p);
-void main_thread_loop(void);
-void gps_start(void) ;
-int socket_bind_udp(const char* path);
-void *sat_ring_detect(void *p);
-void *Second_linePhone_Dial_Detect(void *p);
-int Get_AUXIN2_Value(void);
-int update_system_check(void);
+extern void base_init(void);
+extern int AppCallUpRspForce(int socket, short sat_state_phone);
+extern int handle_sat_data(int *satfd, char *data, int *ofs);
+extern int safe_recvfrom(int fd, char* buff, int len);
+extern int parseGpsData(char *buf, int len);
 
 #endif

@@ -14,6 +14,8 @@ using namespace android;
 
 extern BASE base;
 #define BUS_SIZE (6*960)//11520
+static SpeexEchoState *echo_state = NULL;
+static int speex_echo_playback_flag = 0;
 
 int audio_test(void)
 {
@@ -87,6 +89,17 @@ void milliseconds_sleep()
   } while (err<0 || errno == EINTR);
 }
 
+void milliseconds_sleepms()
+{
+  struct timeval tv = {0, 18000};
+  int err;
+  do
+  {
+    err = select(0,NULL,NULL,NULL,&tv);
+  } while (err<0 || errno == EINTR);
+}
+
+
 void *handle_pcm_data(void *p)
 {
 	BASE *base = (BASE *)p;
@@ -120,7 +133,6 @@ void *handle_pcm_data(void *p)
 
 	char tmp[BUS_SIZE];
 	char outfram[BUS_SIZE];
-	//char playbackbuf[3200];
 	int plybackbufofs=0;
 	struct sockaddr_in clientAddr;
 	struct sockaddr_in *clientAddr1 = &(base->sat.clientAddr1);
@@ -162,18 +174,16 @@ void *handle_pcm_data(void *p)
 	if(record->initCheck() != OK)
 	{
 		satfi_log("AudioRecord initCheck error!");
-	}	
+	}
 
 	int AudioRecordStart = 0;
 
-	//SpeexEchoState *st;
-	//SpeexPreprocessState *den;
-	//int sampleRate = 8000;
-
-	//st = speex_echo_state_init(NN, TAIL);
+	SpeexPreprocessState *den;
+	int sampleRate = 8000;
+	//echo_state = speex_echo_state_init(NN, TAIL);
 	//den = speex_preprocess_state_init(NN, sampleRate);
-	//speex_echo_ctl(st, SPEEX_ECHO_SET_SAMPLING_RATE, &sampleRate);
-	//speex_preprocess_ctl(den, SPEEX_PREPROCESS_SET_ECHO_STATE, st);
+	//speex_echo_ctl(echo_state, SPEEX_ECHO_SET_SAMPLING_RATE, &sampleRate);
+	//speex_preprocess_ctl(den, SPEEX_PREPROCESS_SET_ECHO_STATE, echo_state);
 
 	while (1)
     {
@@ -241,7 +251,6 @@ void *handle_pcm_data(void *p)
 						record->stop();
 					}
 				}
-				
 				break;
 			default:
 								
@@ -335,8 +344,7 @@ void *handle_pcm_data(void *p)
 				}
 		}
 
-		//while(base->sat.secondLinePhoneMode == 1)
-		while(0)	
+		while(base->sat.secondLinePhoneMode == 1)
 		{
 			if(base->sat.sat_state_phone == SAT_STATE_PHONE_ONLINE)
 			{
@@ -348,18 +356,27 @@ void *handle_pcm_data(void *p)
 						satfi_log("AudioRecord start error!");
 						record.clear();
 					}
+
+					satfi_log("AudioRecordStart");
 				}
-
-				record->read(tmp, 320);
-
-				if(base->sat.locak_socket_audio_cancel[1] > 0)
+				
+				n = record->read(tmp, 320);
+				if(echo_state && speex_echo_playback_flag)
 				{
-					write(base->sat.locak_socket_audio_cancel[1], tmp, 320);
+					speex_echo_capture(echo_state, (spx_int16_t *)tmp, (spx_int16_t *)outfram);
+					write(base->sat.sat_pcmdata, outfram, 320);
 				}
 				else
 				{
 					write(base->sat.sat_pcmdata, tmp, 320);
+					static int recordfd = -1;
+					if(recordfd < 0)
+					{
+						recordfd = open("/sdcard/record.pcm", O_RDWR|O_CREAT, 0644);
+					}
+					write(recordfd, tmp, n);
 				}
+				//milliseconds_sleep();
 			}
 			else
 			{
@@ -393,7 +410,7 @@ void main_thread_loop(void)
 	sp<AudioTrack> track = new AudioTrack(AUDIO_STREAM_MUSIC, 8000, AUDIO_FORMAT_PCM_16_BIT, AUDIO_CHANNEL_OUT_MONO, 0);
 	if(track->initCheck() != OK)
 	{
-		satfi_log("AudioRecord initCheck error!\n");
+		satfi_log("AudioTrack initCheck error!\n");
 	}
 
 	//track->setVolume(2.0f, 2.0f);
@@ -458,6 +475,7 @@ void main_thread_loop(void)
 					{
 						track->stop();
 						AudioTrackStart = 0;
+						speex_echo_playback_flag = 0;
 					}
 				}
 				break;
@@ -513,16 +531,25 @@ void main_thread_loop(void)
 									}
 									AudioTrackStart = 1;
 								}
+								
+								track->write(SatDataBuf[3], n);
 
 								if(base.sat.sat_state_phone == SAT_STATE_PHONE_ONLINE)
 								{
-									if(base.sat.locak_socket_audio_cancel[0] > 0)
+									static int playbackfd = -1;
+									if(playbackfd < 0)
 									{
-										write(base.sat.locak_socket_audio_cancel[0], SatDataBuf[3], n);
+										playbackfd = open("/sdcard/playback.pcm", O_RDWR|O_CREAT, 0644);
 									}
+									write(playbackfd, SatDataBuf[3], n);
 								}
-								
-								track->write(SatDataBuf[3], n);
+
+								//if(!echo_state && base.sat.sat_state_phone == SAT_STATE_PHONE_ONLINE)
+								//{
+								//	satfi_log("AudioTrackStart");
+								//	speex_echo_playback(echo_state, (spx_int16_t *)SatDataBuf[3]);
+								//	speex_echo_playback_flag = 1;
+								//}
 							}
 						}
 					}
@@ -613,13 +640,19 @@ void *SecondLineHintTonePlay(void *p)
 		{
 			if(base->sat.playBusyToneFlag == 1)
 			{
-				AudioTrackPlay(BUSY_WAV);
+				if(AudioTrackPlay(BUSY_WAV) < 0)
+				{
+					sleep(1);
+				}
 			}
 			else
 			{
 				if(base->sat.ring == 0 && base->sat.isSecondLineFirstKeyPress == 0)
 				{
-					AudioTrackPlay(DUDU_WAV);
+					if(AudioTrackPlay(DUDU_WAV) < 0)
+					{
+						sleep(1);
+					}
 				}
 				else
 				{
@@ -643,22 +676,20 @@ void *local_socket_server(void *p)
 	struct timeval timeout;
 	int ret = -1;
 	int max_fd = -1;
-	int i;
 	fd_set fds;
 	fd_set fdread;
 	struct sockaddr_in cli_addr;  
 	int len = sizeof(struct sockaddr_in);
-	char buf[2048] = {0};
-
+	char buf[BUS_SIZE] = {0};
 	//int LocalSocketfd = android_get_control_socket("socket_audio_cancel"); //socket socket_audio_cancel stream 660 system system
 
-	int LocalSocketfd[2] = {0};
+	int LocalSocketfd;
+	int ofs=0;
 
-	LocalSocketfd[0] = socket_local_server("com.hwacreate.localsocket0", ANDROID_SOCKET_NAMESPACE_ABSTRACT, SOCK_STREAM);//发生接受到的声音
-	LocalSocketfd[1] = socket_local_server("com.hwacreate.localsocket1", ANDROID_SOCKET_NAMESPACE_ABSTRACT, SOCK_STREAM);//发送录制的声音
-	satfi_log("LocalSocketfd[0]=%d LocalSocketfd[1]=%d\n", LocalSocketfd[0], LocalSocketfd[1]);
+	LocalSocketfd = socket_local_server("com.hwacreate.localsocket0", ANDROID_SOCKET_NAMESPACE_ABSTRACT, SOCK_STREAM);//发生接受到的声音
+	satfi_log("LocalSocketfd=%d\n", LocalSocketfd);
 
-	if(LocalSocketfd[0] < 0 || LocalSocketfd[1] < 0)
+	if(LocalSocketfd < 0)
 	{
 		perror("socket_local_server");
 		return NULL;
@@ -667,10 +698,9 @@ void *local_socket_server(void *p)
 	FD_ZERO(&fds);
 	FD_ZERO(&fdread);
 
-	FD_SET(LocalSocketfd[0], &fdread);
-	FD_SET(LocalSocketfd[1], &fdread);
+	FD_SET(LocalSocketfd, &fdread);
 
-	max_fd = (LocalSocketfd[0] > LocalSocketfd[1]) ? LocalSocketfd[0] : LocalSocketfd[1];
+	max_fd = LocalSocketfd;
 
 	while(1)
 	{
@@ -688,58 +718,76 @@ void *local_socket_server(void *p)
 			//close(testfd1);
         }
         else if (ret < 0)
-        {  
+        {
             satfi_log("LocalSocketCreate error occur\n"); 
 			sleep(1);
         }
 		else
 		{
-			for(i=0;i<2;i++)
+			if(FD_ISSET(LocalSocketfd, &fds))
 			{
-				if(FD_ISSET(LocalSocketfd[i], &fds))
+				if(base->sat.locak_socket_audio_cancel > 0)
 				{
-					if(base->sat.locak_socket_audio_cancel[i] > 0)
+					FD_CLR(base->sat.locak_socket_audio_cancel, &fdread);
+					close(base->sat.locak_socket_audio_cancel);
+					max_fd = LocalSocketfd;
+				}
+			
+				base->sat.locak_socket_audio_cancel = accept(LocalSocketfd, (struct sockaddr*)&cli_addr, &len);
+				satfi_log("locak_socket_audio_cancel comes %d\n", base->sat.locak_socket_audio_cancel);
+				if(base->sat.locak_socket_audio_cancel > 0)
+				{
+					FD_SET(base->sat.locak_socket_audio_cancel, &fdread);
+					if(base->sat.locak_socket_audio_cancel > max_fd)
 					{
-						FD_CLR(base->sat.locak_socket_audio_cancel[i], &fdread);
-						close(base->sat.locak_socket_audio_cancel[i]);
-						//max_fd = LocalSocketfd;
+						max_fd = base->sat.locak_socket_audio_cancel;
 					}
-				
-					base->sat.locak_socket_audio_cancel[i] = accept(LocalSocketfd[i], (struct sockaddr*)&cli_addr, &len);
-					satfi_log("locak_socket_audio_cancel comes %d %d\n", i, base->sat.locak_socket_audio_cancel[i]);
-					if(base->sat.locak_socket_audio_cancel[i] > 0)
+				}
+				else
+				{
+					satfi_log("LocalSocketfd Fail to accept\n");
+					exit(0);
+				}
+			}
+
+			if(base->sat.locak_socket_audio_cancel > 0)
+			{
+				if(FD_ISSET(base->sat.locak_socket_audio_cancel, &fds))
+				{
+					int n = read(base->sat.locak_socket_audio_cancel, buf+ofs, 960);
+					if(n>0)
 					{
-						FD_SET(base->sat.locak_socket_audio_cancel[i], &fdread);
-						if(base->sat.locak_socket_audio_cancel[i] > max_fd)
+						ofs += n;
+						if(ofs >= 960)
 						{
-							max_fd = base->sat.locak_socket_audio_cancel[i];
+							int ofs1=0;
+							while(ofs1 < ofs)
+							{
+								//satfi_log("%d", ofs1);
+								write(base->sat.sat_pcmdata, buf+ofs1, 320);
+								milliseconds_sleepms();
+								ofs1 += 320;
+							}
+							ofs = 0;
+						}
+
+						static int fd = -1;
+						if(fd > 0)
+						{
+							write(fd, buf, n);
+						}
+						else if(fd < 0)
+						{
+							fd = open("/sdcard/socket_audio.raw", O_RDWR|O_CREAT, 0644);
 						}
 					}
 					else
 					{
-						satfi_log("LocalSocketfd Fail to accept\n");
-						exit(0);
-					}
-				}
-
-				if(base->sat.locak_socket_audio_cancel[i] > 0)
-				{
-					if(FD_ISSET(base->sat.locak_socket_audio_cancel[i], &fds))
-					{
-						int n = read(base->sat.locak_socket_audio_cancel[i], buf, 320);
-						if(n>0)
-						{
-							//satfi_log("n=%d\n", n);
-							write(base->sat.sat_pcmdata, buf, n);
-						}
-						else
-						{
-							satfi_log("close(locak_socket_audio_cancel) %d\n", i);
-							FD_CLR(base->sat.locak_socket_audio_cancel[i], &fdread);
-							close(base->sat.locak_socket_audio_cancel[i]);
-							base->sat.locak_socket_audio_cancel[i] = -1;
-							//max_fd = LocalSocketfd;
-						}
+						satfi_log("close(locak_socket_audio_cancel) %d\n", base->sat.locak_socket_audio_cancel);
+						FD_CLR(base->sat.locak_socket_audio_cancel, &fdread);
+						close(base->sat.locak_socket_audio_cancel);
+						base->sat.locak_socket_audio_cancel = -1;
+						max_fd = LocalSocketfd;
 					}
 				}
 			}
@@ -752,20 +800,10 @@ void *local_socket_server(void *p)
 int main()
 {
 	pthread_t id_1;	
-
 	base_init();
-	hw_init();
-	ttygsmcreate();
-	update_system_check();
-	if(pthread_create(&id_1, NULL, local_socket_server, (void *)&base) == -1) exit(1);
-	if(pthread_create(&id_1, NULL, func_y, (void *)&base) == -1) exit(1);						//卫星模块启动
-	if(pthread_create(&id_1, NULL, SystemServer, (void *)&base) == -1) exit(1);					//系统检测
-	if(pthread_create(&id_1, NULL, handle_app_data, (void *)&base) == -1) exit(1); 				//处理app数据
-	if(pthread_create(&id_1, NULL, sat_ring_detect, (void *)&base) == -1) exit(1); 				//卫星来电检测
+	//if(pthread_create(&id_1, NULL, local_socket_server, (void *)&base) == -1) exit(1);
 	if(pthread_create(&id_1, NULL, SecondLineHintTonePlay, (void *)&base) == -1) exit(1);		//二线电话提示音
-	if(pthread_create(&id_1, NULL, Second_linePhone_Dial_Detect, (void *)&base) == -1) exit(1);//二线电话拨号检测
 	if(pthread_create(&id_1, NULL, handle_pcm_data, (void *)&base) == -1) exit(1);				//处理通话语音
-	
 	main_thread_loop();
 	return 0;
 }

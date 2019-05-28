@@ -106,9 +106,7 @@ void gpio_pull_disable(int gpio)
 
 void msm01a_on(void)
 {
-	//gpio_out(49, 1);//功放使能 接收
-	//gpio_out(50, 1);//功放使能 发送
-	//gpio_pull_disable(86);//串口1 流控引脚
+	gpio_out(HW_GPIO3, 1);
 	gpio_out(AP_WAKEUP_BB, 0);
 	gpio_out(AP_SLEEP_BB, 0);
 	gpio_out(USB_BOOT, 1);
