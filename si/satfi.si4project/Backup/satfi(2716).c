@@ -3797,7 +3797,6 @@ int handle_app_msg_tcp(int socket, char *pack, char *tscbuf)
 
 			if(result == 0)
 			{
-				req->Count = 0;
 				add_user(req->MsID, socket, req->Count, req->FamiliarityNumber);
 			}
 
@@ -5379,29 +5378,7 @@ int handle_app_msg_tcp(int socket, char *pack, char *tscbuf)
 			rsp->header.length = sizeof(MsgSosInfoRsp);
 			rsp->header.mclass = SOS_RESPONSE;
 			rsp->Result = 0;
-
-			if(req->Operation == 1)
-			{
-				if(base.sat.sat_status == 1)
-				{
-					sos_mode = 1;
-					if(sos_mode)
-					{
-						SOSMessageFromFile();
-					}
-				}
-				else
-				{
-					rsp->Result = 1;
-				}
-			}
-			else
-			{
-				sos_mode = 0;
-			}
-			
 			write(socket, tmp, rsp->header.length);
-			
 		}
 		break;
 
@@ -5477,14 +5454,20 @@ int handle_app_msg_tcp(int socket, char *pack, char *tscbuf)
 			if(req->gprs_on == 1)
 			{
 				//GPRS关
-				satfi_log("CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest setDataDisabled");
-				myexec("CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest setDataDisabled", NULL, NULL);
+				if(base.sat.lte_status == 1)
+				{
+					satfi_log("CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest setDataDisabled");
+					myexec("CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest setDataDisabled", NULL, NULL);
+				}
 			}
 			else if(req->gprs_on == 2)
 			{
 				//GPRS开
-				satfi_log("CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest setDataEnabled");
-				myexec("CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest setDataEnabled", NULL, NULL);
+				if(base.sat.lte_status == 1)
+				{
+					satfi_log("CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest setDataEnabled");
+					myexec("CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest setDataEnabled", NULL, NULL);
+				}
 			}
 
 		}
@@ -5530,7 +5513,7 @@ int handle_app_msg_tcp(int socket, char *pack, char *tscbuf)
 			GetIniKeyString("satellite", "SSID", CONFIG_FILE, rsp->ssid);
 			GetIniKeyString("satellite", "PASSWD", CONFIG_FILE, rsp->passwd);
 
-			//satfi_log("SETTINGS_REQUEST=%s %s\n", rsp->ssid, rsp->passwd);
+			satfi_log("SETTINGS_REQUEST=%s %s\n", rsp->ssid, rsp->passwd);
 
 			rsp->Operation = base.sat.active;
 
@@ -5553,10 +5536,10 @@ int handle_app_msg_tcp(int socket, char *pack, char *tscbuf)
 			else
 				rsp->DownBandWidth = 3;
 
-			if(base.sat.lte_status == 2)
-				rsp->gprs_on = 1;
+			if(base.sat.gprs_on == 2)
+				rsp->gprs_on = base.sat.gprs_on;
 			else
-				rsp->gprs_on = 2;
+				rsp->gprs_on = 1;
 			
 			GetIniKeyString("SOS","PHONE",SOS_FILE,rsp->Phone);
 			GetIniKeyString("SOS","MESSAGE",SOS_FILE,rsp->Message);
@@ -8867,28 +8850,25 @@ void *SystemServer(void *p)
 
 			base->sat.lte_status = 1;
 		}
-		else 
+		else if(!checkroute("ppp", NULL, 0))
 		{
-			if(!checkroute("ppp", NULL, 0))
+			if(eth_state_change() || ap_state_change())
 			{
-				if(eth_state_change() || ap_state_change())
-				{
-					satfi_log("ppp iptables settings\n");
-					myexec("echo 1 > /proc/sys/net/ipv4/ip_forward", NULL, NULL);
-					myexec("iptables -t nat -F", NULL, NULL);
-					myexec("iptables -F", NULL, NULL);
-					myexec("iptables -A OUTPUT -o lo -j ACCEPT", NULL, NULL);
-					
-					myexec("iptables -t nat -A PREROUTING -d 192.168.43.1 -p udp --dport 53 -j DNAT --to 219.150.32.132:53", NULL, NULL);
-					myexec("iptables -t nat -A PREROUTING -d 192.168.1.1 -p udp --dport 53 -j DNAT --to 219.150.32.132:53", NULL, NULL);
-					myexec("iptables -t nat -A POSTROUTING -o ppp0 -s 192.168.43.0/24 -j MASQUERADE", NULL, NULL);
-					myexec("iptables -t nat -A POSTROUTING -o ppp0 -s 192.168.1.0/24 -j MASQUERADE", NULL, NULL);
-					myexec("ip rule add from all lookup main", NULL, NULL);
-					myexec("ip rule add from all table 205", NULL, NULL);
-					myexec("ip route add 192.168.43.0/24 via 192.168.43.1 dev ap0 table 205", NULL, NULL);
-					myexec("ip route add 192.168.1.0/24 via 192.168.1.1 dev eth0 table 205", NULL, NULL);
-					myexec("ip route flush cache", NULL, NULL); 			
-				}
+				satfi_log("ppp iptables settings\n");
+				myexec("echo 1 > /proc/sys/net/ipv4/ip_forward", NULL, NULL);
+				myexec("iptables -t nat -F", NULL, NULL);
+				myexec("iptables -F", NULL, NULL);
+				myexec("iptables -A OUTPUT -o lo -j ACCEPT", NULL, NULL);
+				
+				myexec("iptables -t nat -A PREROUTING -d 192.168.43.1 -p udp --dport 53 -j DNAT --to 219.150.32.132:53", NULL, NULL);
+				myexec("iptables -t nat -A PREROUTING -d 192.168.1.1 -p udp --dport 53 -j DNAT --to 219.150.32.132:53", NULL, NULL);
+				myexec("iptables -t nat -A POSTROUTING -o ppp0 -s 192.168.43.0/24 -j MASQUERADE", NULL, NULL);
+				myexec("iptables -t nat -A POSTROUTING -o ppp0 -s 192.168.1.0/24 -j MASQUERADE", NULL, NULL);
+				myexec("ip rule add from all lookup main", NULL, NULL);
+				myexec("ip rule add from all table 205", NULL, NULL);
+				myexec("ip route add 192.168.43.0/24 via 192.168.43.1 dev ap0 table 205", NULL, NULL);
+				myexec("ip route add 192.168.1.0/24 via 192.168.1.1 dev eth0 table 205", NULL, NULL);
+				myexec("ip route flush cache", NULL, NULL);				
 			}
 
 			base->sat.lte_status = 2;
@@ -9238,7 +9218,7 @@ void *CheckProgramUpdateServer(void *p)
 				myexec(cmd, NULL, NULL);
 			}
 		}
-		
+
 		sleep(10);
 	}
 
@@ -9248,7 +9228,7 @@ void *CheckProgramUpdateServer(void *p)
 }
 
 int AppCallUpRsp(int socket, short sat_state_phone)
-{
+{	
 	static short stat = -1;
 	if(stat != sat_state_phone)
 	{

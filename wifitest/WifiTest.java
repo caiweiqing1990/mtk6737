@@ -16,6 +16,7 @@ import com.android.internal.telephony.ITelephony;
 import android.telephony.SubscriptionManager;
 import android.telephony.SignalStrength;
 import android.telephony.TelephonyManager;
+import com.android.internal.telephony.TelephonyProperties;
 
 //wifi Telephony Ethernet control
 public class WifiTest {
@@ -127,6 +128,8 @@ public class WifiTest {
 				System.out.println("setDataEnabled");
 			}
 
+			//int phoneId = SubscriptionManager.getPhoneId(subId);
+			//System.out.println("getSimOperatorName="+TelephonyManager.getTelephonyProperty(phoneId,TelephonyProperties.PROPERTY_ICC_OPERATOR_ALPHA, ""));
 			/*
 			public static final int NETWORK_CLASS_UNKNOWN = 0;
 			public static final int NETWORK_CLASS_2_G = 1;
@@ -135,7 +138,7 @@ public class WifiTest {
 			*/
 
 			int networkType = telephony.getNetworkType();
-			System.out.println("getNetworkType="+networkType);
+			//System.out.println("getNetworkType="+networkType);
 			System.out.println("getNetworkClass="+TelephonyManager.getNetworkClass(networkType));//获取网络类型 2G 3G 4G
 
 			/*
@@ -147,11 +150,24 @@ public class WifiTest {
 			*/
 			
 			SignalStrength mSignalStrength = new SignalStrength();
-			System.out.println("mSignalStrength.getLevel=" + mSignalStrength.getLevel());//获取信号格数
+			System.out.println("mSignalStrength.getLteLevel=" + mSignalStrength.getLteLevel());//获取信号格数
+			System.out.println("mSignalStrength.getTdScdmaLevel=" + mSignalStrength.getTdScdmaLevel());//获取信号格数
+			System.out.println("mSignalStrength.getGsmLevel=" + mSignalStrength.getGsmLevel());//获取信号格数
+			System.out.println("mSignalStrength.getCdmaLevel=" + mSignalStrength.getCdmaLevel());//获取信号格数
+			System.out.println("mSignalStrength.getEvdoLevel=" + mSignalStrength.getEvdoLevel());//获取信号格数
 
+			System.out.println("mSignalStrength.getEvdoDbm=" + mSignalStrength.getEvdoDbm());//获取信号格数
+			System.out.println("mSignalStrength.getLteDbm=" + mSignalStrength.getLteDbm());//获取信号格数
+			System.out.println("mSignalStrength.getTdScdmaLevel=" + mSignalStrength.getTdScdmaLevel());//获取信号格数
+			System.out.println("mSignalStrength.getGsmDbm=" + mSignalStrength.getGsmDbm());//获取信号格数
+			System.out.println("mSignalStrength.getTdScdmaDbm=" + mSignalStrength.getTdScdmaDbm());//获取信号格数
+			System.out.println("mSignalStrength.getCdmaDbm=" + mSignalStrength.getCdmaDbm());//获取信号格数
+			System.out.println("mSignalStrength.getEvdoDbm=" + mSignalStrength.getEvdoDbm());//获取信号格数
+			
+			
 			String imeiUtils = telephony.getDeviceId(null);
 			System.out.println("imeiUtils="+imeiUtils);
-			System.out.println("getDeviceId="+imeiUtils.substring(imeiUtils.length()-4,imeiUtils.length()));
+			//System.out.println("getDeviceId="+imeiUtils.substring(imeiUtils.length()-4,imeiUtils.length()));
 		}
 		else if (args.length == 1 && args[0].equals("setDataDisabled"))
 		{
@@ -181,6 +197,7 @@ public class WifiTest {
  			System.out.println("Usage: need parameter: setDataEnabled");
 			System.out.println("Usage: need parameter: setDataDisabled");
 		}
+
 
 /*
 		IBinder binder = ServiceManager.getService("ethernet");

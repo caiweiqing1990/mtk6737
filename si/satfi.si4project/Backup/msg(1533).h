@@ -1094,7 +1094,6 @@ typedef struct _app_sos_info
 	MsgHeader header;
 	char MsID[21];
 	char Phone[21];
-	unsigned short Operation;
 	unsigned short interval;
 	unsigned short boolcallphone;
 	char Message[0];

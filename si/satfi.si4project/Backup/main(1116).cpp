@@ -373,11 +373,10 @@ void *handle_pcm_data(void *p)
 					if(recordfd < 0)
 					{
 						recordfd = open("/sdcard/record.pcm", O_RDWR|O_CREAT, 0644);
-						lseek(recordfd, 0, SEEK_SET);
 					}
 					write(recordfd, tmp, n);
 				}
-				milliseconds_sleep();
+				//milliseconds_sleep();
 			}
 			else
 			{
@@ -541,7 +540,6 @@ void main_thread_loop(void)
 									if(playbackfd < 0)
 									{
 										playbackfd = open("/sdcard/playback.pcm", O_RDWR|O_CREAT, 0644);
-										lseek(playbackfd, 0, SEEK_SET);
 									}
 									write(playbackfd, SatDataBuf[3], n);
 								}

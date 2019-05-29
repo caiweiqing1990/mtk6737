@@ -689,6 +689,8 @@ adb logcat -b radio > log_07_09_1
 adb push Z:\out\target\product\len6737t_66_sh_n\system\framework\WifiTest.jar /system/framework
 CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest wifiapstop
 CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest wifiapstart
+CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest setDataEnabled
+CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest setDataDisabled
 myexec("CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest wifiapstop", NULL, NULL);
 myexec("CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest wifiapstart", NULL, NULL);
 
