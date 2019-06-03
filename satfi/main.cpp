@@ -13,7 +13,7 @@ extern "C" {
 using namespace android;
 
 extern BASE base;
-#define BUS_SIZE (6*960)//11520
+#define BUS_SIZE (8000)
 static SpeexEchoState *echo_state = NULL;
 static int speex_echo_playback_flag = 0;
 
@@ -78,27 +78,6 @@ int audio_test(void)
 	track->stop();
 	return 0;
 }
-
-void milliseconds_sleep()
-{
-  struct timeval tv = {0, 20000};//20ms
-  int err;
-  do
-  {
-    err = select(0,NULL,NULL,NULL,&tv);
-  } while (err<0 || errno == EINTR);
-}
-
-void milliseconds_sleepms()
-{
-  struct timeval tv = {0, 18000};
-  int err;
-  do
-  {
-    err = select(0,NULL,NULL,NULL,&tv);
-  } while (err<0 || errno == EINTR);
-}
-
 
 void *handle_pcm_data(void *p)
 {
@@ -244,6 +223,7 @@ void *handle_pcm_data(void *p)
 					}
 
 					plybackbufofs = 0;
+					ofs = 0;
 					
 					if(AudioRecordStart == 1)
 					{
@@ -292,7 +272,7 @@ void *handle_pcm_data(void *p)
 												}
 												//satfi_log("%d\n", ofs1);
 												ofs1 += 320;
-												milliseconds_sleep(); //delay 20ms
+												milliseconds_sleep(19); //delay 20ms
 											}
 											//gettimeofday(&end, NULL);
 											//satfi_log("ofs1=%d %ld\n", ofs1, end.tv_usec);
@@ -360,7 +340,7 @@ void *handle_pcm_data(void *p)
 					satfi_log("AudioRecordStart");
 				}
 				
-				n = record->read(tmp, 320);
+				n = record->read(tmp, 8000);
 				if(echo_state && speex_echo_playback_flag)
 				{
 					speex_echo_capture(echo_state, (spx_int16_t *)tmp, (spx_int16_t *)outfram);
@@ -368,16 +348,23 @@ void *handle_pcm_data(void *p)
 				}
 				else
 				{
-					write(base->sat.sat_pcmdata, tmp, 320);
-					static int recordfd = -1;
-					if(recordfd < 0)
+					ofs1 = 0;
+					while(1)
 					{
-						recordfd = open("/sdcard/record.pcm", O_RDWR|O_CREAT, 0644);
-						lseek(recordfd, 0, SEEK_SET);
+						write(base->sat.sat_pcmdata, &tmp[ofs1], 320);
+						ofs1 += 320;
+						if(ofs1 >= 8000) break;
+						milliseconds_sleep(19);
 					}
-					write(recordfd, tmp, n);
+					//static int recordfd = -1;
+					//if(recordfd < 0)
+					//{
+					//	recordfd = open("/sdcard/record.pcm", O_RDWR|O_CREAT, 0644);
+					//	lseek(recordfd, 0, SEEK_SET);
+					//}
+					//write(recordfd, tmp, n);
 				}
-				milliseconds_sleep();
+				
 			}
 			else
 			{
@@ -386,7 +373,6 @@ void *handle_pcm_data(void *p)
 		}
     }	
 }
-
 
 void main_thread_loop(void)
 {
@@ -399,14 +385,11 @@ void main_thread_loop(void)
 
 	char gpsDataBuf[1024];
 	int gpsSocketfd = -1;
-	//int gpsSocketfd = create_satfi_udp_fd();
-	//satfi_log("gpsSocketfd=%d\n", gpsSocketfd);
-	//gps_start();
 	
 	struct sockaddr_in *clientAddr1 = &(base.sat.clientAddr1);
 	socklen_t len = sizeof(struct sockaddr_in);
 
-	int n,ret;	
+	int n,ret;
 	//AUDIO_CHANNEL_OUT_STEREO, 16 bit, stereo 22050 Hz
 	sp<AudioTrack> track = new AudioTrack(AUDIO_STREAM_MUSIC, 8000, AUDIO_FORMAT_PCM_16_BIT, AUDIO_CHANNEL_OUT_MONO, 0);
 	if(track->initCheck() != OK)
@@ -428,6 +411,11 @@ void main_thread_loop(void)
 			if(gpsSocketfd > maxfd) {
 				maxfd = gpsSocketfd;
 			}
+		}
+		else
+		{
+			gps_start();
+			gpsSocketfd = create_satfi_udp_fd();	
 		}
 
 		if(base.sat.sat_fd > 0) {
@@ -535,16 +523,16 @@ void main_thread_loop(void)
 								
 								track->write(SatDataBuf[3], n);
 
-								if(base.sat.sat_state_phone == SAT_STATE_PHONE_ONLINE)
-								{
-									static int playbackfd = -1;
-									if(playbackfd < 0)
-									{
-										playbackfd = open("/sdcard/playback.pcm", O_RDWR|O_CREAT, 0644);
-										lseek(playbackfd, 0, SEEK_SET);
-									}
-									write(playbackfd, SatDataBuf[3], n);
-								}
+								//if(base.sat.sat_state_phone == SAT_STATE_PHONE_ONLINE)
+								//{
+								//	static int playbackfd = -1;
+								//	if(playbackfd < 0)
+								//	{
+								//		playbackfd = open("/sdcard/playback.pcm", O_RDWR|O_CREAT, 0644);
+								//		lseek(playbackfd, 0, SEEK_SET);
+								//	}
+								//	write(playbackfd, SatDataBuf[3], n);
+								//}
 
 								//if(!echo_state && base.sat.sat_state_phone == SAT_STATE_PHONE_ONLINE)
 								//{
@@ -563,15 +551,22 @@ void main_thread_loop(void)
 					}
 				}
 
-				if(gpsSocketfd > 0 && FD_ISSET(gpsSocketfd, &fds))
+				if(gpsSocketfd > 0)
 				{
-					int n = safe_recvfrom(gpsSocketfd, gpsDataBuf, 1024);
-					if(n>0)
+					if(FD_ISSET(gpsSocketfd, &fds))
 					{
-						gpsDataBuf[n] = 0;
-						strncpy(base.gps.gps_bd, gpsDataBuf, n);
-						parseGpsData(gpsDataBuf, n);
-						//satfi_log("gpsDataBuf=%s\n", gpsDataBuf);
+						int n = safe_recvfrom(gpsSocketfd, gpsDataBuf, 1024);
+						if(n>0)
+						{
+							gpsDataBuf[n] = 0;
+							strncpy(base.gps.gps_bd, gpsDataBuf, n);
+							//parseGpsData(gpsDataBuf, n);
+							//satfi_log("gpsDataBuf=%s\n", gpsDataBuf);
+						}
+					}
+					else
+					{
+						gps_start();
 					}
 				}
 				break;
@@ -767,7 +762,7 @@ void *local_socket_server(void *p)
 							{
 								//satfi_log("%d", ofs1);
 								write(base->sat.sat_pcmdata, buf+ofs1, 320);
-								milliseconds_sleepms();
+								//milliseconds_sleepms();
 								ofs1 += 320;
 							}
 							ofs = 0;

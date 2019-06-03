@@ -354,5 +354,9 @@ extern int AppCallUpRspForce(int socket, short sat_state_phone);
 extern int handle_sat_data(int *satfd, char *data, int *ofs);
 extern int safe_recvfrom(int fd, char* buff, int len);
 extern int parseGpsData(char *buf, int len);
+extern void gps_start(void);
+extern int gps_stop(void);
+extern int create_satfi_udp_fd(void);
+extern void milliseconds_sleep(unsigned long milliseconds);
 
 #endif

@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#define OLD_FILE_PATH "playback.pcm"
+#define OLD_FILE_PATH "record.pcm"
 #define VOL_FILE_PATH "vol.pcm"
  
 int volume_adjust(short  * in_buf, short  * out_buf, float in_vol)
@@ -23,7 +23,7 @@ int volume_adjust(short  * in_buf, short  * out_buf, float in_vol)
     else if(vol>=2)
         vol = 40;  //这个值可以根据你的实际情况去调整
  
-    tmp = (*in_buf)*3; // 上面所有关于vol的判断，其实都是为了此处*in_buf乘以一个倍数，你可以根据自己的需要去修改
+    tmp = (*in_buf)>>2; // 上面所有关于vol的判断，其实都是为了此处*in_buf乘以一个倍数，你可以根据自己的需要去修改
  
     // 下面的code主要是为了溢出判断
     if(tmp > 32767)

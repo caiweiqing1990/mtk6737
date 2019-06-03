@@ -147,7 +147,7 @@ public class WifiTest {
 			public static final int SIGNAL_STRENGTH_MODERATE = 2;
 			public static final int SIGNAL_STRENGTH_GOOD = 3;
 			public static final int SIGNAL_STRENGTH_GREAT = 4;
-			*/
+			
 			
 			SignalStrength mSignalStrength = new SignalStrength();
 			System.out.println("mSignalStrength.getLteLevel=" + mSignalStrength.getLteLevel());//获取信号格数
@@ -164,7 +164,7 @@ public class WifiTest {
 			System.out.println("mSignalStrength.getCdmaDbm=" + mSignalStrength.getCdmaDbm());//获取信号格数
 			System.out.println("mSignalStrength.getEvdoDbm=" + mSignalStrength.getEvdoDbm());//获取信号格数
 			
-			
+			*/
 			String imeiUtils = telephony.getDeviceId(null);
 			System.out.println("imeiUtils="+imeiUtils);
 			//System.out.println("getDeviceId="+imeiUtils.substring(imeiUtils.length()-4,imeiUtils.length()));

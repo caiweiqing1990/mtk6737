@@ -33,7 +33,7 @@ pthread_mutex_t n3g_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t net_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t pack_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-#define SATFI_VERSION "HTL8100 2.0"
+#define SATFI_VERSION "HTL8100 2.1"
 
 BASE base = { 0 };
 char satfi_version[32] = {0}; //当前satfi版本
@@ -68,9 +68,6 @@ int VoltageVal = 0;
 #define VOLTAGE_WARNING_ADC_VAL	3500	
 int udpvoicetimeout = 60;
 int AppCnt = 0;
-/* 同步锁
- *
- */
 
 #define RC		HW_GPIO1	//振铃控制
 #define SHR		HW_GPIO58	//摘机检测 0:1 摘机:挂机
@@ -78,13 +75,23 @@ int AppCnt = 0;
 #define D0		HW_GPIO60
 #define D1		HW_GPIO59
 #define D2		HW_GPIO57
-#define D3		HW_GPIO47
+#define OE		HW_GPIO53
 
+#if 0
+#define D3		HW_GPIO62
+#define DV		HW_GPIO61	//按键是否按下 new
+#define INH		HW_GPIO64
+#define PWDN	HW_GPIO63
+#else
+#define D3		HW_GPIO47
 #define DV		HW_GPIO48	//按键是否按下
 #define INH		HW_GPIO51
 #define PWDN	HW_GPIO52
-#define OE		HW_GPIO53
+#endif
 
+/* 同步锁
+ *
+ */
 void n3g_lock() { pthread_mutex_lock(&n3g_mutex); }
 void n3g_unlock() { pthread_mutex_unlock(&n3g_mutex); }
 void sat_lock() { pthread_mutex_lock(&sat_mutex); }
@@ -141,6 +148,16 @@ void SavePcmData1(char *FileName, char *Data, int Length)
 	}
 	satfi_log("%d %s\n", fd, FileName);
 	write(fd, Data, Length);
+}
+
+void milliseconds_sleep(unsigned long milliseconds)
+{
+  struct timeval tv = {milliseconds/1000, (milliseconds%1000)*1000};
+  int err;
+  do
+  {
+    err = select(0,NULL,NULL,NULL,&tv);
+  } while (err<0 || errno == EINTR);
 }
 
 int SaveDataToFile(char *FileName, char *Data, int Length)
@@ -1696,7 +1713,7 @@ int parseGpsData(char *buf, int len)
 	strcat(GpsData, ",");
 	strcat(GpsData, "2000");   // 定位精度
 	strcat(GpsData, ",A*60,00,00,00000000,");
-	//printf("%s\n",buf);
+	satfi_log("GpsData=%s\n",GpsData);
 	
 	sscanf(data[7],"%lf",&Speed);
 	
@@ -1741,12 +1758,12 @@ int parseGpsData(char *buf, int len)
 
 	if(base.gps.Lg == 0 || base.gps.Lt == 0)
 	{
-		gpio_out(78, 0);
+		//gpio_out(78, 0);
 		bGetGpsData = 0;
 	}
 	else
 	{
-		gpio_out(78, 1);
+		//gpio_out(78, 1);
 		bGetGpsData = 1;
 	}
 
@@ -5384,9 +5401,9 @@ int handle_app_msg_tcp(int socket, char *pack, char *tscbuf)
 			{
 				if(base.sat.sat_status == 1)
 				{
-					sos_mode = 1;
-					if(sos_mode)
+					if(sos_mode == 0)
 					{
+						sos_mode = 1;
 						SOSMessageFromFile();
 					}
 				}
@@ -5499,10 +5516,10 @@ int handle_app_msg_tcp(int socket, char *pack, char *tscbuf)
 			MsgStatusRsp *rsp = (MsgStatusRsp *)tmp;
 			rsp->header.length = sizeof(MsgStatusRsp);
 			rsp->header.mclass = STATUS_RESPONSE;
-			rsp->power_satus = 1;
+			rsp->power_satus = !ioctl(mtgpiofd, GPIO_IOCQDATAIN, HW_GPIO44);
 			
 			rsp->battery_level = get_battery_level();
-			rsp->battery_status = 0;
+			rsp->battery_status = !rsp->power_satus;
 			rsp->sat_status = base.sat.module_status;
 			strncpy(rsp->sat_imei, base.sat.sat_imei, IMSI_LEN);
 			strncpy(rsp->sat_imsi, base.sat.sat_imsi, IMSI_LEN);
@@ -8342,6 +8359,13 @@ int socket_set_blocking(int fd, int blocking)
     return (fcntl(fd, F_SETFL, flags) == 0) ? 0 : -1;
 }
 
+int create_satfi_udp_fd()
+{
+	int fd = socket_bind_udp("satfi");
+	socket_set_blocking(fd, 0);
+	return fd;
+}
+
 void gps_start(void) 
 {
     satfi_log("gps_start\n");
@@ -8377,11 +8401,11 @@ void gps_start(void)
 
     char buff[HAL_MNL_BUFF_SIZE] = {0};
 	int offset = 0;
-    put_int(buff, &offset, HAL_MNL_INTERFACE_VERSION);
-    put_int(buff, &offset, HAL2MNL_GPS_STOP);
-	safe_sendto(MTK_HAL2MNL, buff, offset);
+    //put_int(buff, &offset, HAL_MNL_INTERFACE_VERSION);
+    //put_int(buff, &offset, HAL2MNL_GPS_STOP);
+	//safe_sendto(MTK_HAL2MNL, buff, offset);
 
-	sleep(1);
+	//sleep(1);
 
 	offset = 0;
     put_int(buff, &offset, HAL_MNL_INTERFACE_VERSION);
@@ -8393,7 +8417,7 @@ void gps_start(void)
     put_int(buff, &offset, 1);
 	safe_sendto(MTK_HAL2MNL, buff, offset);
 
-	sleep(1);
+	//sleep(1);
 
 	offset = 0;
     put_int(buff, &offset, HAL_MNL_INTERFACE_VERSION);
@@ -8597,6 +8621,13 @@ void *SystemServer(void *p)
 	ioctl(fd, GPIO_IOCSPULLENABLE, GPIO_WIFI);
 	ioctl(fd, GPIO_IOCQPULLEN, GPIO_WIFI);
 	ioctl(fd, GPIO_IOCSPULLUP, GPIO_WIFI);
+
+	ioctl(fd, GPIO_IOCTMODE0, HW_GPIO44);
+	ioctl(fd, GPIO_IOCSDIRIN, HW_GPIO44);
+	ioctl(fd, GPIO_IOCSPULLENABLE, HW_GPIO44);
+	ioctl(fd, GPIO_IOCQPULLEN, HW_GPIO44);
+	ioctl(fd, GPIO_IOCSPULLDOWN, HW_GPIO44);
+
 
 	int pin_stat = -1, stat_pppd = -1, stat_sos = -1, stat_wifi = -1;
 	
@@ -9125,7 +9156,6 @@ void *CheckProgramUpdateServer(void *p)
 {
 	BASE *base = (BASE *)p;
 	char md5sum[256] = {0};
-	char satfimd5sum[256] = {0};
 	char version[256] = {0};
 	char satfiurl[256] = {0};
 
@@ -9140,12 +9170,10 @@ void *CheckProgramUpdateServer(void *p)
 			{
 				GetIniKeyString("update","VERSION",UPDATE_CONFIG,version);
 				GetIniKeyString("update","MD5SUM",UPDATE_CONFIG,md5sum);
-				GetIniKeyString("update","SATFIMD5SUM",UPDATE_CONFIG,satfimd5sum);
 				GetIniKeyString("update","URL",UPDATE_CONFIG,satfiurl);
 				
 				satfi_log("server_version=%s current_version=%s\n",version, satfi_version);
 				satfi_log("md5sum=%s\n",md5sum);
-				satfi_log("satfimd5sum=%s\n",satfimd5sum);
 				satfi_log("satfiurl=%s\n",satfiurl);
 
 				if(strcmp(version, satfi_version)) // HTL8100 x.x
@@ -10324,6 +10352,7 @@ void hw_init(void)
 	gpio_in(D1);
 	gpio_in(D2);
 	gpio_in(D3);
+	gpio_in(DV);
 
 	myexec("echo \"noSuspend\" > /sys/power/wake_lock", NULL, NULL);	
 }
@@ -10355,7 +10384,6 @@ void base_init(void)
 	if(pthread_create(&id_1, NULL, Second_linePhone_Dial_Detect, (void *)&base) == -1) exit(1);//二线电话拨号检测
 	
 }
-
 
 #if 0
 int main(int argc, char *argv[])

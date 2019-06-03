@@ -1,7 +1,1 @@
----- SosMode Matches (6 in 1 files) ----
-satfi.c (Y:\satfi) line 49 : static int SosMode = 0;
-handle_sat_data in satfi.c (Y:\satfi) : 							if(SosMode == 0)MessageDel();
-handle_sat_data in satfi.c (Y:\satfi) : 							SosMode = 0;
-SystemServer in satfi.c (Y:\satfi) : 					SosMode = 0;
-SystemServer in satfi.c (Y:\satfi) : 						if(SosMode == 0)
-SystemServer in satfi.c (Y:\satfi) : 							SosMode = 1;
+---- create_satfi_udp_fd Matches (0 in 0 files) ----
