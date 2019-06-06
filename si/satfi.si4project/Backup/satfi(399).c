@@ -33,7 +33,7 @@ pthread_mutex_t n3g_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t net_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t pack_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-#define SATFI_VERSION "HTL8100 2.3"
+#define SATFI_VERSION "HTL8100 2.2"
 
 BASE base = { 0 };
 char satfi_version[32] = {0}; //当前satfi版本
@@ -2217,27 +2217,15 @@ void cgeqreq_set(void)
 		{
 			sprintf(qos1, "%d", base.sat.qos1);
 		}
-		else
-		{
-			base.sat.qos1 = GetIniKeyInt("satellite","QOS1",CONFIG_FILE);
-		}
 		
 		if(strlen(qos2) == 0)
 		{
 			sprintf(qos2, "%d", base.sat.qos2);
 		}
-		else
-		{
-			base.sat.qos2 = GetIniKeyInt("satellite","QOS2",CONFIG_FILE);
-		}
 		
 		if(strlen(qos3) == 0)
 		{
 			sprintf(qos3, "%d", base.sat.qos3);
-		}
-		else
-		{
-			base.sat.qos3 = GetIniKeyInt("satellite","QOS3",CONFIG_FILE);
 		}
 	}
 	else
@@ -3167,10 +3155,7 @@ int handle_sat_data(int *satfd, char *data, int *ofs)
 							rsp.ID = MessagesHead->ID;
 							Data_To_MsID(rsp.MsID, &rsp);
 							MessageDel();
-							if(sos_mode)
-							{
-								SOSMessageFromFile();
-							}
+							sos_mode = 0;
 						}
 						
 						base.sat.sat_msg_sending = 0;
@@ -5399,7 +5384,7 @@ int handle_app_msg_tcp(int socket, char *pack, char *tscbuf)
 			int datalen = req->header.length - ((int)req->Message - (int)req);
 			SetKeyInt("SOS", "INTERVAL", SOS_FILE, req->interval);
 			SetKeyInt("SOS", "BOOLCALLPHONE", SOS_FILE, req->boolcallphone);
-			strncpy(Phone, req->Phone, strlen(req->Phone));
+			strncpy(Phone, req->Phone, sizeof(Phone));
 			strncpy(Message, req->Message, datalen);
 
 			SetKeyString("SOS", "PHONE", SOS_FILE, NULL, Phone);
@@ -5408,9 +5393,8 @@ int handle_app_msg_tcp(int socket, char *pack, char *tscbuf)
 			satfi_log("msid=%s\n", req->MsID);
 			satfi_log("interval=%d\n", req->interval);
 			satfi_log("boolcallphone=%d\n", req->boolcallphone);
-			satfi_log("Operation=%d\n", req->Operation);
-			satfi_log("Phone=%s, %d\n", Phone, strlen(Phone));
-			satfi_log("datalen=%d, Message=%s\n", datalen, Message);	
+			satfi_log("Phone=%s\n", req->Phone);
+			satfi_log("datalen=%d, Message=%s\n", datalen, req->Message);	
 
 			memset(tmp,0,2048);
 			MsgSosInfoRsp *rsp = (MsgSosInfoRsp *)tmp;
@@ -8618,7 +8602,6 @@ void *SystemServer(void *p)
 	BASE *base = (BASE *)p;
 
 	int msg_send_timeout=0;
-	int lte_status = 0;
 
 #define GPIO_PPPD	HW_GPIO42
 #define GPIO_SOS	HW_GPIO43
@@ -8902,7 +8885,7 @@ void *SystemServer(void *p)
 
 		if(!checkroute("ccmni", NULL, 0))
 		{
-			if(eth_state_change() || ap_state_change() || (lte_status != base->sat.lte_status))
+			if(eth_state_change() || ap_state_change())
 			{
 				satfi_log("ccmni iptables settings\n");
 				myexec("echo 1 > /proc/sys/net/ipv4/ip_forward", NULL, NULL);
@@ -8915,8 +8898,7 @@ void *SystemServer(void *p)
 				myexec("ip rule add from all table 205", NULL, NULL);
 				myexec("ip route add 192.168.43.0/24 via 192.168.43.1 dev ap0 table 205", NULL, NULL);
 				myexec("ip route add 192.168.1.0/24 via 192.168.1.1 dev eth0 table 205", NULL, NULL);
-				myexec("ip route flush cache", NULL, NULL);
-				lte_status = base->sat.lte_status;
+				myexec("ip route flush cache", NULL, NULL);				
 			}
 
 			base->sat.lte_status = 1;
@@ -8925,7 +8907,7 @@ void *SystemServer(void *p)
 		{
 			if(!checkroute("ppp", NULL, 0))
 			{
-				if(eth_state_change() || ap_state_change() || (lte_status != base->sat.lte_status))
+				if(eth_state_change() || ap_state_change())
 				{
 					satfi_log("ppp iptables settings\n");
 					myexec("echo 1 > /proc/sys/net/ipv4/ip_forward", NULL, NULL);
@@ -8941,8 +8923,7 @@ void *SystemServer(void *p)
 					myexec("ip rule add from all table 205", NULL, NULL);
 					myexec("ip route add 192.168.43.0/24 via 192.168.43.1 dev ap0 table 205", NULL, NULL);
 					myexec("ip route add 192.168.1.0/24 via 192.168.1.1 dev eth0 table 205", NULL, NULL);
-					myexec("ip route flush cache", NULL, NULL);
-					lte_status = base->sat.lte_status;
+					myexec("ip route flush cache", NULL, NULL); 			
 				}
 			}
 
@@ -9285,7 +9266,7 @@ void *CheckProgramUpdateServer(void *p)
 			{
 				//download update.ini
 				bzero(cmd, sizeof(cmd));
-				sprintf(cmd, "busybox wget -c %s -O /cache/recovery/update_1.ini", UPDATE_INI_URL);
+				sprintf(cmd, "busybox wget -c %s -O /cache/recovery/update.ini", UPDATE_INI_URL);
 				satfi_log("%s", cmd);
 				myexec(cmd, NULL, NULL);
 			}

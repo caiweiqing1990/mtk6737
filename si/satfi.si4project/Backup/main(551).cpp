@@ -415,6 +415,7 @@ void main_thread_loop(void)
 		}
 		else
 		{
+			gps_start();
 			gpsSocketfd = create_satfi_udp_fd();	
 		}
 

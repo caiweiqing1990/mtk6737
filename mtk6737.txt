@@ -158,7 +158,7 @@ adb pull /system/build.prop C:\Users\AnandLin\Desktop
 adb push C:\Users\AnandLin\Desktop\build.prop /system/build.prop
 adb pull /data/misc/ethernet/ipconfig.txt C:\Users\AnandLin\Desktop
 adb push Y:\gpsinf\bin\gps_test /system/bin/
-logcat pseudo:D *:S
+logcat pseudo:* *:S
 logcat RILD:* *:S
 logcat SatFi:* *:S
 

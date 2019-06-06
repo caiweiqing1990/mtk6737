@@ -2217,27 +2217,15 @@ void cgeqreq_set(void)
 		{
 			sprintf(qos1, "%d", base.sat.qos1);
 		}
-		else
-		{
-			base.sat.qos1 = GetIniKeyInt("satellite","QOS1",CONFIG_FILE);
-		}
 		
 		if(strlen(qos2) == 0)
 		{
 			sprintf(qos2, "%d", base.sat.qos2);
 		}
-		else
-		{
-			base.sat.qos2 = GetIniKeyInt("satellite","QOS2",CONFIG_FILE);
-		}
 		
 		if(strlen(qos3) == 0)
 		{
 			sprintf(qos3, "%d", base.sat.qos3);
-		}
-		else
-		{
-			base.sat.qos3 = GetIniKeyInt("satellite","QOS3",CONFIG_FILE);
 		}
 	}
 	else

@@ -33,7 +33,7 @@ pthread_mutex_t n3g_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t net_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t pack_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-#define SATFI_VERSION "HTL8100 2.3"
+#define SATFI_VERSION "HTL8100 2.1"
 
 BASE base = { 0 };
 char satfi_version[32] = {0}; //当前satfi版本
@@ -2217,27 +2217,15 @@ void cgeqreq_set(void)
 		{
 			sprintf(qos1, "%d", base.sat.qos1);
 		}
-		else
-		{
-			base.sat.qos1 = GetIniKeyInt("satellite","QOS1",CONFIG_FILE);
-		}
 		
 		if(strlen(qos2) == 0)
 		{
 			sprintf(qos2, "%d", base.sat.qos2);
 		}
-		else
-		{
-			base.sat.qos2 = GetIniKeyInt("satellite","QOS2",CONFIG_FILE);
-		}
 		
 		if(strlen(qos3) == 0)
 		{
 			sprintf(qos3, "%d", base.sat.qos3);
-		}
-		else
-		{
-			base.sat.qos3 = GetIniKeyInt("satellite","QOS3",CONFIG_FILE);
 		}
 	}
 	else
@@ -2344,14 +2332,9 @@ void *func_y(void *p)
 					base->sat.sat_state = SAT_STATE_CGACT_SCCUSS;
 					satfi_log("SAT_STATE_CGACT_SCCUSS\n");
 					myexec("stop sat_pppd", NULL, NULL);												
-					base->sat.sat_available = 0;
-					base->sat.data_status = 0;
 				}
-
-				if(base->sat.sat_available == 1)
-				{
-					base->sat.sat_available = 0;
-				}
+				base->sat.sat_available = 0;
+				base->sat.data_status = 0;
 			}
 		}
 		else
@@ -2942,7 +2925,7 @@ int handle_sat_data(int *satfd, char *data, int *ofs)
 					
 					if(i == 10)
 					{
-						if(strlen(passwd) > (sizeof(passwd) - 6))
+						if(strlen(passwd) >= sizeof(passwd))
 						{
 							satfi_log("bzero strncat passwd\n");
 							bzero(passwd, sizeof(passwd));
@@ -3167,10 +3150,7 @@ int handle_sat_data(int *satfd, char *data, int *ofs)
 							rsp.ID = MessagesHead->ID;
 							Data_To_MsID(rsp.MsID, &rsp);
 							MessageDel();
-							if(sos_mode)
-							{
-								SOSMessageFromFile();
-							}
+							sos_mode = 0;
 						}
 						
 						base.sat.sat_msg_sending = 0;
@@ -5399,7 +5379,7 @@ int handle_app_msg_tcp(int socket, char *pack, char *tscbuf)
 			int datalen = req->header.length - ((int)req->Message - (int)req);
 			SetKeyInt("SOS", "INTERVAL", SOS_FILE, req->interval);
 			SetKeyInt("SOS", "BOOLCALLPHONE", SOS_FILE, req->boolcallphone);
-			strncpy(Phone, req->Phone, strlen(req->Phone));
+			strncpy(Phone, req->Phone, sizeof(Phone));
 			strncpy(Message, req->Message, datalen);
 
 			SetKeyString("SOS", "PHONE", SOS_FILE, NULL, Phone);
@@ -5408,9 +5388,8 @@ int handle_app_msg_tcp(int socket, char *pack, char *tscbuf)
 			satfi_log("msid=%s\n", req->MsID);
 			satfi_log("interval=%d\n", req->interval);
 			satfi_log("boolcallphone=%d\n", req->boolcallphone);
-			satfi_log("Operation=%d\n", req->Operation);
-			satfi_log("Phone=%s, %d\n", Phone, strlen(Phone));
-			satfi_log("datalen=%d, Message=%s\n", datalen, Message);	
+			satfi_log("Phone=%s\n", req->Phone);
+			satfi_log("datalen=%d, Message=%s\n", datalen, req->Message);	
 
 			memset(tmp,0,2048);
 			MsgSosInfoRsp *rsp = (MsgSosInfoRsp *)tmp;
@@ -8618,7 +8597,6 @@ void *SystemServer(void *p)
 	BASE *base = (BASE *)p;
 
 	int msg_send_timeout=0;
-	int lte_status = 0;
 
 #define GPIO_PPPD	HW_GPIO42
 #define GPIO_SOS	HW_GPIO43
@@ -8902,7 +8880,7 @@ void *SystemServer(void *p)
 
 		if(!checkroute("ccmni", NULL, 0))
 		{
-			if(eth_state_change() || ap_state_change() || (lte_status != base->sat.lte_status))
+			if(eth_state_change() || ap_state_change())
 			{
 				satfi_log("ccmni iptables settings\n");
 				myexec("echo 1 > /proc/sys/net/ipv4/ip_forward", NULL, NULL);
@@ -8915,8 +8893,7 @@ void *SystemServer(void *p)
 				myexec("ip rule add from all table 205", NULL, NULL);
 				myexec("ip route add 192.168.43.0/24 via 192.168.43.1 dev ap0 table 205", NULL, NULL);
 				myexec("ip route add 192.168.1.0/24 via 192.168.1.1 dev eth0 table 205", NULL, NULL);
-				myexec("ip route flush cache", NULL, NULL);
-				lte_status = base->sat.lte_status;
+				myexec("ip route flush cache", NULL, NULL);				
 			}
 
 			base->sat.lte_status = 1;
@@ -8925,7 +8902,7 @@ void *SystemServer(void *p)
 		{
 			if(!checkroute("ppp", NULL, 0))
 			{
-				if(eth_state_change() || ap_state_change() || (lte_status != base->sat.lte_status))
+				if(eth_state_change() || ap_state_change())
 				{
 					satfi_log("ppp iptables settings\n");
 					myexec("echo 1 > /proc/sys/net/ipv4/ip_forward", NULL, NULL);
@@ -8941,8 +8918,7 @@ void *SystemServer(void *p)
 					myexec("ip rule add from all table 205", NULL, NULL);
 					myexec("ip route add 192.168.43.0/24 via 192.168.43.1 dev ap0 table 205", NULL, NULL);
 					myexec("ip route add 192.168.1.0/24 via 192.168.1.1 dev eth0 table 205", NULL, NULL);
-					myexec("ip route flush cache", NULL, NULL);
-					lte_status = base->sat.lte_status;
+					myexec("ip route flush cache", NULL, NULL); 			
 				}
 			}
 
@@ -9285,7 +9261,7 @@ void *CheckProgramUpdateServer(void *p)
 			{
 				//download update.ini
 				bzero(cmd, sizeof(cmd));
-				sprintf(cmd, "busybox wget -c %s -O /cache/recovery/update_1.ini", UPDATE_INI_URL);
+				sprintf(cmd, "busybox wget -c %s -O /cache/recovery/update.ini", UPDATE_INI_URL);
 				satfi_log("%s", cmd);
 				myexec(cmd, NULL, NULL);
 			}
@@ -9455,7 +9431,7 @@ static void *CallUpThread(void *p)
 				if(atdwaitcnt == 10)
 				{
 					base->sat.sat_state_phone = SAT_STATE_PHONE_DIALING_ATH_W;
-					uart_send(base->sat.sat_phone, "AT+CHUP\r\n", 9);
+					uart_send(base->sat.sat_phone, "ATH\r\n", 5);
 					atdwaitcnt = 0;
 				}
 				break;
@@ -9519,7 +9495,7 @@ static void *CallUpThread(void *p)
 			if(ringcnt >= 50)
 			{
 				base->sat.sat_state_phone = SAT_STATE_PHONE_NOANSWER;
-				uart_send(base->sat.sat_phone, "AT+CHUP\r\n", 9);
+				uart_send(base->sat.sat_phone, "ATH\r\n", 5);
 				//ringcnt = 0;
 			}
 		}
@@ -9531,7 +9507,7 @@ static void *CallUpThread(void *p)
 			{
 				base->sat.sat_state_phone = SAT_STATE_PHONE_DIALING_ATH_W;
 				satfi_log("SAT_STATE_PHONE_DIALING too much ATH %d\n",base->sat.sat_state_phone);
-				uart_send(base->sat.sat_phone, "AT+CHUP\r\n", 9);
+				uart_send(base->sat.sat_phone, "ATH\r\n", 5);
 				dialcnt = 0;
 			}
 		}
@@ -9542,12 +9518,6 @@ static void *CallUpThread(void *p)
 	int cnt = 10;
 	while(cnt--)
 	{
-		if(base->sat.sat_state_phone != SAT_STATE_PHONE_ATH_W)
-		{
-			satfi_log("CallUpThread SAT_STATE_PHONE_ATH_W\n");
-			break;
-		}
-		
 		if(base->sat.sat_phone == -1)
 	    {
 			if(init_serial(&base->sat.sat_phone, base->sat.sat_dev_name, base->sat.sat_baud_rate) < 0)
@@ -9556,9 +9526,9 @@ static void *CallUpThread(void *p)
 			}
 	    }
 
-		satfi_log("AT+CHUP\n");
+		satfi_log("ATH\n");
 		base->sat.sat_state_phone = SAT_STATE_PHONE_ATH_W;
-		uart_send(base->sat.sat_phone, "AT+CHUP\r\n", 9);
+		uart_send(base->sat.sat_phone, "ATH\r\n", 5);
 		AppCallUpRsp(base->sat.socket, get_sat_dailstatus());
 		sleep(1);
 		if(base->sat.sat_state_phone == SAT_STATE_PHONE_HANGUP ||
@@ -9866,7 +9836,7 @@ void *sat_ring_detect(void *p)
 				else
 				{
 					ringsocket = base->sat.captain_socket;
-					if(ringsocket <= 0)
+					if(ringsocket < 0)
 					{
 						int i=0;
 						USER * t = gp_users;
@@ -9891,7 +9861,7 @@ void *sat_ring_detect(void *p)
 						}
 					}
 
-					if(ringsocket <= 0)
+					if(ringsocket < 0)
 					{
 						USER * t = gp_users;
 						while(t)
@@ -10039,12 +10009,6 @@ void *sat_ring_detect(void *p)
 			int cnt = 10;
 			while(cnt--)
 			{
-				if(base->sat.sat_state_phone != SAT_STATE_PHONE_ATH_W)
-				{
-					satfi_log("sat_ring_detect SAT_STATE_PHONE_ATH_W\n");
-					break;
-				}
-
 				if(base->sat.sat_phone == -1)
 			    {
 					if(init_serial(&base->sat.sat_phone, base->sat.sat_dev_name, base->sat.sat_baud_rate) < 0)
@@ -10053,9 +10017,9 @@ void *sat_ring_detect(void *p)
 					}
 			    }
 
-				satfi_log("AT+CHUP\n");
+				satfi_log("ATH\n");
 				base->sat.sat_state_phone = SAT_STATE_PHONE_ATH_W;
-				uart_send(base->sat.sat_phone, "AT+CHUP\r\n", 9);
+				uart_send(base->sat.sat_phone, "ATH\r\n", 5);
 				sleep(1);
 				if(base->sat.sat_state_phone == SAT_STATE_PHONE_HANGUP ||
 					base->sat.sat_state_phone == SAT_STATE_PHONE_COMING_HANGUP || 

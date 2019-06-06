@@ -2217,27 +2217,15 @@ void cgeqreq_set(void)
 		{
 			sprintf(qos1, "%d", base.sat.qos1);
 		}
-		else
-		{
-			base.sat.qos1 = GetIniKeyInt("satellite","QOS1",CONFIG_FILE);
-		}
 		
 		if(strlen(qos2) == 0)
 		{
 			sprintf(qos2, "%d", base.sat.qos2);
 		}
-		else
-		{
-			base.sat.qos2 = GetIniKeyInt("satellite","QOS2",CONFIG_FILE);
-		}
 		
 		if(strlen(qos3) == 0)
 		{
 			sprintf(qos3, "%d", base.sat.qos3);
-		}
-		else
-		{
-			base.sat.qos3 = GetIniKeyInt("satellite","QOS3",CONFIG_FILE);
 		}
 	}
 	else
@@ -3167,10 +3155,7 @@ int handle_sat_data(int *satfd, char *data, int *ofs)
 							rsp.ID = MessagesHead->ID;
 							Data_To_MsID(rsp.MsID, &rsp);
 							MessageDel();
-							if(sos_mode)
-							{
-								SOSMessageFromFile();
-							}
+							sos_mode = 0;
 						}
 						
 						base.sat.sat_msg_sending = 0;
@@ -5399,7 +5384,7 @@ int handle_app_msg_tcp(int socket, char *pack, char *tscbuf)
 			int datalen = req->header.length - ((int)req->Message - (int)req);
 			SetKeyInt("SOS", "INTERVAL", SOS_FILE, req->interval);
 			SetKeyInt("SOS", "BOOLCALLPHONE", SOS_FILE, req->boolcallphone);
-			strncpy(Phone, req->Phone, strlen(req->Phone));
+			strncpy(Phone, req->Phone, sizeof(Phone));
 			strncpy(Message, req->Message, datalen);
 
 			SetKeyString("SOS", "PHONE", SOS_FILE, NULL, Phone);
@@ -5408,9 +5393,8 @@ int handle_app_msg_tcp(int socket, char *pack, char *tscbuf)
 			satfi_log("msid=%s\n", req->MsID);
 			satfi_log("interval=%d\n", req->interval);
 			satfi_log("boolcallphone=%d\n", req->boolcallphone);
-			satfi_log("Operation=%d\n", req->Operation);
-			satfi_log("Phone=%s, %d\n", Phone, strlen(Phone));
-			satfi_log("datalen=%d, Message=%s\n", datalen, Message);	
+			satfi_log("Phone=%s\n", req->Phone);
+			satfi_log("datalen=%d, Message=%s\n", datalen, req->Message);	
 
 			memset(tmp,0,2048);
 			MsgSosInfoRsp *rsp = (MsgSosInfoRsp *)tmp;

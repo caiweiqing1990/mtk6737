@@ -353,8 +353,8 @@ void *handle_pcm_data(void *p)
 					{
 						write(base->sat.sat_pcmdata, &tmp[ofs1], 320);
 						ofs1 += 320;
+						if(ofs1 >= 8000) break;
 						milliseconds_sleep(19);
-						if(ofs1 >= n) break;
 					}
 					//static int recordfd = -1;
 					//if(recordfd < 0)
@@ -400,7 +400,6 @@ void main_thread_loop(void)
 	//track->setVolume(2.0f, 2.0f);
 
 	int AudioTrackStart = 0;
-	int GpsStart = 0;
 
 	while(1)
 	{
@@ -415,6 +414,7 @@ void main_thread_loop(void)
 		}
 		else
 		{
+			gps_start();
 			gpsSocketfd = create_satfi_udp_fd();	
 		}
 
@@ -562,12 +562,11 @@ void main_thread_loop(void)
 							strncpy(base.gps.gps_bd, gpsDataBuf, n);
 							//parseGpsData(gpsDataBuf, n);
 							//satfi_log("gpsDataBuf=%s\n", gpsDataBuf);
-							GpsStart = 1;
 						}
 					}
 					else
 					{
-						if(GpsStart==0)gps_start();
+						gps_start();
 					}
 				}
 				break;

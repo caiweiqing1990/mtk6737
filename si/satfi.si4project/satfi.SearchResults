@@ -1,1 +1,13 @@
----- create_satfi_udp_fd Matches (0 in 0 files) ----
+---- SAT_STATE_PHONE_HANGUP Matches (12 in 2 files) ----
+get_sat_dailstatus in satfi.c (Y:\satfi) :   else if(base.sat.sat_state_phone == SAT_STATE_PHONE_HANGUP || 
+handle_sat_data in satfi.c (Y:\satfi) : 						satfi_log("SAT_STATE_PHONE_ATH_W SAT_STATE_PHONE_HANGUP\n");
+handle_sat_data in satfi.c (Y:\satfi) : 						base.sat.sat_state_phone = SAT_STATE_PHONE_HANGUP;//已挂断
+handle_sat_data in satfi.c (Y:\satfi) : 							base.sat.sat_state_phone = SAT_STATE_PHONE_HANGUP;
+handle_sat_data in satfi.c (Y:\satfi) : 							base.sat.sat_state_phone = SAT_STATE_PHONE_HANGUP;
+CallUpThread in satfi.c (Y:\satfi) : 			case SAT_STATE_PHONE_HANGUP:
+CallUpThread in satfi.c (Y:\satfi) : 		if(base->sat.sat_state_phone == SAT_STATE_PHONE_HANGUP ||
+sat_ring_detect in satfi.c (Y:\satfi) : 				if(base->sat.sat_state_phone == SAT_STATE_PHONE_HANGUP)
+sat_ring_detect in satfi.c (Y:\satfi) : 					satfi_log("SAT_STATE_PHONE_HANGUP captain_socket=%d\n", base->sat.captain_socket);
+sat_ring_detect in satfi.c (Y:\satfi) : 				if(base->sat.sat_state_phone == SAT_STATE_PHONE_HANGUP ||
+sat_ring_detect in satfi.c (Y:\satfi) : 			satfi_log("SAT_STATE_PHONE_HANGUP %d\n", base->sat.sat_state_phone);
+SAT_STATE_PHONE in satfi.h (Y:\satfi) :   SAT_STATE_PHONE_HANGUP,		//电话已挂断
