@@ -33,7 +33,7 @@ pthread_mutex_t n3g_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t net_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t pack_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-#define SATFI_VERSION "HTL8100_2.3"
+#define SATFI_VERSION "HTL8100 2.3"
 
 BASE base = { 0 };
 char satfi_version[32] = {0}; //当前satfi版本
@@ -77,7 +77,7 @@ int AppCnt = 0;
 #define D2		HW_GPIO57
 #define OE		HW_GPIO53
 
-#if 1
+#if 0
 #define D3		HW_GPIO62
 #define DV		HW_GPIO61	//按键是否按下 new
 #define INH		HW_GPIO64
@@ -2603,7 +2603,7 @@ void *func_y(void *p)
 					}
 				}
 			
-				if(base->sat.active == 1 && base->sat.lte_status != 1)
+				if(base->sat.active == 1)
 				{
 					base->sat.sat_available = 2;//正在激活
 					cgeqreq_set();//eg : AT+CGEQREQ=4,1,384,64,384,64					
@@ -5634,23 +5634,6 @@ int handle_app_msg_tcp(int socket, char *pack, char *tscbuf)
 				satfi_log("reboot recovery");
 				myexec("reboot recovery", NULL, NULL);
 			}
-		}
-		break;
-
-		case REBOOT_REQUEST:
-		{
-			MsgRebootReq *req = (MsgRebootReq *)pack;
-
-			memset(tmp,0,2048);
-			MsgRebootRsp *rsp = (MsgRebootRsp *)tmp;
-			rsp->header.length = sizeof(MsgRebootRsp);
-			rsp->header.mclass = REBOOT_RESPONSE;
-			rsp->Result = 1;
-			write(socket, tmp, rsp->header.length);
-			
-			satfi_log("REBOOT_REQUEST\n");
-			satfi_log("reboot");
-			myexec("reboot", NULL, NULL);
 		}
 		break;
 		
@@ -9175,7 +9158,7 @@ void init(void)
 	//SetKeyInt("SOS", "BOOLCALLPHONE", SOS_FILE, 0);
 }
 
-#define UPDATE_INI_URL	"http://zzhjjt.tt-box.cn:9098/TSCWEB/satfi/"SATFI_VERSION".ini"
+#define UPDATE_INI_URL	"http://zzhjjt.tt-box.cn:9098/TSCWEB/satfi/update.ini"
 #define UPDATE_CONFIG	"/cache/recovery/update.ini"
 #define UPDATE_PACKAGE	"/cache/recovery/update.zip"
 
@@ -9953,7 +9936,7 @@ void *sat_ring_detect(void *p)
 			
 			while(base->sat.sat_calling)
 			{
-				if(ringsocket <= 0)
+				if(ringsocket < 0)
 				{
 					base->sat.secondLinePhoneMode = 1;			 //没有app链接 拨号电话机
 					ioctl(mtgpiofd, GPIO_IOCSDATAHIGH, RC);//振铃电话机

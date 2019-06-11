@@ -13,7 +13,7 @@ extern "C" {
 using namespace android;
 
 extern BASE base;
-#define BUS_SIZE (3200)
+#define BUS_SIZE (8000)
 static SpeexEchoState *echo_state = NULL;
 static int speex_echo_playback_flag = 0;
 
@@ -79,23 +79,6 @@ int audio_test(void)
 	return 0;
 }
 
-//纳秒延时
-void Delayns(struct timespec* time_start, int time_ns)
-{
-	struct timespec time_end;
-	int times_use;
-	while(1)
-	{
-		clock_gettime(CLOCK_REALTIME, &time_end);
-		times_use = (time_end.tv_sec - time_start->tv_sec)*1000000000 + (time_end.tv_nsec - time_start->tv_nsec);
-		if(times_use >= time_ns)
-		{
-			//satfi_log("times_use=%d\n", times_use);
-			break;
-		}
-	}
-}
-
 void *handle_pcm_data(void *p)
 {
 	BASE *base = (BASE *)p;
@@ -103,7 +86,6 @@ void *handle_pcm_data(void *p)
     addr.sin_family = AF_INET;
     addr.sin_port = htons(12070);
     addr.sin_addr.s_addr = htonl(INADDR_ANY);
-	struct timespec time_start;
 	
     int sock;
     if ((sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
@@ -130,6 +112,7 @@ void *handle_pcm_data(void *p)
 
 	char tmp[BUS_SIZE];
 	char outfram[BUS_SIZE];
+	int plybackbufofs=0;
 	struct sockaddr_in clientAddr;
 	struct sockaddr_in *clientAddr1 = &(base->sat.clientAddr1);
 	struct sockaddr_in *clientAddr2 = &(base->sat.clientAddr2);
@@ -239,6 +222,7 @@ void *handle_pcm_data(void *p)
 						bzero(clientAddr2, len);
 					}
 
+					plybackbufofs = 0;
 					ofs = 0;
 					
 					if(AudioRecordStart == 1)
@@ -252,7 +236,7 @@ void *handle_pcm_data(void *p)
 								
 				if(FD_ISSET(sock, &fds))
 				{
-			        n = recvfrom(sock, tmp, 320, 0, (struct sockaddr*)&clientAddr, &len);
+			        n = recvfrom(sock, &tmp[ofs], 320, 0, (struct sockaddr*)&clientAddr, &len);
 			        if (n>0 && base->sat.sat_calling == 1)
 			        {
 						if(memcmp(clientAddr1 ,&clientAddr, len) == 0)
@@ -274,10 +258,26 @@ void *handle_pcm_data(void *p)
 								{
 									if(base->sat.sat_pcmdata > 0)
 									{
-										//satfi_log("n=%d ofs=%d\n", n, ofs);	
-										Delayns(&time_start, 20000000);
-										clock_gettime(CLOCK_REALTIME, &time_start);
-										write(base->sat.sat_pcmdata, tmp, 320);
+										//satfi_log("n=%d ofs=%d\n", n, ofs);
+										ofs += n;
+										if(ofs >= BUS_SIZE)
+										{
+											ofs1=0;
+											while(ofs1<ofs)
+											{
+												if(write(base->sat.sat_pcmdata, &tmp[ofs1], 320) <= 0)
+												{
+													satfi_log("write sat_pcmdata error\n");
+													continue;
+												}
+												//satfi_log("%d\n", ofs1);
+												ofs1 += 320;
+												milliseconds_sleep(19); //delay 20ms
+											}
+											//gettimeofday(&end, NULL);
+											//satfi_log("ofs1=%d %ld\n", ofs1, end.tv_usec);
+											ofs = 0;
+										}
 									}
 									else
 									{
@@ -286,7 +286,7 @@ void *handle_pcm_data(void *p)
 								}
 								else
 								{
-									clock_gettime(CLOCK_REALTIME, &time_start);
+									plybackbufofs = 0;
 								}
 							}
 						}
@@ -338,10 +338,9 @@ void *handle_pcm_data(void *p)
 					}
 
 					satfi_log("AudioRecordStart");
-					clock_gettime(CLOCK_REALTIME, &time_start);
 				}
 				
-				n = record->read(tmp, 320);
+				n = record->read(tmp, 8000);
 				if(echo_state && speex_echo_playback_flag)
 				{
 					speex_echo_capture(echo_state, (spx_int16_t *)tmp, (spx_int16_t *)outfram);
@@ -349,17 +348,14 @@ void *handle_pcm_data(void *p)
 				}
 				else
 				{
-					//ofs1 = 0;
-					//while(1)
-					//{
-						//satfi_log("%d", ofs1);
-						Delayns(&time_start, 20000000);
-						clock_gettime(CLOCK_REALTIME, &time_start);
-						write(base->sat.sat_pcmdata, tmp, 320);
-						//ofs1 += 320;
-						//milliseconds_sleep(18);
-						//if(ofs1 >= n) break;
-					//}
+					ofs1 = 0;
+					while(1)
+					{
+						write(base->sat.sat_pcmdata, &tmp[ofs1], 320);
+						ofs1 += 320;
+						milliseconds_sleep(19);
+						if(ofs1 >= n) break;
+					}
 					//static int recordfd = -1;
 					//if(recordfd < 0)
 					//{

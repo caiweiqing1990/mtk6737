@@ -173,9 +173,6 @@
 #define UPGRADE2_NOTICE				0x0070
 #define UPGRADE2_CONFIRM			0x8070
 
-#define REBOOT_REQUEST				0x0071
-#define REBOOT_RESPONSE				0x8071
-
 #pragma pack (1)
 
 typedef struct _msg_header
@@ -1172,21 +1169,6 @@ typedef struct _app_upgrade_info_rsp
 	char MsID[21];
 	unsigned short Result;
 } MsgUpgradeInfoRsp;
-
-/*REBOOT_REQUEST*/
-typedef struct _app_reboot_req
-{
-  MsgHeader header;
-  char MsID[21];
-} MsgRebootReq;
-
-/*REBOOT_RESPONSE*/
-typedef struct _app_reboot_rsp
-{
-  MsgHeader header;
-  char MsID[21];
-  unsigned short Result;
-}MsgRebootRsp;
 
 #pragma pack ()
 
