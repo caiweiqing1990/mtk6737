@@ -91,6 +91,9 @@ adb shell restorecon system/bin/pppd
 
 
 adb push Y:\AudioRecord\bin\AudioRecordTest /system/bin/
+adb push Y:\AudioRecord\bin\playback.pcm /system/bin/
+
+adb pull /mnt/record.pcm Y:\AudioRecord\bin\
 
 adb push Y:\satfi\bin\udhcpd_br0.conf /data/misc/wifi/udhcpd_br0.conf
 busybox udhcpd -fS /data/misc/wifi/udhcpd_br0.conf
@@ -148,7 +151,7 @@ adb push Y:\pcm_module\pcm_master_gpio.ko /mnt
 adb push Y:\pcm_module\pcm_slave_gpio.ko /mnt
 adb push Y:\pcm_module\n_gsm.ko /mnt
 adb push Y:\pcm_module\dm9051.ko /mnt
-adb push Y:\power_mode\bin\wifitest /mnt
+adb push Y:\gpio_test\bin\test /mnt
 
 rmmod pcm_master_gpio.ko;insmod pcm_master_gpio.ko
 chmod +x pcm_test
@@ -693,7 +696,14 @@ CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest setDataEnabled
 CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest setDataDisabled
 myexec("CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest wifiapstop", NULL, NULL);
 myexec("CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest wifiapstart", NULL, NULL);
-
+getnetworktype
+getimei
+getimsi
+wifiapstop
+wifiapstart
+wifiapstart ssid passwd
+setDataEnabled
+setDataDisabled
 ndc resolver setnetdns ppp0 "" 219.150.32.132 123.150.150.150
 
 adb push Y:\satfi\bin\tt_update /system/bin/

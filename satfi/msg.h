@@ -1163,6 +1163,8 @@ typedef struct _app_upgrade_info
 {
 	MsgHeader header;
 	char MsID[21];
+	unsigned short Type;
+	unsigned short Percent;
 } MsgUpgradeInfo;
 
 //UPGRADE1_CONFIRM

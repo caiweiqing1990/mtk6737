@@ -5629,7 +5629,7 @@ int handle_app_msg_tcp(int socket, char *pack, char *tscbuf)
 
 			satfi_log("base.sat.UpgradeConfirm=%d\n", base.sat.Upgrade1Confirm);
 
-			if(base.sat.Upgrade1Confirm == 1)
+			if(base.sat.Upgrade1Confirm == 4)
 			{
 				satfi_log("reboot recovery");
 				myexec("reboot recovery", NULL, NULL);
@@ -6461,12 +6461,14 @@ void Data_To_ExceptMsID(char *MsID, void *data)
 }
 
 //模块升级通知
-void Upgrade1_Notice(void)
+void Upgrade1_Notice(unsigned short Type, unsigned short Percent)
 {
 	char tmp[2048] = {0};
 	MsgUpgradeInfo *rsp = tmp;
 	rsp->header.length = sizeof(MsgUpgradeInfo);
 	rsp->header.mclass = UPGRADE1_NOTICE;
+	rsp->Type = Type;
+	rsp->Percent = Percent;
 	Data_To_ExceptMsID("TOALLMSID", rsp);
 }
 
@@ -8629,6 +8631,18 @@ int ap_state_change(void)
 	return change;
 }
 
+int get_4g_imsi(void)
+{
+	int maxline = 1;
+	char buf[256] = {0};
+	myexec("CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest getimsi", buf, &maxline);
+	satfi_log("4g_imsi=%s\n", buf);
+	if(strlen(buf) == 15)
+		return 1;
+	else if(strlen(buf) == 4)
+		return 0;
+	else return -1;
+}
 
 void *SystemServer(void *p)
 {
@@ -8636,6 +8650,7 @@ void *SystemServer(void *p)
 
 	int msg_send_timeout=0;
 	int lte_status = 0;
+	int sim_status = -1;
 
 #define GPIO_PPPD	HW_GPIO42
 #define GPIO_SOS	HW_GPIO43
@@ -8917,7 +8932,18 @@ void *SystemServer(void *p)
 			}
 		}
 
-		if(!checkroute("ccmni", NULL, 0))
+		//satfi_log("sim_status=%d\n", sim_status);
+		if(sim_status <= 0)
+		{
+			static int checkcnt=0;
+			if(checkcnt <= 10)
+			sim_status = get_4g_imsi();
+			checkcnt++;
+			
+			base->sat.lte_status = 0;
+		}
+
+		if(sim_status == 1 && checkroute("ccmni", NULL, 0) == 0)
 		{
 			if(eth_state_change() || ap_state_change() || (lte_status != base->sat.lte_status))
 			{
@@ -8936,11 +8962,15 @@ void *SystemServer(void *p)
 				lte_status = base->sat.lte_status;
 			}
 
-			base->sat.lte_status = 1;
+			if(base->sat.lte_status != 1)
+			{
+				gpio_out(HW_GPIO79, 1);
+				base->sat.lte_status = 1;
+			}
 		}
 		else 
 		{
-			if(!checkroute("ppp", NULL, 0))
+			if(checkroute("ppp", NULL, 0) == 0)
 			{
 				if(eth_state_change() || ap_state_change() || (lte_status != base->sat.lte_status))
 				{
@@ -8963,7 +8993,11 @@ void *SystemServer(void *p)
 				}
 			}
 
-			base->sat.lte_status = 2;
+			if(base->sat.lte_status == 1)
+			{
+				gpio_out(HW_GPIO79, 0);
+				base->sat.lte_status = 2;
+			}
 		}
 
 		sleep(1);
@@ -8976,7 +9010,7 @@ void *SystemServer(void *p)
  *
  */
 void init(void)
-{	
+{
 	base.n3g.n3g_fd = -1;
 	base.n3g.n3g_status = 0;
 	base.n3g.n3g_state = -1;
@@ -9178,6 +9212,7 @@ void init(void)
 #define UPDATE_INI_URL	"http://zzhjjt.tt-box.cn:9098/TSCWEB/satfi/"SATFI_VERSION".ini"
 #define UPDATE_CONFIG	"/cache/recovery/update.ini"
 #define UPDATE_PACKAGE	"/cache/recovery/update.zip"
+#define DOWNLOAD_INFO	"/cache/recovery/download.info"
 
 void ClearUpdateFile(void)
 {
@@ -9224,6 +9259,22 @@ void *CheckProgramUpdateServer(void *p)
 					if(version[8] > satfi_version[8] || version[10] > satfi_version[10])
 					{
 						satfi_log("version update\n");
+
+						while(1)
+						{
+							satfi_log("Upgrade1_Notice Type=1\n");
+							Upgrade1_Notice(1, 0);
+							if(base->sat.Upgrade1Confirm == 2)
+							{
+								break;
+							}
+							else if(base->sat.Upgrade1Confirm == 1)
+							{
+								goto UpdateExit;
+							}
+							sleep(10);
+						}
+						
 						if(strlen(satfiurl))
 						{
 							if(isFileExists(UPDATE_PACKAGE))
@@ -9249,13 +9300,15 @@ void *CheckProgramUpdateServer(void *p)
 									{
 										if(isFileExists(UPDATE_PACKAGE))
 										{
-											while(base->sat.Upgrade1Confirm == 0)
+											while(1)
 											{
-												//通知app确认升级
-												satfi_log("Upgrade1_Notice\n");
-												Upgrade1_Notice();
-												sleep(10);
-											}
+												satfi_log("Upgrade1_Notice Type=3\n");
+												Upgrade1_Notice(3, 0);
+												if(base->sat.Upgrade1Confirm == 3)
+												{
+													goto UpdateExit;
+												}
+											}									
 										}
 										else
 										{
@@ -9278,9 +9331,42 @@ void *CheckProgramUpdateServer(void *p)
 							{
 								//download update.zip
 								bzero(cmd, sizeof(cmd));
-								sprintf(cmd,"busybox wget -c %s -O %s", satfiurl, UPDATE_PACKAGE);
+								sprintf(cmd,"busybox wget -c %s -O %s > %s 2>&1 &", satfiurl, UPDATE_PACKAGE, DOWNLOAD_INFO);								
 								satfi_log("%s", cmd);
 								myexec(cmd, NULL, NULL);
+								int percent=0;
+								char buf[128] = {0};
+								
+								while(1)
+								{
+									sleep(3);
+									if(percent < 100)
+									{
+										int fd = open(DOWNLOAD_INFO, O_RDONLY);
+										if(fd > 0)
+										{
+											lseek(fd, -80, SEEK_END);
+											bzero(buf, sizeof(buf));
+											read(fd, buf, sizeof(buf));
+											char *p = strchr(buf, '%');
+											if(p != NULL)
+											{
+												buf[p - buf] = 0;
+												p = strrchr(buf, ' ');
+												percent = atoi(p+1);
+												//satfi_log("percent=%d\n", percent);
+											}
+											close(fd);
+										}
+
+										satfi_log("Upgrade1_Notice Type=2, Percent=%d\n", percent);
+										Upgrade1_Notice(2, percent);
+									}
+									else
+									{
+										break;
+									}
+								}
 							}
 						}
 					}
@@ -9311,8 +9397,9 @@ void *CheckProgramUpdateServer(void *p)
 		sleep(10);
 	}
 
-	satfi_log("CheckProgramUpdateServerThead quit\n");
+UpdateExit :
 
+	satfi_log("CheckProgramUpdateServerThead quit\n");
 	return NULL;
 }
 
@@ -10435,7 +10522,6 @@ void base_init(void)
 	if(pthread_create(&id_1, NULL, handle_app_data, (void *)&base) == -1) exit(1); 				//处理app数据
 	if(pthread_create(&id_1, NULL, sat_ring_detect, (void *)&base) == -1) exit(1); 				//卫星来电检测
 	if(pthread_create(&id_1, NULL, Second_linePhone_Dial_Detect, (void *)&base) == -1) exit(1);//二线电话拨号检测
-	
 }
 
 #if 0

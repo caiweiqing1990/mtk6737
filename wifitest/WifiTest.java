@@ -17,6 +17,8 @@ import android.telephony.SubscriptionManager;
 import android.telephony.SignalStrength;
 import android.telephony.TelephonyManager;
 import com.android.internal.telephony.TelephonyProperties;
+import com.android.internal.telephony.IPhoneSubInfo;
+import android.telephony.PhoneStateListener;
 
 //wifi Telephony Ethernet control
 public class WifiTest {
@@ -110,16 +112,8 @@ public class WifiTest {
 		}
 		else if (args.length == 1 && args[0].equals("setDataEnabled"))
 		{
-			IBinder binder = ServiceManager.getService("phone");
-			if (binder == null)
-			{
-				System.out.println("can not get phone service");
-				//Slog.i(TAG, "can not get wifi service");
-				return;
-			}
-
-			System.out.println("get phone service ok");
-			ITelephony telephony = ITelephony.Stub.asInterface(binder);
+			//System.out.println("get phone service ok");
+			ITelephony telephony = ITelephony.Stub.asInterface(ServiceManager.getService("phone"));
 			int subId = SubscriptionManager.getDefaultDataSubscriptionId();
 
 			if(telephony.getDataEnabled(subId) == false)
@@ -130,16 +124,6 @@ public class WifiTest {
 
 			//int phoneId = SubscriptionManager.getPhoneId(subId);
 			//System.out.println("getSimOperatorName="+TelephonyManager.getTelephonyProperty(phoneId,TelephonyProperties.PROPERTY_ICC_OPERATOR_ALPHA, ""));
-			/*
-			public static final int NETWORK_CLASS_UNKNOWN = 0;
-			public static final int NETWORK_CLASS_2_G = 1;
-			public static final int NETWORK_CLASS_3_G = 2;
-			public static final int NETWORK_CLASS_4_G = 3;
-			*/
-
-			int networkType = telephony.getNetworkType();
-			//System.out.println("getNetworkType="+networkType);
-			System.out.println("getNetworkClass="+TelephonyManager.getNetworkClass(networkType));//获取网络类型 2G 3G 4G
 
 			/*
 			public static final int SIGNAL_STRENGTH_NONE_OR_UNKNOWN = 0;
@@ -147,10 +131,10 @@ public class WifiTest {
 			public static final int SIGNAL_STRENGTH_MODERATE = 2;
 			public static final int SIGNAL_STRENGTH_GOOD = 3;
 			public static final int SIGNAL_STRENGTH_GREAT = 4;
-			
-			
+			*/
 			SignalStrength mSignalStrength = new SignalStrength();
-			System.out.println("mSignalStrength.getLteLevel=" + mSignalStrength.getLteLevel());//获取信号格数
+			System.out.println("mSignalStrength.getLevel=" + mSignalStrength.getLevel());//获取信号格数
+			/*
 			System.out.println("mSignalStrength.getTdScdmaLevel=" + mSignalStrength.getTdScdmaLevel());//获取信号格数
 			System.out.println("mSignalStrength.getGsmLevel=" + mSignalStrength.getGsmLevel());//获取信号格数
 			System.out.println("mSignalStrength.getCdmaLevel=" + mSignalStrength.getCdmaLevel());//获取信号格数
@@ -163,11 +147,7 @@ public class WifiTest {
 			System.out.println("mSignalStrength.getTdScdmaDbm=" + mSignalStrength.getTdScdmaDbm());//获取信号格数
 			System.out.println("mSignalStrength.getCdmaDbm=" + mSignalStrength.getCdmaDbm());//获取信号格数
 			System.out.println("mSignalStrength.getEvdoDbm=" + mSignalStrength.getEvdoDbm());//获取信号格数
-			
 			*/
-			String imeiUtils = telephony.getDeviceId(null);
-			System.out.println("imeiUtils="+imeiUtils);
-			//System.out.println("getDeviceId="+imeiUtils.substring(imeiUtils.length()-4,imeiUtils.length()));
 		}
 		else if (args.length == 1 && args[0].equals("setDataDisabled"))
 		{
@@ -189,8 +169,36 @@ public class WifiTest {
 				System.out.println("setDataDisabled");
 			}
 		}
+		else if (args.length == 1 && args[0].equals("getimei"))
+		{
+			ITelephony telephony = ITelephony.Stub.asInterface(ServiceManager.getService("phone"));
+			String imeiUtils = telephony.getDeviceId(null);
+			System.out.println(imeiUtils);
+		}
+		else if (args.length == 1 && args[0].equals("getimsi"))
+		{
+			IPhoneSubInfo info = IPhoneSubInfo.Stub.asInterface(ServiceManager.getService("iphonesubinfo"));
+			int subId = SubscriptionManager.getDefaultDataSubscriptionId();
+			String imsiUtils = info.getSubscriberIdForSubscriber(subId, null);
+			System.out.println(imsiUtils);	
+		}
+		else if (args.length == 1 && args[0].equals("getnetworktype"))
+		{
+			/*
+			public static final int NETWORK_CLASS_UNKNOWN = 0;
+			public static final int NETWORK_CLASS_2_G = 1;
+			public static final int NETWORK_CLASS_3_G = 2;
+			public static final int NETWORK_CLASS_4_G = 3;
+			*/
+			ITelephony telephony = ITelephony.Stub.asInterface(ServiceManager.getService("phone"));
+			int networkType = telephony.getNetworkType();
+			System.out.println(TelephonyManager.getNetworkClass(networkType));//获取网络类型 2G 3G 4G
+		}
 		else
 		{
+			System.out.println("Usage: need parameter: getnetworktype");
+			System.out.println("Usage: need parameter: getimei");
+			System.out.println("Usage: need parameter: getimsi");
 			System.out.println("Usage: need parameter: wifiapstop");
 			System.out.println("Usage: need parameter: wifiapstart");
 			System.out.println("Usage: need parameter: wifiapstart ssid passwd");
