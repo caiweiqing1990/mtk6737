@@ -33,7 +33,7 @@ pthread_mutex_t n3g_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t net_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t pack_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-#define SATFI_VERSION "HTL8100_2.3"
+#define SATFI_VERSION "HTL8100_2.2"
 
 BASE base = { 0 };
 char satfi_version[32] = {0}; //当前satfi版本
@@ -9214,7 +9214,7 @@ void init(void)
 	//SetKeyInt("SOS", "BOOLCALLPHONE", SOS_FILE, 0);
 }
 
-#define UPDATE_INI_URL	"http://zzhjjt.tt-box.cn:9098/TSCWEB/satfi/"SATFI_VERSION".ini"
+#define UPDATE_INI_URL	"http://zzhjjt.tt-box.cn:9098/TSCWEB/satfi/HTL8100_2.3.ini"
 #define UPDATE_CONFIG	"/cache/recovery/update.ini"
 #define UPDATE_PACKAGE	"/cache/recovery/update.zip"
 #define DOWNLOAD_INFO	"/cache/recovery/download.info"

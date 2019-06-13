@@ -55,7 +55,7 @@ int main()
 	myexec("rm update.zip", NULL, NULL);
 	myexec("busybox wget -c http://zzhjjt.tt-box.cn:9098/TSCWEB/satfi/update.zip -O update.zip > file.tmp 2>&1 &", NULL, NULL);
 	int percent=0;
-	
+	int percentold=0;
 	while(1)
 	{
 		sleep(1);
@@ -77,7 +77,8 @@ int main()
 					p = strrchr(buf, ' ');
 					//printf("%s\n", p+1);
 					percent = atoi(p+1);
-					printf("%d\n", percent);
+					if(percentold != percent)printf("%d\n", percent);
+					percentold = percent;
 				}
 				close(fd);
 			}

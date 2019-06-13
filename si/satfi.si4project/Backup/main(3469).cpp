@@ -80,7 +80,7 @@ int audio_test(void)
 }
 
 //纳秒延时
-int Delayns(struct timespec* time_start, int time_ns)
+void Delayns(struct timespec* time_start, int time_ns)
 {
 	struct timespec time_end;
 	int times_use;
@@ -90,11 +90,10 @@ int Delayns(struct timespec* time_start, int time_ns)
 		times_use = (time_end.tv_sec - time_start->tv_sec)*1000000000 + (time_end.tv_nsec - time_start->tv_nsec);
 		if(times_use >= time_ns)
 		{
-			return 1;
+			//satfi_log("times_use=%d\n", times_use);
+			break;
 		}
 	}
-
-	return 0;
 }
 
 void *handle_pcm_data(void *p)
@@ -353,7 +352,7 @@ void *handle_pcm_data(void *p)
 					//ofs1 = 0;
 					//while(1)
 					//{
-						//satfi_log("%d", );
+						//satfi_log("%d", ofs1);
 						Delayns(&time_start, 20000000);
 						clock_gettime(CLOCK_REALTIME, &time_start);
 						write(base->sat.sat_pcmdata, tmp, 320);

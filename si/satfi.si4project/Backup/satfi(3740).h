@@ -358,6 +358,5 @@ extern void gps_start(void);
 extern int gps_stop(void);
 extern int create_satfi_udp_fd(void);
 extern void milliseconds_sleep(unsigned long milliseconds);
-extern int safe_sendto(const char* path, const char* buff, int len);
 
 #endif
