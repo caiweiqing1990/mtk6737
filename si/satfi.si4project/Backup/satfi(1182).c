@@ -27,12 +27,13 @@ void ttygsmcreate(void);
 void *sat_ring_detect(void *p);
 void *Second_linePhone_Dial_Detect(void *p);
 
+
 pthread_mutex_t sat_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t n3g_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t net_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t pack_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-#define SATFI_VERSION "HTL8100_2.4"
+#define SATFI_VERSION "HTL8100_2.3"
 
 BASE base = { 0 };
 char satfi_version[32] = {0}; //当前satfi版本
@@ -1616,7 +1617,7 @@ int myexec(const char *command, char *result, int *maxline)
   FILE *pp = popen(command, "r");
   if(NULL == pp) return -1;
   //satfi_log("execute shell : %s\n", command);
-  char tmp[MAXLINE]={0};
+  char tmp[MAXLINE];
   if(result!=NULL)
   {
     int line=0;
@@ -2321,8 +2322,7 @@ void *func_y(void *p)
 	msm01a_on();
 	base->sat.module_status = 1;
 	sleep(5);
-	ttygsmcreate();
-	
+
 	while(1)
 	{
 		//sat_lock();
@@ -2514,6 +2514,15 @@ void *func_y(void *p)
 					uart_send(base->sat.sat_phone, "AT\r\n", 4);
 					uart_send(base->sat.sat_message, "AT\r\n", 4);
 					sleep(10);
+					
+					GetIniKeyString("satellite", "SAT_IMEI", CONFIG_FILE, base->sat.sat_imei);
+					if(strlen(base->sat.sat_imei)==0)
+					{
+						sprintf(base->sat.sat_imei ,"80000086%07u", time(0)%1000000);
+						SetKeyString("satellite", "SAT_IMEI", CONFIG_FILE, NULL, base->sat.sat_imei);
+					}
+
+					satfi_log("sat_imei=%s\n", base->sat.sat_imei);
 					break;
 				case SAT_STATE_FULL_FUN_W:
 					base->sat.sat_state = SAT_STATE_IMSI;
@@ -2882,7 +2891,7 @@ int handle_sat_data(int *satfd, char *data, int *ofs)
 		}
 		n = read(*satfd, &data[idx], 1);
 		if(n>0)
-		{		
+		{			
 			if(data[idx]=='\r') data[idx]='\n';
 			idx++;
 			if(idx==1 && data[0] != '\n')
@@ -2915,7 +2924,7 @@ int handle_sat_data(int *satfd, char *data, int *ofs)
 				static int clcccntpre=0;
 
 #if 1
-				if(web_socketfd > 0 && base.sat.sat_message == *satfd)
+				if(base.sat.sat_message == *satfd)
 				{
 					int i;
 					if(data[idx-2]=='\n' && data[idx-1]=='\n')
@@ -2933,12 +2942,12 @@ int handle_sat_data(int *satfd, char *data, int *ofs)
 					
 					if(i == 10)
 					{
-						if(strlen(passwd) + strlen(data) > sizeof(passwd))
+						if(strlen(passwd) > (sizeof(passwd) - 6))
 						{
-							satfi_log("bzero strcat passwd\n");
+							satfi_log("bzero strncat passwd\n");
 							bzero(passwd, sizeof(passwd));
 						}
-						strcat(passwd, data);
+						strncat(passwd, data, sizeof(passwd));
 					}
 				}
 #endif
@@ -8635,23 +8644,13 @@ int get_4g_imsi(void)
 	else return -1;//server not ready
 }
 
-int get_4g_imei(char *imei)
-{
-	int maxline = 1;
-	char buf[256] = {0};
-	myexec("CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest getimei", buf, &maxline);
-	//satfi_log("4g_imei=%s\n", buf);
-	if(strlen(buf) == 15)
-		strcpy(imei, buf);
-	return 0;
-}
-
 void *SystemServer(void *p)
 {
 	BASE *base = (BASE *)p;
 
 	int msg_send_timeout=0;
 	int lte_status = 0;
+	int sim_status = -1;
 
 #define GPIO_PPPD	HW_GPIO42
 #define GPIO_SOS	HW_GPIO43
@@ -8933,7 +8932,23 @@ void *SystemServer(void *p)
 			}
 		}
 
-		if(base->sat.sim_status == 1 && checkroute("ccmni", NULL, 0) == 0)
+		//satfi_log("sim_status=%d\n", sim_status);
+		if(sim_status <= 0)
+		{
+			static int i=0;
+			if(i <= 5)
+			{
+				sim_status = get_4g_imsi();
+				if(sim_status == 0)
+				{
+					i++;
+				}
+			}
+			
+			base->sat.lte_status = 0;
+		}
+
+		if(sim_status == 1 && checkroute("ccmni", NULL, 0) == 0)
 		{
 			if(eth_state_change() || ap_state_change() || (lte_status != base->sat.lte_status))
 			{
@@ -9385,27 +9400,6 @@ void *CheckProgramUpdateServer(void *p)
 				satfi_log("%s", cmd);
 				myexec(cmd, NULL, NULL);
 			}
-		}
-
-		if(strlen(base->sat.sat_imei)==0)
-		{
-			get_4g_imei(base->sat.sat_imei);
-			satfi_log("sat_imei=%s\n", base->sat.sat_imei);
-		}
-
-		if(base->sat.sim_status <= 0)
-		{
-			static int i=0;
-			if(i <= 5)
-			{
-				base->sat.sim_status = get_4g_imsi();
-				if(base->sat.sim_status == 0)
-				{
-					i++;
-				}
-			}
-			
-			base->sat.lte_status = 0;
 		}
 		
 		sleep(10);
@@ -10508,9 +10502,7 @@ void hw_init(void)
 	gpio_in(D3);
 	gpio_in(DV);
 
-	gpio_out(HW_GPIO47, 0);//0:AP
-
-	myexec("echo \"noSuspend\" > /sys/power/wake_lock", NULL, NULL);
+	myexec("echo \"noSuspend\" > /sys/power/wake_lock", NULL, NULL);	
 }
 
 //返回值 mV
@@ -10525,9 +10517,13 @@ int Get_AUXIN2_Value(void)
 void base_init(void)
 {
 	pthread_t id_1;
+	
 	strcpy(satfi_version, SATFI_VERSION);
 	satfi_log("satfi_version=%s", satfi_version);
+
 	hw_init();
+	ttygsmcreate();
+	
 	if(pthread_create(&id_1, NULL, CheckProgramUpdateServer, (void *)&base) == -1) exit(1);
 	if(pthread_create(&id_1, NULL, func_y, (void *)&base) == -1) exit(1);						//卫星模块启动
 	if(pthread_create(&id_1, NULL, SystemServer, (void *)&base) == -1) exit(1);					//系统检测 led

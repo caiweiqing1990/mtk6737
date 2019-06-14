@@ -163,7 +163,7 @@ adb pull /data/misc/ethernet/ipconfig.txt C:\Users\AnandLin\Desktop
 adb push Y:\gpsinf\bin\gps_test /system/bin/
 logcat pseudo:* *:S
 logcat RILD:* *:S
-logcat SatFi:* *:S
+logcat satfi:* *:S
 
 
 start ril-daemon-mtk

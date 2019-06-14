@@ -209,7 +209,6 @@ typedef struct _sat
 
   int locak_socket_audio_cancel;
   int lte_status;//0-无4G卡 1-4G已开启 2-4G未开启
-  int sim_status;
   int Upgrade1Confirm;
 }SAT;
 

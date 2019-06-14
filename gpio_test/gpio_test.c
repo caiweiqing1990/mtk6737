@@ -157,12 +157,5 @@ int main(int argc, char **argv)
 	ioctl(fd, GPIO_IOCSDATALOW, PCM1_SYNC);
 	ioctl(fd, GPIO_IOCSDATALOW, PCM1_DO0);
 	
-	int i;
-	//for(i=0; i<8000; i++)
-	{
-		printf("i=%d\n", i);
-		send_data(0x5555);
-	}
-
 	return 0;
 }

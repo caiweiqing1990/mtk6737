@@ -165,7 +165,14 @@ void *handle_pcm_data(void *p)
 	size_t  minFrameCount 	= 0;
 	int framesize = 2;
 	
-	sp<AudioRecord> record = NULL;
+	sp<AudioRecord> record = new AudioRecord(AUDIO_SOURCE_MIC, 8000, AUDIO_FORMAT_PCM_16_BIT, audio_channel_in_mask_from_count(1),
+						String16(),(size_t)(2 * framesize * BUS_SIZE), NULL, NULL, minFrameCount, AUDIO_SESSION_ALLOCATE,
+						AudioRecord::TRANSFER_DEFAULT, AUDIO_INPUT_FLAG_NONE, -1, -1);
+	if(record->initCheck() != OK)
+	{
+		satfi_log("AudioRecord initCheck error!");
+	}
+
 	int AudioRecordStart = 0;
 
 	SpeexPreprocessState *den;
@@ -236,7 +243,7 @@ void *handle_pcm_data(void *p)
 					ofs = 0;
 					
 					if(AudioRecordStart == 1)
-					{					
+					{
 						AudioRecordStart = 0;
 						record->stop();
 					}
@@ -324,18 +331,6 @@ void *handle_pcm_data(void *p)
 			{
 				if(AudioRecordStart == 0)
 				{
-					if(record == NULL)
-					{
-						record = new AudioRecord(AUDIO_SOURCE_MIC, 8000, AUDIO_FORMAT_PCM_16_BIT, audio_channel_in_mask_from_count(1),
-						String16(),(size_t)(2 * framesize * BUS_SIZE), NULL, NULL, minFrameCount, AUDIO_SESSION_ALLOCATE,
-						AudioRecord::TRANSFER_DEFAULT, AUDIO_INPUT_FLAG_NONE, -1, -1);
-					
-						if(record->initCheck() != OK)
-						{
-							satfi_log("AudioRecord initCheck error!");
-						}
-					}
-
 					AudioRecordStart = 1;
 					if(record->start() != android::NO_ERROR)
 					{
@@ -401,7 +396,12 @@ void main_thread_loop(void)
 
 	int n,ret;
 	//AUDIO_CHANNEL_OUT_STEREO, 16 bit, stereo 22050 Hz
-	sp<AudioTrack> track = NULL;
+	sp<AudioTrack> track = new AudioTrack(AUDIO_STREAM_MUSIC, 8000, AUDIO_FORMAT_PCM_16_BIT, AUDIO_CHANNEL_OUT_MONO, 0);
+	if(track->initCheck() != OK)
+	{
+		satfi_log("AudioTrack initCheck error!\n");
+	}
+
 	//track->setVolume(2.0f, 2.0f);
 
 	int AudioTrackStart = 0;
@@ -515,15 +515,6 @@ void main_thread_loop(void)
 							{
 								if(AudioTrackStart == 0)
 								{
-									if(track == NULL)
-									{
-										track = new AudioTrack(AUDIO_STREAM_MUSIC, 8000, AUDIO_FORMAT_PCM_16_BIT, AUDIO_CHANNEL_OUT_MONO, 0);
-										if(track->initCheck() != OK)
-										{
-											satfi_log("AudioTrack initCheck error!\n");
-										}
-									}
-
 									if(track->start() != android::NO_ERROR)
 									{
 										satfi_log("AudioTrack start error!");
