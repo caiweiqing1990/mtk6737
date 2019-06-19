@@ -30,7 +30,7 @@ pthread_mutex_t n3g_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t net_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t pack_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-#define SATFI_VERSION "HTL8100_2.8"
+#define SATFI_VERSION "HTL8100_2.5"
 
 BASE base = { 0 };
 char satfi_version[32] = {0}; //当前satfi版本
@@ -74,7 +74,7 @@ int AppCnt = 0;
 #define D2		HW_GPIO57
 #define OE		HW_GPIO53
 
-#if 0
+#if 1
 #define D3		HW_GPIO62
 #define DV		HW_GPIO61	//按键是否按下 new
 #define INH		HW_GPIO64
@@ -8733,29 +8733,16 @@ void *SystemServer(void *p)
 			satfi_log("stat_pppd=%d\n",pin_stat);
 			if(pin_stat == 0)
 			{
-				if(base->sat.sat_status == 1)//已入网
+				if(base->sat.sat_status == 1)
 				{
 					if(base->sat.sat_dialing == 0 || base->sat.sat_state == SAT_STATE_CGACT_SCCUSS)
 					{
-						base->sat.active = 1;//激活
-
-						if(base->sat.lte_status == 1)
-						{
-							satfi_log("CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest setDataDisabled");
-							myexec("CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest setDataDisabled", NULL, NULL);
-						}
+						base->sat.active = 1;
 					}
 					else
 					{
-						if(base->sat.sat_state != SAT_STATE_CGACT_W && 
-							(base->sat.sat_available == 1 || base->sat.sat_available == 2))
-							base->sat.sat_state = SAT_STATE_CGACT;
-						
-						if(base->sat.lte_status == 2)
-						{
-							satfi_log("CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest setDataEnabled");
-							myexec("CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest setDataEnabled", NULL, NULL);
-						}	
+						if(base->sat.sat_state != SAT_STATE_CGACT_W) base->sat.sat_state = SAT_STATE_CGACT;
+						base->sat.active = 0;
 					}
 				}
 			}
@@ -8961,17 +8948,13 @@ void *SystemServer(void *p)
 				myexec("ip route add 192.168.1.0/24 via 192.168.1.1 dev eth0 table 205", NULL, NULL);
 				myexec("ip route flush cache", NULL, NULL);
 				lte_status = base->sat.lte_status;
+				base->sat.active = 0;
 			}
 
 			if(base->sat.lte_status != 1)
 			{
 				gpio_out(HW_GPIO79, 1);
 				base->sat.lte_status = 1;
-				base->sat.active = 0;
-
-				if(base->sat.sat_state != SAT_STATE_CGACT_W && 
-					(base->sat.sat_available == 1 || base->sat.sat_available == 2))
-					base->sat.sat_state = SAT_STATE_CGACT;
 			}
 		}
 		else 
@@ -9004,7 +8987,6 @@ void *SystemServer(void *p)
 				gpio_out(HW_GPIO79, 0);
 				base->sat.lte_status = 2;
 				base->sat.active = 1;
-				base->sat.sat_available = 0;
 			}
 		}
 
@@ -9550,8 +9532,7 @@ static void *CallUpThread(void *p)
 	int atdwaitcnt=0,clcccnt=0,ringcnt=0,dialcnt=0,dialfailecnt=0;
 	base->sat.sat_calling = 1;
 	base->sat.sat_state_phone = SAT_STATE_PHONE_CLCC;
-	base->sat.playBusyToneFlag = 0;
-	
+
 	while(base->sat.sat_calling)
 	{
 		if(base->sat.sat_phone == -1 && base->sat.sat_state_phone != SAT_STATE_PHONE_ONLINE)
@@ -10526,6 +10507,8 @@ void hw_init(void)
 	gpio_in(D2);
 	gpio_in(D3);
 	gpio_in(DV);
+
+	gpio_pull_enable(D3);
 
 	//gpio_out(HW_GPIO47, 0);//0:AP
 

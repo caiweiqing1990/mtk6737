@@ -650,33 +650,26 @@ void *SecondLineHintTonePlay(void *p)
 	{
 		if(base->sat.isSecondLinePickUp == 1)
 		{
-			if(base->sat.sat_state_phone != SAT_STATE_PHONE_ONLINE)
+			if(base->sat.playBusyToneFlag == 1)
 			{
-				if(base->sat.playBusyToneFlag == 1)
+				if(AudioTrackPlay(BUSY_WAV) < 0)
 				{
-					if(AudioTrackPlay(BUSY_WAV) < 0)
+					sleep(1);
+				}
+			}
+			else
+			{
+				if(base->sat.ring == 0 && base->sat.isSecondLineFirstKeyPress == 0)
+				{
+					if(AudioTrackPlay(DUDU_WAV) < 0)
 					{
 						sleep(1);
 					}
 				}
 				else
 				{
-					if(base->sat.ring == 0 && base->sat.isSecondLineFirstKeyPress == 0)
-					{
-						if(AudioTrackPlay(DUDU_WAV) < 0)
-						{
-							sleep(1);
-						}
-					}
-					else
-					{
-						sleep(1);
-					}
+					sleep(1);
 				}
-			}
-			else
-			{
-				sleep(1);
 			}
 		}
 		else
