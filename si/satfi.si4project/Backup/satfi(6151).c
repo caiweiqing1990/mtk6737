@@ -30,6 +30,8 @@ pthread_mutex_t n3g_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t net_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t pack_mutex = PTHREAD_MUTEX_INITIALIZER;
 
+#define SATFI_VERSION "HTL8100_2.9"
+
 BASE base = { 0 };
 char satfi_version[32] = {0}; //当前satfi版本
 char satfi_version_sat[32] = {0}; 
@@ -77,17 +79,11 @@ int AppCnt = 0;
 #define DV		HW_GPIO61	//按键是否按下 new
 #define INH		HW_GPIO64
 #define PWDN	HW_GPIO63
-
-#define SATFI_VERSION "HTL8100_2.9_N"
-
 #else
 #define D3		HW_GPIO47
 #define DV		HW_GPIO48	//按键是否按下
 #define INH		HW_GPIO51
 #define PWDN	HW_GPIO52
-
-#define SATFI_VERSION "HTL8100_2.9"
-
 #endif
 
 /* 同步锁

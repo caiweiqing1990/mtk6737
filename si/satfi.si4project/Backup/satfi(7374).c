@@ -30,6 +30,8 @@ pthread_mutex_t n3g_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t net_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t pack_mutex = PTHREAD_MUTEX_INITIALIZER;
 
+#define SATFI_VERSION "HTL8100_2.8"
+
 BASE base = { 0 };
 char satfi_version[32] = {0}; //当前satfi版本
 char satfi_version_sat[32] = {0}; 
@@ -77,17 +79,11 @@ int AppCnt = 0;
 #define DV		HW_GPIO61	//按键是否按下 new
 #define INH		HW_GPIO64
 #define PWDN	HW_GPIO63
-
-#define SATFI_VERSION "HTL8100_2.9_N"
-
 #else
 #define D3		HW_GPIO47
 #define DV		HW_GPIO48	//按键是否按下
 #define INH		HW_GPIO51
 #define PWDN	HW_GPIO52
-
-#define SATFI_VERSION "HTL8100_2.9"
-
 #endif
 
 /* 同步锁
@@ -5537,8 +5533,8 @@ int handle_app_msg_tcp(int socket, char *pack, char *tscbuf)
 			rsp->battery_level = get_battery_level();
 			rsp->battery_status = !rsp->power_satus;
 			rsp->sat_status = base.sat.module_status;
-			strncpy(rsp->sat_imei, base.sat.sat_imsi, IMSI_LEN);
-			strncpy(rsp->sat_imsi, base.sat.sat_imei, IMSI_LEN);
+			strncpy(rsp->sat_imei, base.sat.sat_imei, IMSI_LEN);
+			strncpy(rsp->sat_imsi, base.sat.sat_imsi, IMSI_LEN);
 			rsp->net_status = base.sat.net_status;
 			rsp->data_status = base.sat.data_status;
 			rsp->sat_csq = base.sat.sat_csq_value-128;

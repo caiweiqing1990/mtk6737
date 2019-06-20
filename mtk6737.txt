@@ -691,7 +691,7 @@ adb logcat -b radio > log_07_09_1
 
 adb push Z:\out\target\product\len6737t_66_sh_n\system\framework\WifiTest.jar /system/framework
 CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest wifiapstop
-CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest wifiapstart
+CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest wifiapstart weiqing 12345678
 CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest setDataEnabled
 CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest setDataDisabled
 myexec("CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest wifiapstop", NULL, NULL);
@@ -722,3 +722,26 @@ PRODUCT_COPY_FILES += device/lentek/len6737t_66_sh_n/disconnect-chat:system/etc/
 PRODUCT_COPY_FILES += device/lentek/len6737t_66_sh_n/sat-chat:system/etc/ppp/char/sat-chat
 PRODUCT_COPY_FILES += device/lentek/len6737t_66_sh_n/sat-dailer:system/etc/ppp/peers/sat-dailer
 PRODUCT_COPY_FILES += device/lentek/len6737t_66_sh_n/busybox:system/bin/busybox
+
+
+
+卫星宽带便携终端 (MTK6737 ANDROID7.0)
+	WIFI开机配置为AP热点模式。
+	MTK6737是双卡双待，插入新卡默认不启动4G数据，需要定制系统开机自动启动4G数据。
+	android以太网口默认是自动获取IP，修改源码配置为静态IP。
+	OTA在线升级
+
+	终端具备功能：可以接4G卡，电信卫星卡，TF卡，天通卫星电话，卫星短信，卫星数据，北斗定位功能
+	电话机：拨打卫星电话，来电提醒
+	WIFI：可以用APP连接热点，发送短信，拨打电话，卫星数据，SOS求救功能
+	网口：电脑可以通过网口上4G或卫星网路
+
+4G全网通模块(MTK6737 android7.0)
+
+电话机
+
+网口
+
+天通卫星模块
+	
+
