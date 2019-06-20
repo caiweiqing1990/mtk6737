@@ -5445,7 +5445,9 @@ int handle_app_msg_tcp(int socket, char *pack, char *tscbuf)
 			rsp->header.length = sizeof(MsgWifiRsp);
 			rsp->header.mclass = WIFI_RESPONSE;
 			rsp->Result = 0;
-			write(socket, tmp, rsp->header.length);						
+			write(socket, tmp, rsp->header.length);				
+
+			//CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest wifiapstart weiqing 12345678
 		}
 		break;
 		
@@ -9408,7 +9410,7 @@ void *CheckProgramUpdateServer(void *p)
 		if(strlen(base->sat.sat_imei)==0)
 		{
 			get_4g_imei(base->sat.sat_imei);
-			satfi_log("sat_imei=%s\n", base->sat.sat_imei);
+			satfi_log("4g_imei=%s\n", base->sat.sat_imei);
 		}
 
 		if(base->sat.sim_status <= 0)
@@ -9550,7 +9552,6 @@ static void *CallUpThread(void *p)
 	int atdwaitcnt=0,clcccnt=0,ringcnt=0,dialcnt=0,dialfailecnt=0;
 	base->sat.sat_calling = 1;
 	base->sat.sat_state_phone = SAT_STATE_PHONE_CLCC;
-	base->sat.playBusyToneFlag = 0;
 	
 	while(base->sat.sat_calling)
 	{
@@ -10287,7 +10288,8 @@ static int Get_Second_LinePhone_Num(char * PhoneNumber)
 							tmp[i] = val + 0x30;
 							i++;
 							satfi_log("GetKeyVal=%d tmp=%s\n", val, tmp);
-							base.sat.isSecondLineFirstKeyPress = 1;
+							base.sat.isSecondLineFirstKeyPress = 1;							
+							base.sat.playBusyToneFlag = 0;
 						}
 					}
 					keypress = 1;
@@ -10526,6 +10528,9 @@ void hw_init(void)
 	gpio_in(D2);
 	gpio_in(D3);
 	gpio_in(DV);
+	gpio_in(DV);
+	gpio_pull_enable(DV);
+	gpio_pull_up(DV);
 
 	//gpio_out(HW_GPIO47, 0);//0:AP
 

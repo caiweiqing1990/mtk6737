@@ -132,8 +132,8 @@ public class WifiTest {
 			public static final int SIGNAL_STRENGTH_GOOD = 3;
 			public static final int SIGNAL_STRENGTH_GREAT = 4;
 			*/
-			SignalStrength mSignalStrength = new SignalStrength();
-			System.out.println("mSignalStrength.getLevel=" + mSignalStrength.getLevel());//获取信号格数
+			//SignalStrength mSignalStrength = new SignalStrength();
+			//System.out.println("mSignalStrength.getLevel=" + mSignalStrength.getLevel());//获取信号格数
 			/*
 			System.out.println("mSignalStrength.getTdScdmaLevel=" + mSignalStrength.getTdScdmaLevel());//获取信号格数
 			System.out.println("mSignalStrength.getGsmLevel=" + mSignalStrength.getGsmLevel());//获取信号格数
