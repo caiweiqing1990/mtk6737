@@ -76,6 +76,7 @@ typedef enum {
 #define GPIO_IOCSDATALOW        _IOW(GPIO_IOC_MAGIC, 0x14, uint32_t)
 #define GPIO_IOCSDATAHIGH       _IOW(GPIO_IOC_MAGIC, 0x15, uint32_t)
 
+#define MSM_POWER		HW_GPIO3
 #define PWREN			HW_GPIO127
 #define RESET_IN		HW_GPIO122
 #define USB_BOOT		HW_GPIO120
@@ -106,7 +107,7 @@ void gpio_pull_disable(int gpio)
 
 void msm01a_on(void)
 {
-	gpio_out(HW_GPIO3, 1);
+	gpio_out(MSM_POWER, 1);
 	gpio_out(AP_WAKEUP_BB, 0);
 	gpio_out(AP_SLEEP_BB, 0);
 	gpio_out(USB_BOOT, 1);
@@ -130,6 +131,8 @@ void msm01a_off(void)
 	gpio_out(RESET_IN, 1);
 	sleep(1);
 	gpio_out(RESET_IN, 0);
+	gpio_out(MSM_POWER, 0);
+	sleep(1);
 }
 
 //用于天通升级切换为U盘

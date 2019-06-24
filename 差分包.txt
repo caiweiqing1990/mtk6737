@@ -1,0 +1,63 @@
+1、将目录切到V1代码库的根目录下； 
+2、执行命令：make -j24 编译； 
+3、执行命令：make -j24 otapackage生产完整包和基准包； 
+4、备份完整包； 
+5、备份基准包到制定目录：基准包为out/target/product/$(project)/obj/PACKAGING/target_files_intermediates/[project]_target_files-[user].zip，备份后可取名为v1.zip；
+7、将目录切到V2代码库的根目录下； 
+8、执行命令：make -j24 编译； 
+9、执行命令：make -j24 otapackage生产完整包和基准包； 
+10、备份完整包； 
+11、备份基准包到制定目录：基准包为out/target/product/$(project)/obj/PACKAGING/target_files_intermediates/[project]_target_files-[user].zip ，备份后可取名为v2.zip ；
+12、生成差分包：./build/tools/releasetools/ota_from_target_files --block -k  <key_path> -i v1.zip v2.zip update.zip
+6735平台指令如下
+./build/tools/releasetools/ota_from_target_files --block -k  build/target/product/security/testkey -i v1.zip v2.zip update.zip
+
+<key_path> 如何取值？查看ProjectConfig.mk
+如果MTK_SIGNATURE_CUSTOMIZATION=yes并且MTK_INTERNAL=no，
+<key_path>的值为：build/target/product/security/[Project]/releasekey
+如果MTK_SIGNATURE_CUSTOMIZATION=yes并且MTK_INTERNAL=yes，
+<key_path>的值为：build/target/product/security/common/releasekey
+如果MTK_SIGNATURE_CUSTOMIZATION=no，<key_path>的值为：build/target/product/security/testkey
+
+
+
+编译完查分包如何测试？
+1.使用adb把差分包push到开发板上
+adb push update.zip /sdcard/
+2.使用adb shell进入开发板控制台
+mkdir /cache/recovery
+echo --update_package=/sdcard/update.zip > /cache/recovery/command
+reboot recovery
+
+make;make otapackage
+
+./build/tools/releasetools/ota_from_target_files --block -s ./device/mediatek/build/releasetools/mt_ota_from_target_files.py -i out/target/product/len6737t_66_sh_n/obj/PACKAGING/target_files_intermediates/HTL8100_2.5.zip out/target/product/len6737t_66_sh_n/obj/PACKAGING/target_files_intermediates/HTL8100_2.8.zip HTL8100_2.5.zip 
+
+./build/tools/releasetools/ota_from_target_files --block -s ./device/mediatek/build/releasetools/mt_ota_from_target_files.py -i out/target/product/len6737t_66_sh_n/obj/PACKAGING/target_files_intermediates/HTL8100_2.6.zip out/target/product/len6737t_66_sh_n/obj/PACKAGING/target_files_intermediates/HTL8100_2.8.zip HTL8100_2.6.zip 
+
+./build/tools/releasetools/ota_from_target_files --block -s ./device/mediatek/build/releasetools/mt_ota_from_target_files.py -i out/target/product/len6737t_66_sh_n/obj/PACKAGING/target_files_intermediates/HTL8100_2.7.zip out/target/product/len6737t_66_sh_n/obj/PACKAGING/target_files_intermediates/HTL8100_2.8.zip HTL8100_2.7.zip 
+
+./build/tools/releasetools/ota_from_target_files --block -s ./device/mediatek/build/releasetools/mt_ota_from_target_files.py -i out/target/product/len6737t_66_sh_n/obj/PACKAGING/target_files_intermediates/HTL8100_2.8.zip out/target/product/len6737t_66_sh_n/obj/PACKAGING/target_files_intermediates/HTL8100_2.9.zip HTL8100_2.8.zip 
+
+
+adb connect 192.168.43.1
+adb root
+adb remount
+adb push C:\Users\AnandLin\Desktop\update.ini /cache/recovery/update.ini
+adb push C:\Users\AnandLin\Desktop\update.zip /cache/recovery/update.zip
+
+cp /sdcard/update.zip /cache/recovery/update.zip
+echo --update_package=/cache/recovery/update.zip > /cache/recovery/command
+reboot recovery
+
+查看升级结果
+cat /cache/recovery/last_install
+
+注意：执行过以下三条指令的系统无法ota升级
+adb root
+adb disable-verity 
+adb reboot
+
+adb install C:\Users\AnandLin\Desktop\audio_cancel.apk
+
+

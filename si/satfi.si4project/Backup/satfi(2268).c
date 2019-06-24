@@ -88,14 +88,6 @@ int AppCnt = 0;
 #define SATFI_VERSION "HTL8100_2.9"
 #endif
 
-#define SATFI_VERSION_SAT "HTL8100_1.0"
-
-#define UPDATE_INI_URL	"http://zzhjjt.tt-box.cn:9098/TSCWEB/satfi/"SATFI_VERSION".ini"
-#define UPDATE_CONFIG	"/cache/recovery/update.ini"
-#define UPDATE_PACKAGE	"/cache/recovery/update.zip"
-#define DOWNLOAD_INFO	"/cache/recovery/download.info"
-#define UPDATE_PACKAGE_SAT	"/cache/recovery/update.bin"
-
 /* 同步锁
  *
  */
@@ -2370,7 +2362,7 @@ void *func_y(void *p)
 			}
 		}
 		
-		if(!isFileExists(base->sat.sat_dev_name) || base->sat.sat_state == SAT_STATE_RESTART || base->sat.Upgrade2Confirm == 4)
+		if(!isFileExists(base->sat.sat_dev_name) || base->sat.sat_state == SAT_STATE_RESTART)
 		{
 			if(!isFileExists(base->sat.sat_dev_name))satfi_log("no exist %s\n", base->sat.sat_dev_name);
 		
@@ -2397,31 +2389,16 @@ void *func_y(void *p)
 				close(base->sat.sat_pcmdata);
 				base->sat.sat_pcmdata = -1;
 			}
-
-			satfi_log("stop sat_pppd\n");
-			myexec("stop sat_pppd", NULL, NULL);
+			
+			satfi_log("power_mode msm01a reset\n");
 			base->sat.sat_state = SAT_STATE_RESTART_W;
 			base->sat.sat_status = 0;
 			base->sat.sat_msg_sending = 0;
 			cmux = 0;
 			base->sat.module_status = 2;
+			msm01a_reset();
 			myexec("n_gsm 1", NULL, NULL);
 			satfi_log("n_gsm 1\n");
-			msm01a_off();
-			msm01a_on();
-
-			if(base->sat.Upgrade2Confirm == 4)
-			{
-				char cmd[128]={0};
-				sprintf(cmd, "tt_update %s %s", SERIAL_PORT, UPDATE_PACKAGE_SAT);
-				satfi_log("%s", cmd);
-				myexec(cmd, NULL, NULL);
-
-				satfi_log("reboot");
-				myexec("reboot", NULL, NULL);
-			}
-			
-			base->sat.Upgrade2Confirm = 0;
 			continue;
 		}
 		else
@@ -5653,15 +5630,6 @@ int handle_app_msg_tcp(int socket, char *pack, char *tscbuf)
 		}
 		break;
 
-		case UPGRADE2_CONFIRM:
-		{
-			MsgUpgradeInfoRsp *req = (MsgUpgradeInfoRsp *)pack;
-			base.sat.Upgrade2Confirm = req->Result;
-			satfi_log("base.sat.Upgrade2Confirm=%d\n", base.sat.Upgrade2Confirm);
-		}
-		break;
-
-
 		case REBOOT_REQUEST:
 		{
 			MsgRebootReq *req = (MsgRebootReq *)pack;
@@ -6506,14 +6474,12 @@ void Upgrade1_Notice(unsigned short Type, unsigned short Percent)
 }
 
 //卫星模块升级通知
-void Upgrade2_Notice(unsigned short Type, unsigned short Percent)
+void Upgrade2_Notice(void)
 {
 	char tmp[2048] = {0};
 	MsgUpgradeInfo *rsp = tmp;
 	rsp->header.length = sizeof(MsgUpgradeInfo);
 	rsp->header.mclass = UPGRADE2_NOTICE;
-	rsp->Type = Type;
-	rsp->Percent = Percent;
 	Data_To_ExceptMsID("TOALLMSID", rsp);
 }
 
@@ -9263,22 +9229,26 @@ void init(void)
 	//SetKeyInt("SOS", "BOOLCALLPHONE", SOS_FILE, 0);
 }
 
+#define UPDATE_INI_URL	"http://zzhjjt.tt-box.cn:9098/TSCWEB/satfi/"SATFI_VERSION".ini"
+#define UPDATE_CONFIG	"/cache/recovery/update.ini"
+#define UPDATE_PACKAGE	"/cache/recovery/update.zip"
+#define DOWNLOAD_INFO	"/cache/recovery/download.info"
+
 void ClearUpdateFile(void)
 {
 	char cmd[1024];
 	bzero(cmd, sizeof(cmd));
-	sprintf(cmd,"rm %s", UPDATE_PACKAGE);
+	sprintf(cmd,"rm %s", UPDATE_CONFIG);
 	satfi_log("%s", cmd);
 	myexec(cmd, NULL, NULL);
-
+	
 	bzero(cmd, sizeof(cmd));
-	sprintf(cmd,"rm %s", DOWNLOAD_INFO);
+	sprintf(cmd,"rm %s", UPDATE_PACKAGE);
 	satfi_log("%s", cmd);
 	myexec(cmd, NULL, NULL);
 }
 
-//终端版本检查，更新
-void Update_firmware(BASE *p)
+void *CheckProgramUpdateServer(void *p)
 {
 	BASE *base = (BASE *)p;
 	char md5sum[256] = {0};
@@ -9286,6 +9256,7 @@ void Update_firmware(BASE *p)
 	char satfiurl[256] = {0};
 
 	char cmd[256] = {0};
+
 
 	while(1)
 	{
@@ -9348,16 +9319,23 @@ void Update_firmware(BASE *p)
 									
 									if(isFileExists("/cache/recovery/command"))
 									{
-										while(1)
+										if(isFileExists(UPDATE_PACKAGE))
 										{
-											satfi_log("Upgrade1_Notice Type=3\n");
-											Upgrade1_Notice(3, 0);
-											if(base->sat.Upgrade1Confirm == 3)
+											while(1)
 											{
-												goto UpdateExit;
-											}
+												satfi_log("Upgrade1_Notice Type=3\n");
+												Upgrade1_Notice(3, 0);
+												if(base->sat.Upgrade1Confirm == 3)
+												{
+													goto UpdateExit;
+												}
 
-											sleep(10);
+												sleep(10);
+											}									
+										}
+										else
+										{
+											satfi_log("%s no Exists\n", UPDATE_PACKAGE);
 										}
 									}
 									else
@@ -9367,6 +9345,7 @@ void Update_firmware(BASE *p)
 								}
 								else
 								{
+									ClearUpdateFile();
 									satfi_log("%s md5sum error\n", UPDATE_PACKAGE);
 								}
 								break;
@@ -9403,7 +9382,7 @@ void Update_firmware(BASE *p)
 											close(fd);
 										}
 
-										satfi_log("Upgrade1_Notice Type=2, Percent=%d\n", percent);//升级包下载百分比
+										satfi_log("Upgrade1_Notice Type=2, Percent=%d\n", percent);
 										Upgrade1_Notice(2, percent);
 									}
 									else
@@ -9416,12 +9395,14 @@ void Update_firmware(BASE *p)
 					}
 					else
 					{
+						ClearUpdateFile();						
 						satfi_log("version low\n");
 						break;
 					}
 				}
 				else
 				{
+					ClearUpdateFile();
 					satfi_log("version same\n");
 					break;
 				}
@@ -9453,6 +9434,7 @@ void Update_firmware(BASE *p)
 					i++;
 				}
 			}
+			
 			base->sat.lte_status = 0;
 		}
 		
@@ -9460,175 +9442,8 @@ void Update_firmware(BASE *p)
 	}
 
 UpdateExit :
-	ClearUpdateFile();
-	satfi_log("Update_firmware quit\n");
-	return;
-}
 
-
-//卫星模块版本检查，更新
-void Update_firmware_Sat(BASE *p)
-{
-	BASE *base = (BASE *)p;
-	char md5sum[256] = {0};
-	char version[256] = {0};
-	char satfiurl[256] = {0};
-
-	char cmd[256] = {0};
-
-	char version_sat[256] = {0};
-	strcpy(version_sat, SATFI_VERSION_SAT);
-
-	while(1)
-	{
-		if(base->sat.lte_status == 1)
-		{
-			if(isFileExists(UPDATE_CONFIG))
-			{
-				GetIniKeyString("update_sat","VERSION",UPDATE_CONFIG,version);
-				GetIniKeyString("update_sat","MD5SUM",UPDATE_CONFIG,md5sum);
-				GetIniKeyString("update_sat","URL",UPDATE_CONFIG,satfiurl);
-				
-				satfi_log("server_version_sat=%s current_version_sat=%s\n",version, version_sat);
-				satfi_log("md5sum_sat=%s\n",md5sum);
-				satfi_log("satfiurl_sat=%s\n",satfiurl);
-
-				if(strcmp(version, version_sat)) // HTL8100 x.x
-				{
-					satfi_log("version diff\n");
-
-					if(version[8] > version_sat[8] || version[10] > version_sat[10])
-					{
-						satfi_log("version update\n");
-
-						while(1)
-						{
-							if(base->sat.Upgrade2Confirm == 2)
-							{
-								break;
-							}
-							else if(base->sat.Upgrade2Confirm == 1)
-							{
-								goto UpdateExit;
-							}
-							
-							satfi_log("Upgrade2_Notice Type=1\n");
-							Upgrade2_Notice(1, 0);
-							sleep(10);
-						}
-						
-						if(strlen(satfiurl))
-						{
-							if(isFileExists(UPDATE_PACKAGE_SAT))
-							{
-								int maxline = 3;
-								char md5sum_update[256] = {0};
-								
-								bzero(cmd, sizeof(cmd));
-								sprintf(cmd,"md5sum %s", UPDATE_PACKAGE_SAT);
-								myexec(cmd, md5sum_update, &maxline);
-								satfi_log("%s", cmd);
-								satfi_log("%s\n", md5sum_update);
-						
-								if(strstr(md5sum_update, md5sum))
-								{
-									satfi_log("md5sum same\n");
-									while(1)
-									{
-										if(base->sat.Upgrade2Confirm >= 3)
-										{
-											goto UpdateExit;
-										}
-										satfi_log("Upgrade2_Notice Type=3\n");
-										Upgrade2_Notice(3, 0);
-										sleep(10);
-									}	
-								}
-								else
-								{
-									satfi_log("%s md5sum error\n", UPDATE_PACKAGE_SAT);
-								}
-								break;
-							}
-							else
-							{
-								//download update.zip
-								bzero(cmd, sizeof(cmd));
-								sprintf(cmd,"busybox wget -c %s -O %s > %s 2>&1 &", satfiurl, UPDATE_PACKAGE_SAT, DOWNLOAD_INFO);								
-								satfi_log("%s", cmd);
-								myexec(cmd, NULL, NULL);
-								int percent=0;
-								char buf[128] = {0};
-								
-								while(1)
-								{
-									sleep(3);
-									if(percent < 100)
-									{
-										int fd = open(DOWNLOAD_INFO, O_RDONLY);
-										if(fd > 0)
-										{
-											lseek(fd, -80, SEEK_END);
-											bzero(buf, sizeof(buf));
-											read(fd, buf, sizeof(buf));
-											char *p = strchr(buf, '%');
-											if(p != NULL)
-											{
-												buf[p - buf] = 0;
-												p = strrchr(buf, ' ');
-												percent = atoi(p+1);
-												//satfi_log("percent=%d\n", percent);
-											}
-											close(fd);
-										}
-
-										satfi_log("Upgrade2_Notice Type=2, Percent=%d\n", percent);//升级包下载百分比
-										Upgrade2_Notice(2, percent);
-									}
-									else
-									{
-										break;
-									}
-								}
-							}
-						}
-					}
-					else
-					{
-						satfi_log("version low\n");
-						break;
-					}
-				}
-				else
-				{
-					satfi_log("version same\n");
-					break;
-				}
-			}
-			else
-			{
-				//download update.ini
-				bzero(cmd, sizeof(cmd));
-				sprintf(cmd, "busybox wget -c %s -O /cache/recovery/update.ini", UPDATE_INI_URL);
-				satfi_log("%s", cmd);
-				myexec(cmd, NULL, NULL);
-			}
-		}
-		
-		sleep(10);
-	}
-
-UpdateExit :
-
-	satfi_log("Update_firmware_Sat quit\n");
-	return;
-}
-
-
-void *CheckProgramUpdateServer(void *p)
-{
-	Update_firmware(p);
-	Update_firmware_Sat(p);
+	satfi_log("CheckProgramUpdateServerThead quit\n");
 	return NULL;
 }
 
