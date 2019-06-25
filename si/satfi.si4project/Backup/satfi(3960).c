@@ -5527,20 +5527,14 @@ int handle_app_msg_tcp(int socket, char *pack, char *tscbuf)
 			if(req->gprs_on == 1)
 			{
 				//GPRS关
-				if(base.sat.lte_status == 1)
-				{
-					satfi_log("CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest setDataDisabled");
-					myexec("CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest setDataDisabled", NULL, NULL);
-				}
+				satfi_log("CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest setDataDisabled");
+				myexec("CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest setDataDisabled", NULL, NULL);
 			}
 			else if(req->gprs_on == 2)
 			{
 				//GPRS开
-				if(base.sat.lte_status == 2)
-				{
-					satfi_log("CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest setDataEnabled");
-					myexec("CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest setDataEnabled", NULL, NULL);
-				}
+				satfi_log("CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest setDataEnabled");
+				myexec("CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest setDataEnabled", NULL, NULL);
 			}
 
 		}
@@ -5680,22 +5674,6 @@ int handle_app_msg_tcp(int socket, char *pack, char *tscbuf)
 			myexec("reboot", NULL, NULL);
 		}
 		break;
-
-		case VOLUME_REQUEST:
-		{
-			MsgVolumeReq *req = (MsgVolumeReq *)pack;
-			base.sat.volumeFactor = (req->Volume)*1.0 / 10.0;
-			satfi_log("volumeFactor=%f Volume=%d\n", base.sat.volumeFactor, req->Volume);
-			
-			memset(tmp,0,2048);
-			MsgVolumeRsp *rsp = (MsgVolumeRsp *)tmp;
-			rsp->header.length = sizeof(MsgVolumeRsp);
-			rsp->header.mclass = VOLUME_RESPONSE;
-			rsp->Volume = req->Volume;
-			write(socket, tmp, rsp->header.length);
-		}
-		break;
-
 		
 		default:
 			satfi_log("received unrecognized message from app : mclass=0X%04X length=%d\n", p->mclass, p->length);

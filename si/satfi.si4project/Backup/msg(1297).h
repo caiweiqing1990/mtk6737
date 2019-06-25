@@ -176,9 +176,6 @@
 #define REBOOT_REQUEST				0x0071
 #define REBOOT_RESPONSE				0x8071
 
-#define VOLUME_REQUEST				0x0072
-#define VOLUME_RESPONSE				0x8072
-
 #pragma pack (1)
 
 typedef struct _msg_header
@@ -1192,22 +1189,6 @@ typedef struct _app_reboot_rsp
   char MsID[21];
   unsigned short Result;
 }MsgRebootRsp;
-
-/*VOLUME_REQUEST*/
-typedef struct _app_volume_req
-{
-  MsgHeader header;
-  char MsID[21];
-  short Volume;
-} MsgVolumeReq;
-
-/*VOLUME_RESPONSE*/
-typedef struct _app_volume_rsp
-{
-  MsgHeader header;
-  char MsID[21];
-  short Volume;
-}MsgVolumeRsp;
 
 #pragma pack ()
 

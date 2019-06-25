@@ -3,42 +3,30 @@
 #define OLD_FILE_PATH "record.pcm"
 #define VOL_FILE_PATH "vol.pcm"
  
-int volume_adjust(short  * in_buf, short  * out_buf, float in_vol)
+int volume_adjust(short  * in_buf, float in_vol, int len)
 {
-    int i, tmp;
- 
-    // in_vol[0, 100]
-    float vol = in_vol - 98;
- 
-    if(-98<vol && vol<0)
-        vol = 1/(vol*(-1));
-    else if(0<=vol && vol<=1)
-        vol = 1;
-    /*
-    else if(1<=vol && vol<=2)
-        vol = vol;
-    */
-    else if(vol<=-98)
-        vol = 0;
-    else if(vol>=2)
-        vol = 40;  //这个值可以根据你的实际情况去调整
- 
-    tmp = (*in_buf)>>2; // 上面所有关于vol的判断，其实都是为了此处*in_buf乘以一个倍数，你可以根据自己的需要去修改
- 
-    // 下面的code主要是为了溢出判断
-    if(tmp > 32767)
-        tmp = 32767;
-    else if(tmp < -32768)
-        tmp = -32768;
-    *out_buf = tmp;
- 
-    return 0;
+	int i, tmp;
+	for(i=0; i<len; i+=2)
+	{
+		tmp = (*in_buf)*in_vol;
+		if(tmp > 32767)
+		{
+			tmp = 32767;
+		}
+		else if(tmp < -32768)
+		{
+			tmp = -32768;
+		}
+		*in_buf = tmp;
+		++in_buf;
+	}
+	return len;
 }
  
-void pcm_volume_control(int volume)
+void pcm_volume_control(float volume)
 {
-    short s16In = 0;
-    short s16Out = 0;
+    short s16In[160];
+    short s16Out[160];
     int size = 0;
  
     FILE *fp = fopen(OLD_FILE_PATH, "rb+");
@@ -46,11 +34,11 @@ void pcm_volume_control(int volume)
  
     while(!feof(fp))
     {
-        size = fread(&s16In, 2, 1, fp);
+        size = fread(s16In, 1, 320, fp);
         if(size>0)
         {        
-            volume_adjust(&s16In, &s16Out, volume);
-            fwrite(&s16Out, 2, 1, fp_vol);       
+            volume_adjust(s16In, volume, size);
+            fwrite(s16In, 1, 320, fp_vol);       
         }
     }
  
@@ -60,6 +48,9 @@ void pcm_volume_control(int volume)
  
 int main(void)
 {
-    pcm_volume_control(100); 
+	float volumeFactor;	
+	short Volume = 2;
+	printf("vol=%f\n", (Volume)*1.0 / 10);
+//    pcm_volume_control(2.0); 
     return 0;
 }

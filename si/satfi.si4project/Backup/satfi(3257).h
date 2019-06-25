@@ -212,8 +212,6 @@ typedef struct _sat
   int sim_status;
   int Upgrade1Confirm; //1：不下载 2：下载 3：不升级 4：升级
   int Upgrade2Confirm; //1：不下载 2：下载 3：不升级 4：升级
-
-  float volumeFactor;
 }SAT;
 
 typedef struct _gps

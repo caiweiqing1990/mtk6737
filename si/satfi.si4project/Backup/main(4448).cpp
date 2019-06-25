@@ -97,27 +97,6 @@ int Delayns(struct timespec* time_start, int time_ns)
 	return 0;
 }
 
-int volume_adjust(short  * in_buf, float in_vol, int len)
-{
-	int i, tmp;
-	for(i=0; i<len; i+=2)
-	{
-		tmp = (*in_buf)*in_vol;
-		if(tmp > 32767)
-		{
-			tmp = 32767;
-		}
-		else if(tmp < -32768)
-		{
-			tmp = -32768;
-		}
-		*in_buf = tmp;
-		++in_buf;
-	}
-	return len;
-}
-
-
 void *handle_pcm_data(void *p)
 {
 	BASE *base = (BASE *)p;
@@ -369,10 +348,33 @@ void *handle_pcm_data(void *p)
 				}
 				
 				n = record->read(tmp, 320);
-				Delayns(&time_start, 20000000);
-				clock_gettime(CLOCK_REALTIME, &time_start);
-				if(base->sat.volumeFactor > 0)volume_adjust((short*)tmp, base->sat.volumeFactor, n);
-				write(base->sat.sat_pcmdata, tmp, n);
+				if(echo_state && speex_echo_playback_flag)
+				{
+					speex_echo_capture(echo_state, (spx_int16_t *)tmp, (spx_int16_t *)outfram);
+					write(base->sat.sat_pcmdata, outfram, 320);
+				}
+				else
+				{
+					//ofs1 = 0;
+					//while(1)
+					//{
+						//satfi_log("%d", );
+						Delayns(&time_start, 20000000);
+						clock_gettime(CLOCK_REALTIME, &time_start);
+						write(base->sat.sat_pcmdata, tmp, 320);
+						//ofs1 += 320;
+						//milliseconds_sleep(18);
+						//if(ofs1 >= n) break;
+					//}
+					//static int recordfd = -1;
+					//if(recordfd < 0)
+					//{
+					//	recordfd = open("/sdcard/record.pcm", O_RDWR|O_CREAT, 0644);
+					//	lseek(recordfd, 0, SEEK_SET);
+					//}
+					//write(recordfd, tmp, n);
+				}
+				
 			}
 			else
 			{
@@ -532,8 +534,7 @@ void main_thread_loop(void)
 									}
 									AudioTrackStart = 1;
 								}
-
-								if(base.sat.volumeFactor > 0)volume_adjust((short*)SatDataBuf[3], base.sat.volumeFactor, n);
+								
 								track->write(SatDataBuf[3], n);
 
 								//if(base.sat.sat_state_phone == SAT_STATE_PHONE_ONLINE)
@@ -545,6 +546,13 @@ void main_thread_loop(void)
 								//		lseek(playbackfd, 0, SEEK_SET);
 								//	}
 								//	write(playbackfd, SatDataBuf[3], n);
+								//}
+
+								//if(!echo_state && base.sat.sat_state_phone == SAT_STATE_PHONE_ONLINE)
+								//{
+								//	satfi_log("AudioTrackStart");
+								//	speex_echo_playback(echo_state, (spx_int16_t *)SatDataBuf[3]);
+								//	speex_echo_playback_flag = 1;
 								//}
 							}
 						}

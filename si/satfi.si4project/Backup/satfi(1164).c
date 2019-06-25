@@ -5680,22 +5680,6 @@ int handle_app_msg_tcp(int socket, char *pack, char *tscbuf)
 			myexec("reboot", NULL, NULL);
 		}
 		break;
-
-		case VOLUME_REQUEST:
-		{
-			MsgVolumeReq *req = (MsgVolumeReq *)pack;
-			base.sat.volumeFactor = (req->Volume)*1.0 / 10.0;
-			satfi_log("volumeFactor=%f Volume=%d\n", base.sat.volumeFactor, req->Volume);
-			
-			memset(tmp,0,2048);
-			MsgVolumeRsp *rsp = (MsgVolumeRsp *)tmp;
-			rsp->header.length = sizeof(MsgVolumeRsp);
-			rsp->header.mclass = VOLUME_RESPONSE;
-			rsp->Volume = req->Volume;
-			write(socket, tmp, rsp->header.length);
-		}
-		break;
-
 		
 		default:
 			satfi_log("received unrecognized message from app : mclass=0X%04X length=%d\n", p->mclass, p->length);

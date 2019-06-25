@@ -97,27 +97,6 @@ int Delayns(struct timespec* time_start, int time_ns)
 	return 0;
 }
 
-int volume_adjust(short  * in_buf, float in_vol, int len)
-{
-	int i, tmp;
-	for(i=0; i<len; i+=2)
-	{
-		tmp = (*in_buf)*in_vol;
-		if(tmp > 32767)
-		{
-			tmp = 32767;
-		}
-		else if(tmp < -32768)
-		{
-			tmp = -32768;
-		}
-		*in_buf = tmp;
-		++in_buf;
-	}
-	return len;
-}
-
-
 void *handle_pcm_data(void *p)
 {
 	BASE *base = (BASE *)p;
@@ -369,10 +348,33 @@ void *handle_pcm_data(void *p)
 				}
 				
 				n = record->read(tmp, 320);
-				Delayns(&time_start, 20000000);
-				clock_gettime(CLOCK_REALTIME, &time_start);
-				if(base->sat.volumeFactor > 0)volume_adjust((short*)tmp, base->sat.volumeFactor, n);
-				write(base->sat.sat_pcmdata, tmp, n);
+				if(echo_state && speex_echo_playback_flag)
+				{
+					speex_echo_capture(echo_state, (spx_int16_t *)tmp, (spx_int16_t *)outfram);
+					write(base->sat.sat_pcmdata, outfram, 320);
+				}
+				else
+				{
+					//ofs1 = 0;
+					//while(1)
+					//{
+						//satfi_log("%d", );
+						Delayns(&time_start, 20000000);
+						clock_gettime(CLOCK_REALTIME, &time_start);
+						write(base->sat.sat_pcmdata, tmp, 320);
+						//ofs1 += 320;
+						//milliseconds_sleep(18);
+						//if(ofs1 >= n) break;
+					//}
+					//static int recordfd = -1;
+					//if(recordfd < 0)
+					//{
+					//	recordfd = open("/sdcard/record.pcm", O_RDWR|O_CREAT, 0644);
+					//	lseek(recordfd, 0, SEEK_SET);
+					//}
+					//write(recordfd, tmp, n);
+				}
+				
 			}
 			else
 			{
@@ -532,8 +534,7 @@ void main_thread_loop(void)
 									}
 									AudioTrackStart = 1;
 								}
-
-								if(base.sat.volumeFactor > 0)volume_adjust((short*)SatDataBuf[3], base.sat.volumeFactor, n);
+								
 								track->write(SatDataBuf[3], n);
 
 								//if(base.sat.sat_state_phone == SAT_STATE_PHONE_ONLINE)
@@ -545,6 +546,13 @@ void main_thread_loop(void)
 								//		lseek(playbackfd, 0, SEEK_SET);
 								//	}
 								//	write(playbackfd, SatDataBuf[3], n);
+								//}
+
+								//if(!echo_state && base.sat.sat_state_phone == SAT_STATE_PHONE_ONLINE)
+								//{
+								//	satfi_log("AudioTrackStart");
+								//	speex_echo_playback(echo_state, (spx_int16_t *)SatDataBuf[3]);
+								//	speex_echo_playback_flag = 1;
 								//}
 							}
 						}
@@ -608,8 +616,6 @@ int AudioTrackPlay(const char *filename)
 		track.clear();
 		return -1;
 	}
-
-	//track->setVolume(100.0f, 100.0f);
 	
 	if(track->start()!= android::NO_ERROR)
 	{
@@ -697,6 +703,7 @@ void *local_socket_server(void *p)
 	//int LocalSocketfd = android_get_control_socket("socket_audio_cancel"); //socket socket_audio_cancel stream 660 system system
 
 	int LocalSocketfd;
+	int ofs=0;
 
 	LocalSocketfd = socket_local_server("com.hwacreate.localsocket0", ANDROID_SOCKET_NAMESPACE_ABSTRACT, SOCK_STREAM);//发生接受到的声音
 	satfi_log("LocalSocketfd=%d\n", LocalSocketfd);
@@ -766,10 +773,32 @@ void *local_socket_server(void *p)
 			{
 				if(FD_ISSET(base->sat.locak_socket_audio_cancel, &fds))
 				{
-					int n = read(base->sat.locak_socket_audio_cancel, buf, 960);
+					int n = read(base->sat.locak_socket_audio_cancel, buf+ofs, 960);
 					if(n>0)
 					{
-						write(base->sat.sat_pcmdata, buf, 320);
+						ofs += n;
+						if(ofs >= 960)
+						{
+							int ofs1=0;
+							while(ofs1 < ofs)
+							{
+								//satfi_log("%d", ofs1);
+								write(base->sat.sat_pcmdata, buf+ofs1, 320);
+								//milliseconds_sleepms();
+								ofs1 += 320;
+							}
+							ofs = 0;
+						}
+
+						static int fd = -1;
+						if(fd > 0)
+						{
+							write(fd, buf, n);
+						}
+						else if(fd < 0)
+						{
+							fd = open("/sdcard/socket_audio.raw", O_RDWR|O_CREAT, 0644);
+						}
 					}
 					else
 					{
@@ -791,6 +820,7 @@ int main()
 {
 	pthread_t id_1;	
 	base_init();
+	//if(pthread_create(&id_1, NULL, local_socket_server, (void *)&base) == -1) exit(1);
 	if(pthread_create(&id_1, NULL, SecondLineHintTonePlay, (void *)&base) == -1) exit(1);		//二线电话提示音
 	if(pthread_create(&id_1, NULL, handle_pcm_data, (void *)&base) == -1) exit(1);				//处理通话语音
 	main_thread_loop();
