@@ -134,13 +134,13 @@ void *handle_pcm_data(void *p)
         exit(1);
     }
 
-    unsigned int value = 1;
-    if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR,
-                (void *)&value, sizeof(value)) < 0)
-    {
-        satfi_log("fail to setsockopt\n");
-		close(sock);
-        exit(1);
+    unsigned int value = 1;  
+    if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR,  
+                (void *)&value, sizeof(value)) < 0)  
+    {  
+        satfi_log("fail to setsockopt\n");  
+		close(sock);		
+        exit(1);  
     }
 
     if (bind(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0)
@@ -151,6 +151,7 @@ void *handle_pcm_data(void *p)
     }
 
 	char tmp[BUS_SIZE];
+	char outfram[BUS_SIZE];
 	struct sockaddr_in clientAddr;
 	struct sockaddr_in *clientAddr1 = &(base->sat.clientAddr1);
 	struct sockaddr_in *clientAddr2 = &(base->sat.clientAddr2);
@@ -164,10 +165,11 @@ void *handle_pcm_data(void *p)
 	bzero(clientAddr2, len);
 	
 	int n;
-	struct timeval tout = {10,0};
+	struct timeval tout = {10,0};	
 	fd_set fds;
 	int maxfd;
 	int ret;
+	int ofs=0,ofs1=0;
 
 	satfi_log("select_voice_udp %d\n", sock);
 
@@ -181,7 +183,7 @@ void *handle_pcm_data(void *p)
 	//speex_preprocess_ctl(st, SPEEX_PREPROCESS_SET_PROB_START , &vadProbStart); //Set probability required for the VAD to go from silence to voice
 	//speex_preprocess_ctl(st, SPEEX_PREPROCESS_SET_PROB_CONTINUE, &vadProbContinue); //Set probability required for the VAD to stay in the voice state (integer percent)
 
-	size_t  minFrameCount = 0;
+	size_t  minFrameCount 	= 0;
 	int framesize = 2;
 	
 	sp<AudioRecord> record = NULL;
@@ -251,6 +253,8 @@ void *handle_pcm_data(void *p)
 						satfi_log("bzero clientAddr2\n");
 						bzero(clientAddr2, len);
 					}
+
+					ofs = 0;
 					
 					if(AudioRecordStart == 1)
 					{					
@@ -363,7 +367,7 @@ void *handle_pcm_data(void *p)
 					satfi_log("AudioRecordStart");
 					clock_gettime(CLOCK_REALTIME, &time_start);
 				}
-
+				
 				n = record->read(tmp, 320);
 				Delayns(&time_start, 20000000);
 				clock_gettime(CLOCK_REALTIME, &time_start);

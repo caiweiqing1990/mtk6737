@@ -179,9 +179,6 @@
 #define VOLUME_REQUEST				0x0072
 #define VOLUME_RESPONSE				0x8072
 
-#define USB_MODE_REQUEST			0x0073
-#define USB_MODE_RESPONSE			0x8073
-
 #pragma pack (1)
 
 typedef struct _msg_header
@@ -1211,22 +1208,6 @@ typedef struct _app_volume_rsp
   char MsID[21];
   short Volume;
 }MsgVolumeRsp;
-
-/*USB_MODE_REQUEST*/
-typedef struct _app_usb_mode_req
-{
-  MsgHeader header;
-  char MsID[21];
-  short Mode;
-} MsgUsbModeReq;
-
-/*USB_MODE_RESPONSE*/
-typedef struct _app_usb_mode_rsp
-{
-  MsgHeader header;
-  char MsID[21];
-  short Mode;
-}MsgUsbModeRsp;
 
 #pragma pack ()
 

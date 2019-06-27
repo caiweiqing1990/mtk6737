@@ -9064,7 +9064,7 @@ void *SystemServer(void *p)
 		}
 		else 
 		{
-			if(base->sat.sat_available == 1)
+			if(checkroute("ppp", NULL, 0) == 0)
 			{
 				if(eth_state_change() || ap_state_change() || (lte_status != base->sat.lte_status))
 				{
@@ -9092,6 +9092,7 @@ void *SystemServer(void *p)
 				gpio_out(HW_GPIO79, 0);
 				base->sat.lte_status = 2;
 				base->sat.active = 1;
+				base->sat.sat_available = 0;
 			}
 		}
 

@@ -5696,30 +5696,6 @@ int handle_app_msg_tcp(int socket, char *pack, char *tscbuf)
 		}
 		break;
 
-		case USB_MODE_REQUEST:
-		{
-			MsgUsbModeReq *req = (MsgUsbModeReq *)pack;
-			satfi_log("Mode=%d\n",  req->Mode);
-			
-			memset(tmp,0,2048);
-			MsgUsbModeRsp *rsp = (MsgUsbModeRsp *)tmp;
-			rsp->header.length = sizeof(MsgUsbModeRsp);
-			rsp->header.mclass = USB_MODE_RESPONSE;
-			rsp->Mode = req->Mode;
-			write(socket, tmp, rsp->header.length);
-
-			if(req->Mode == 0)
-			{
-				satfi_log("APMode\n");
-				gpio_out(HW_GPIO47, 0);//usb<-->mtk6737				
-			}
-			else
-			{
-				satfi_log("CPMode\n");
-				gpio_out(HW_GPIO47, 1);//usb<-->卫星模块	
-			}
-		}
-		break;
 		
 		default:
 			satfi_log("received unrecognized message from app : mclass=0X%04X length=%d\n", p->mclass, p->length);
@@ -9064,7 +9040,7 @@ void *SystemServer(void *p)
 		}
 		else 
 		{
-			if(base->sat.sat_available == 1)
+			if(checkroute("ppp", NULL, 0) == 0)
 			{
 				if(eth_state_change() || ap_state_change() || (lte_status != base->sat.lte_status))
 				{
@@ -9092,6 +9068,7 @@ void *SystemServer(void *p)
 				gpio_out(HW_GPIO79, 0);
 				base->sat.lte_status = 2;
 				base->sat.active = 1;
+				base->sat.sat_available = 0;
 			}
 		}
 
@@ -10733,25 +10710,24 @@ void ttygsmcreate(void)
 
 void hw_init(void)
 {
-	gpio_out(HW_GPIO2, 0);//sos led
+	gpio_out(HW_GPIO2, 0);
 	gpio_out(HW_GPIO5, 0);
 	gpio_out(HW_GPIO6, 0);
-	gpio_out(HW_GPIO7, 1);//wifi led
+	gpio_out(HW_GPIO7, 1);
 
-	gpio_out(HW_GPIO78, 0);//data led
-	gpio_out(HW_GPIO79, 0);//4g led
-	
-	gpio_out(HW_GPIO82, 0);//卫星模块入网灯
-	gpio_out(HW_GPIO83, 0);//信号灯
-	gpio_out(HW_GPIO81, 0);//信号灯
-	gpio_out(HW_GPIO80, 0);//信号灯
+	gpio_out(HW_GPIO78, 0);
+	gpio_out(HW_GPIO79, 0);
+	gpio_out(HW_GPIO82, 0);
+	gpio_out(HW_GPIO83, 0);
+	gpio_out(HW_GPIO81, 0);
+	gpio_out(HW_GPIO80, 0);
 
-	gpio_out(MSM_POWER, 1);//卫星模块开关
+	gpio_out(HW_GPIO3, 1);
 	gpio_out(HW_GPIO4, 1);
 	gpio_out(HW_GPIO19, 1);
 	gpio_out(HW_GPIO54, 1);
 
-	gpio_out(RC, 0);//振铃
+	gpio_out(RC, 0);//rc
 	gpio_in(SHR);//摘机
 	gpio_pull_enable(SHR);
 	gpio_pull_up(SHR);
@@ -10770,7 +10746,7 @@ void hw_init(void)
 	gpio_pull_up(DV);
 
 #ifdef NEW_BOARD
-	gpio_out(HW_GPIO47, 1);//usb<-->卫星模块	
+	gpio_out(HW_GPIO47, 0);//0:AP
 #endif
 	myexec("echo \"noSuspend\" > /sys/power/wake_lock", NULL, NULL);
 }
