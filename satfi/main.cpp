@@ -151,6 +151,7 @@ void *handle_pcm_data(void *p)
     }
 
 	char tmp[BUS_SIZE];
+	char echo[BUS_SIZE];
 	struct sockaddr_in clientAddr;
 	struct sockaddr_in *clientAddr1 = &(base->sat.clientAddr1);
 	struct sockaddr_in *clientAddr2 = &(base->sat.clientAddr2);
@@ -171,15 +172,31 @@ void *handle_pcm_data(void *p)
 
 	satfi_log("select_voice_udp %d\n", sock);
 
-	//SpeexPreprocessState *st;
-	//st = speex_preprocess_state_init(NN, 8000);
+	SpeexPreprocessState *stnoise;
+	float f;
+	int i;
+	stnoise = speex_preprocess_state_init(NN, 8000);
+	i=1;
+	speex_preprocess_ctl(stnoise, SPEEX_PREPROCESS_SET_DENOISE, &i);
+	i=0;
+	speex_preprocess_ctl(stnoise, SPEEX_PREPROCESS_SET_AGC, &i);
+	i=8000;
+	speex_preprocess_ctl(stnoise, SPEEX_PREPROCESS_SET_AGC_LEVEL, &i);
+	i=0;
+	speex_preprocess_ctl(stnoise, SPEEX_PREPROCESS_SET_DEREVERB, &i);
+	f=.0;
+	speex_preprocess_ctl(stnoise, SPEEX_PREPROCESS_SET_DEREVERB_DECAY, &f);
+	f=.0;
+	speex_preprocess_ctl(stnoise, SPEEX_PREPROCESS_SET_DEREVERB_LEVEL, &f);
 
-	//int vad = 1;
-	//int vadProbStart = 90;
-	//int vadProbContinue = 100;
-	//speex_preprocess_ctl(st, SPEEX_PREPROCESS_SET_VAD, &vad); //静音检测
-	//speex_preprocess_ctl(st, SPEEX_PREPROCESS_SET_PROB_START , &vadProbStart); //Set probability required for the VAD to go from silence to voice
-	//speex_preprocess_ctl(st, SPEEX_PREPROCESS_SET_PROB_CONTINUE, &vadProbContinue); //Set probability required for the VAD to stay in the voice state (integer percent)
+	int vad = 1;
+	int vadProbStart = 90;
+	int vadProbContinue = 100;
+	SpeexPreprocessState *stvad;
+	stvad = speex_preprocess_state_init(NN, 8000);
+	speex_preprocess_ctl(stvad, SPEEX_PREPROCESS_SET_VAD, &vad);
+	speex_preprocess_ctl(stvad, SPEEX_PREPROCESS_SET_PROB_START , &vadProbStart);
+	speex_preprocess_ctl(stvad, SPEEX_PREPROCESS_SET_PROB_CONTINUE, &vadProbContinue);
 
 	size_t  minFrameCount = 0;
 	int framesize = 2;
@@ -260,7 +277,7 @@ void *handle_pcm_data(void *p)
 				}
 				break;
 			default:
-								
+
 				if(FD_ISSET(sock, &fds))
 				{
 			        n = recvfrom(sock, tmp, 320, 0, (struct sockaddr*)&clientAddr, &len);
@@ -289,6 +306,13 @@ void *handle_pcm_data(void *p)
 										Delayns(&time_start, 20000000);
 										clock_gettime(CLOCK_REALTIME, &time_start);
 										write(base->sat.sat_pcmdata, tmp, 320);
+										//static int recordfd = -1;
+										//if(recordfd < 0)
+										//{
+										//	recordfd = open("/sdcard/recordapp.pcm", O_RDWR|O_CREAT, 0644);
+										//	lseek(recordfd, 0, SEEK_SET);
+										//}
+										//write(recordfd, tmp, 320);
 									}
 									else
 									{
@@ -365,10 +389,38 @@ void *handle_pcm_data(void *p)
 				}
 
 				n = record->read(tmp, 320);
-				Delayns(&time_start, 20000000);
-				clock_gettime(CLOCK_REALTIME, &time_start);
-				if(base->sat.volumeFactor > 0)volume_adjust((short*)tmp, base->sat.volumeFactor, n);
-				write(base->sat.sat_pcmdata, tmp, n);
+				
+				//static int recordfd = -1;
+				//if(recordfd < 0)
+				//{
+				//	recordfd = open("/sdcard/record.pcm", O_RDWR|O_CREAT, 0644);
+				//	lseek(recordfd, 0, SEEK_SET);
+				//}
+				//write(recordfd, tmp, n);
+				
+				speex_preprocess_run(stnoise, (short*)tmp);
+				speex_preprocess_run(stvad, (short*)tmp);
+				if(echo_state)
+				{
+					speex_echo_capture(echo_state, (short*)tmp, (short*)echo);
+					if(base->sat.VolumeRecord > 0 && (int(base->sat.VolumeRecord) * 10 != 10))
+					{
+						volume_adjust((short*)echo, base->sat.VolumeRecord, n);
+					}
+					Delayns(&time_start, 20000000);
+					clock_gettime(CLOCK_REALTIME, &time_start);
+					write(base->sat.sat_pcmdata, echo, n);
+				}
+				else
+				{
+					if(base->sat.VolumeRecord > 0 && (int(base->sat.VolumeRecord) * 10 != 10))
+					{
+						volume_adjust((short*)tmp, base->sat.VolumeRecord, n);
+					}
+					Delayns(&time_start, 20000000);
+					clock_gettime(CLOCK_REALTIME, &time_start);
+					write(base->sat.sat_pcmdata, tmp, n);
+				}
 			}
 			else
 			{
@@ -528,10 +580,7 @@ void main_thread_loop(void)
 									}
 									AudioTrackStart = 1;
 								}
-
-								if(base.sat.volumeFactor > 0)volume_adjust((short*)SatDataBuf[3], base.sat.volumeFactor, n);
-								track->write(SatDataBuf[3], n);
-
+								
 								//if(base.sat.sat_state_phone == SAT_STATE_PHONE_ONLINE)
 								//{
 								//	static int playbackfd = -1;
@@ -542,6 +591,23 @@ void main_thread_loop(void)
 								//	}
 								//	write(playbackfd, SatDataBuf[3], n);
 								//}
+
+								if(base.sat.VolumeTrack > 0 && (int(base.sat.VolumeTrack) * 10 != 10))
+								{
+									volume_adjust((short*)SatDataBuf[3], base.sat.VolumeTrack, n);
+								}
+								
+								if(echo_state)
+								{
+									if(base.sat.sat_state_phone == SAT_STATE_PHONE_ONLINE)
+									{
+										speex_echo_playback(echo_state, (short*)SatDataBuf[3]);
+									}
+								}
+
+								track->write(SatDataBuf[3], n);
+
+
 							}
 						}
 					}

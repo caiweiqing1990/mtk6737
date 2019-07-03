@@ -51,7 +51,7 @@
 #define UDP_VOICE_DSTPORT	12056	//对讲语音目的端口
 
 #define NN 160
-#define TAIL 3200
+#define TAIL 2000
 
 //3G模块状态
 enum N3G_STATE {
@@ -213,7 +213,8 @@ typedef struct _sat
   int Upgrade1Confirm; //1：不下载 2：下载 3：不升级 4：升级
   int Upgrade2Confirm; //1：不下载 2：下载 3：不升级 4：升级
 
-  float volumeFactor;
+  float VolumeTrack;
+  float VolumeRecord;
 }SAT;
 
 typedef struct _gps

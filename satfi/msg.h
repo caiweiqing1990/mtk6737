@@ -1201,7 +1201,8 @@ typedef struct _app_volume_req
 {
   MsgHeader header;
   char MsID[21];
-  short Volume;
+  short VolumeTrack;
+  short VolumeRecord;
 } MsgVolumeReq;
 
 /*VOLUME_RESPONSE*/
@@ -1209,7 +1210,8 @@ typedef struct _app_volume_rsp
 {
   MsgHeader header;
   char MsID[21];
-  short Volume;
+  short VolumeTrack;
+  short VolumeRecord;
 }MsgVolumeRsp;
 
 /*USB_MODE_REQUEST*/

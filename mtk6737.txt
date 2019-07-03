@@ -91,9 +91,13 @@ adb shell restorecon system/bin/pppd
 
 
 adb push Y:\AudioRecord\bin\AudioRecordTest /system/bin/
-adb push Y:\AudioRecord\bin\playback.pcm /system/bin/
+adb push Y:\AudioRecord\bin\playback.pcm /mnt/
+adb push Y:\speextest\nosie.wav /mnt/
+adb push Y:\speextest\nosie1.wav /mnt/
 
-adb pull /mnt/record.pcm Y:\AudioRecord\bin
+AudioRecordTest /mnt/playback.pcm /mnt/record.pcm
+
+adb pull /mnt/record.pcm Y:\speextest\record.pcm
 
 adb push Y:\satfi\bin\udhcpd_br0.conf /data/misc/wifi/udhcpd_br0.conf
 busybox udhcpd -fS /data/misc/wifi/udhcpd_br0.conf

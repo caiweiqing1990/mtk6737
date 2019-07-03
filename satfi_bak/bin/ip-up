@@ -1,0 +1,1 @@
+ndc resolver setnetdns "$NAME" "" "$DNS1" "$DNS2"

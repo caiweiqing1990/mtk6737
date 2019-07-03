@@ -1,0 +1,27 @@
+debug
+#logfile /sdcard/pppdlog
+nolock
+nodetach
+#/dev/ttyMT1
+/dev/ttygsm5
+921600
+crtscts
+linkname sat
+user
+linux
+usepeerdns
+noauth
+noipdefault
+novj
+nodeflate
+novjccomp
+noccp
+local
+persist
+defaultroute
+lcp-max-configure 30
+ipcp-max-configure 50
+mru 1500
+mtu 1500
+connect '/system/bin/chat -s -v -f /etc/ppp/char/sat-chat'
+disconnect '/system/bin/chat -s -v -f /etc/ppp/char/disconnect-chat'

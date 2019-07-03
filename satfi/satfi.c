@@ -2610,6 +2610,14 @@ void *func_y(void *p)
 						val = GetIniKeyInt("satellite","ACTIVE",CONFIG_FILE);
 						if(val >= 0)base->sat.active = val;
 						satfi_log("base->sat.active=%d\n", base->sat.active);
+
+						val = GetIniKeyInt("satellite","VOLUMETRACK",CONFIG_FILE);
+						if(val >= 0)base->sat.VolumeTrack = (val)*1.0 / 10.0;
+						satfi_log("base->sat.VolumeTrack=%f\n", base->sat.VolumeTrack);
+
+						val = GetIniKeyInt("satellite","VOLUMERECORD",CONFIG_FILE);
+						if(val >= 0)base->sat.VolumeRecord = (val)*1.0 / 10.0;
+						satfi_log("base->sat.VolumeRecord=%f\n", base->sat.VolumeRecord);
 					}
 				}
 			
@@ -5468,7 +5476,11 @@ int handle_app_msg_tcp(int socket, char *pack, char *tscbuf)
 			rsp->Result = 0;
 			write(socket, tmp, rsp->header.length);				
 
-			//CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest wifiapstart weiqing 12345678
+			//CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest wifiapstart req->ssid req->passwd
+			char cmd[128]={0};
+			sprintf(cmd, "CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest wifiapstart %s %s", req->ssid, req->passwd);
+			satfi_log("cmd=%s\n",cmd);
+			myexec(cmd, NULL, NULL);
 		}
 		break;
 		
@@ -5684,14 +5696,26 @@ int handle_app_msg_tcp(int socket, char *pack, char *tscbuf)
 		case VOLUME_REQUEST:
 		{
 			MsgVolumeReq *req = (MsgVolumeReq *)pack;
-			base.sat.volumeFactor = (req->Volume)*1.0 / 10.0;
-			satfi_log("volumeFactor=%f Volume=%d\n", base.sat.volumeFactor, req->Volume);
+			if(req->VolumeTrack > 0)
+			{
+				SetKeyInt("satellite", "VOLUMETRACK", CONFIG_FILE, req->VolumeTrack);
+				base.sat.VolumeTrack = (req->VolumeTrack)*1.0 / 10.0;
+			}
+			
+			if(req->VolumeRecord > 0)
+			{
+				SetKeyInt("satellite", "VOLUMERECORD", CONFIG_FILE, req->VolumeRecord);
+				base.sat.VolumeRecord = (req->VolumeRecord)*1.0 / 10.0;
+			}
+			satfi_log("VolumeTrack=%f\n", base.sat.VolumeTrack);
+			satfi_log("VolumeRecord=%f\n", base.sat.VolumeRecord);
 			
 			memset(tmp,0,2048);
 			MsgVolumeRsp *rsp = (MsgVolumeRsp *)tmp;
 			rsp->header.length = sizeof(MsgVolumeRsp);
 			rsp->header.mclass = VOLUME_RESPONSE;
-			rsp->Volume = req->Volume;
+			rsp->VolumeTrack = req->VolumeTrack;
+			rsp->VolumeRecord = req->VolumeRecord;
 			write(socket, tmp, rsp->header.length);
 		}
 		break;

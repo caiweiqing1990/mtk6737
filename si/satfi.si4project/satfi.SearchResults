@@ -1,0 +1,5 @@
+---- volumeFactorSend Matches (5 in 3 files) ----
+main_thread_loop in main.cpp (Y:\satfi) : 								if(base.sat.volumeFactorSend > 0)volume_adjust((short*)SatDataBuf[3], base.sat.volumeFactorSend, n);
+handle_app_msg_tcp in satfi.c (Y:\satfi) : 			if(req->VolumeSend > 0)base.sat.volumeFactorSend = (req->VolumeSend)*1.0 / 10.0;
+handle_app_msg_tcp in satfi.c (Y:\satfi) : 			satfi_log("volumeFactorSend=%f\n", base.sat.volumeFactorSend);
+_sat in satfi.h (Y:\satfi) :   float volumeFactorSend;

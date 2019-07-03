@@ -36,10 +36,10 @@ int main(int argc, char **argv)
    {
       fread(ref_buf, sizeof(short), NN, ref_fd);
       fread(echo_buf, sizeof(short), NN, echo_fd);
-      speex_echo_cancellation(st, ref_buf, echo_buf, e_buf);
-      speex_preprocess_run(den, e_buf);
-	  //speex_echo_playback(st, echo_buf);
-	  //speex_echo_capture(st, ref_buf, e_buf);
+     // speex_echo_cancellation(st, ref_buf, echo_buf, e_buf);
+      //speex_preprocess_run(den, e_buf);
+	  speex_echo_playback(st, echo_buf);
+	  speex_echo_capture(st, ref_buf, e_buf);
       fwrite(e_buf, sizeof(short), NN, e_fd);
    }
    speex_echo_state_destroy(st);
