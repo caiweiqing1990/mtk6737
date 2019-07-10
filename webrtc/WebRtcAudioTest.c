@@ -7,7 +7,7 @@
 
 #include "webrtc/modules/audio_processing/aec/include/echo_cancellation.h"
 
-int WebRtcAecTest()
+int WebRtcAecTest(char* argv[])
 {
 #define  NN 160
 	short far_frame[NN];
@@ -15,8 +15,8 @@ int WebRtcAecTest()
 	short out_frame[NN];
 
 	void *aecmInst = NULL;
-	FILE *fp_far  = fopen("speaker.pcm", "rb");
-	FILE *fp_near = fopen("micin.pcm", "rb");
+	FILE *fp_far  = fopen(argv[1], "rb");//speaker_signal
+	FILE *fp_near = fopen(argv[2], "rb");//mic_signal
 	FILE *fp_out  = fopen("out.pcm", "wb");
 
 	do 
@@ -41,7 +41,7 @@ int WebRtcAecTest()
 				fread(near_frame, sizeof(short), NN, fp_near);
 				WebRtcAec_BufferFarend(aecmInst, far_frame, NN);//对参考声音(回声)的处理
 
-				WebRtcAec_Process(aecmInst, near_frame, NULL, out_frame, NULL, NN,40,0);//回声消除
+				WebRtcAec_Process(aecmInst, near_frame, NULL, out_frame, NULL, NN,atoi(argv[3]),0);//回声消除
 				fwrite(out_frame, sizeof(short), NN, fp_out);
 			}
 			else
@@ -60,6 +60,7 @@ int WebRtcAecTest()
 
 int main(int argc, char* argv[])
 {
-	WebRtcAecTest();
+	fprintf(stderr, "testecho speaker_signal.sw mic_signal.sw 40\n");
+	WebRtcAecTest(argv);
 	return 0;
 }

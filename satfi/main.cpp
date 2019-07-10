@@ -14,8 +14,9 @@ using namespace android;
 
 extern BASE base;
 #define BUS_SIZE (3200)
-static SpeexEchoState *echo_state = NULL;
 static int speex_echo_playback_flag = 0;
+
+void *aecmInst = NULL;
 
 int audio_test(void)
 {
@@ -80,14 +81,14 @@ int audio_test(void)
 }
 
 //纳秒延时
-int Delayns(struct timespec* time_start, int time_ns)
+int Delayns(long start, int time_ns)
 {
 	struct timespec time_end;
-	int times_use;
+	long times_use;
 	while(1)
 	{
 		clock_gettime(CLOCK_REALTIME, &time_end);
-		times_use = (time_end.tv_sec - time_start->tv_sec)*1000000000 + (time_end.tv_nsec - time_start->tv_nsec);
+		times_use = time_end.tv_sec*1000000000 + time_end.tv_nsec - start;
 		if(times_use >= time_ns)
 		{
 			return 1;
@@ -126,6 +127,8 @@ void *handle_pcm_data(void *p)
     addr.sin_port = htons(12070);
     addr.sin_addr.s_addr = htonl(INADDR_ANY);
 	struct timespec time_start;
+
+	long start=0;
 	
     int sock;
     if ((sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
@@ -206,10 +209,12 @@ void *handle_pcm_data(void *p)
 
 	SpeexPreprocessState *den;
 	int sampleRate = 8000;
-	//echo_state = speex_echo_state_init(NN, TAIL);
-	//den = speex_preprocess_state_init(NN, sampleRate);
-	//speex_echo_ctl(echo_state, SPEEX_ECHO_SET_SAMPLING_RATE, &sampleRate);
-	//speex_preprocess_ctl(den, SPEEX_PREPROCESS_SET_ECHO_STATE, echo_state);
+
+	WebRtcAec_Create(&aecmInst);
+	WebRtcAec_Init(aecmInst, 8000, 8000);
+	AecConfig config;
+	config.nlpMode = kAecNlpConservative;
+	WebRtcAec_set_config(aecmInst, config);
 
 	while (1)
     {
@@ -261,18 +266,21 @@ void *handle_pcm_data(void *p)
 					{
 						satfi_log("bzero clientAddr1\n");
 						bzero(clientAddr1, len);
+						start = 0;
 					}
 					
 					if(ntohs(clientAddr2->sin_port) != 0)
 					{
 						satfi_log("bzero clientAddr2\n");
 						bzero(clientAddr2, len);
+						start = 0;
 					}
 					
 					if(AudioRecordStart == 1)
-					{					
+					{
 						AudioRecordStart = 0;
 						record->stop();
+						start = 0;
 					}
 				}
 				break;
@@ -302,17 +310,14 @@ void *handle_pcm_data(void *p)
 								{
 									if(base->sat.sat_pcmdata > 0)
 									{
-										//satfi_log("n=%d ofs=%d\n", n, ofs);	
-										Delayns(&time_start, 20000000);
-										clock_gettime(CLOCK_REALTIME, &time_start);
+										Delayns(start, 20000000);
 										write(base->sat.sat_pcmdata, tmp, 320);
-										//static int recordfd = -1;
-										//if(recordfd < 0)
-										//{
-										//	recordfd = open("/sdcard/recordapp.pcm", O_RDWR|O_CREAT, 0644);
-										//	lseek(recordfd, 0, SEEK_SET);
-										//}
-										//write(recordfd, tmp, 320);
+										if(start == 0)
+										{
+											clock_gettime(CLOCK_REALTIME, &time_start);
+											start = time_start.tv_sec*1000000000 + time_start.tv_nsec;
+										}
+										start += 20000000;
 									}
 									else
 									{
@@ -322,6 +327,7 @@ void *handle_pcm_data(void *p)
 								else
 								{
 									clock_gettime(CLOCK_REALTIME, &time_start);
+									start = time_start.tv_sec*1000000000 + time_start.tv_nsec;
 								}
 							}
 						}
@@ -386,41 +392,14 @@ void *handle_pcm_data(void *p)
 
 					satfi_log("AudioRecordStart");
 					clock_gettime(CLOCK_REALTIME, &time_start);
+					start = time_start.tv_sec*1000000000 + time_start.tv_nsec;
 				}
 
-				n = record->read(tmp, 320);
-				
-				//static int recordfd = -1;
-				//if(recordfd < 0)
-				//{
-				//	recordfd = open("/sdcard/record.pcm", O_RDWR|O_CREAT, 0644);
-				//	lseek(recordfd, 0, SEEK_SET);
-				//}
-				//write(recordfd, tmp, n);
-				
-				speex_preprocess_run(stnoise, (short*)tmp);
-				speex_preprocess_run(stvad, (short*)tmp);
-				if(echo_state)
-				{
-					speex_echo_capture(echo_state, (short*)tmp, (short*)echo);
-					if(base->sat.VolumeRecord > 0 && (int(base->sat.VolumeRecord) * 10 != 10))
-					{
-						volume_adjust((short*)echo, base->sat.VolumeRecord, n);
-					}
-					Delayns(&time_start, 20000000);
-					clock_gettime(CLOCK_REALTIME, &time_start);
-					write(base->sat.sat_pcmdata, echo, n);
-				}
-				else
-				{
-					if(base->sat.VolumeRecord > 0 && (int(base->sat.VolumeRecord) * 10 != 10))
-					{
-						volume_adjust((short*)tmp, base->sat.VolumeRecord, n);
-					}
-					Delayns(&time_start, 20000000);
-					clock_gettime(CLOCK_REALTIME, &time_start);
-					write(base->sat.sat_pcmdata, tmp, n);
-				}
+				n = record->read(tmp, 320);				
+				if(aecmInst)WebRtcAec_Process(aecmInst, (short*)tmp, NULL, (short*)echo, NULL, NN, 80, 0);
+				Delayns(start, 20000000);
+				start += 20000000;
+				write(base->sat.sat_pcmdata, echo, n);
 			}
 			else
 			{
@@ -581,33 +560,8 @@ void main_thread_loop(void)
 									AudioTrackStart = 1;
 								}
 								
-								//if(base.sat.sat_state_phone == SAT_STATE_PHONE_ONLINE)
-								//{
-								//	static int playbackfd = -1;
-								//	if(playbackfd < 0)
-								//	{
-								//		playbackfd = open("/sdcard/playback.pcm", O_RDWR|O_CREAT, 0644);
-								//		lseek(playbackfd, 0, SEEK_SET);
-								//	}
-								//	write(playbackfd, SatDataBuf[3], n);
-								//}
-
-								if(base.sat.VolumeTrack > 0 && (int(base.sat.VolumeTrack) * 10 != 10))
-								{
-									volume_adjust((short*)SatDataBuf[3], base.sat.VolumeTrack, n);
-								}
-								
-								if(echo_state)
-								{
-									if(base.sat.sat_state_phone == SAT_STATE_PHONE_ONLINE)
-									{
-										speex_echo_playback(echo_state, (short*)SatDataBuf[3]);
-									}
-								}
-
+								if(aecmInst)WebRtcAec_BufferFarend(aecmInst, (short*)SatDataBuf[3], NN);								
 								track->write(SatDataBuf[3], n);
-
-
 							}
 						}
 					}

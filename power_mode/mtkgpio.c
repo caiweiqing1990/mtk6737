@@ -76,7 +76,6 @@ int main(int argc, char **argv)
 		{
 			op = GPIO_IOCSDATAHIGH;
 			ioctl(fd, op, pin);
-			
 			op = GPIO_IOCQDATAOUT;
 			printf("DATAOUT=%d\n", ioctl(fd, op, pin));
 		}

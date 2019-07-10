@@ -32,6 +32,7 @@
 #include <linux/gsmmux.h>
 #include <cutils/sockets.h>
 #include <cutils/log.h>     /*logging in logcat*/
+#include "webrtc/modules/audio_processing/aec/include/echo_cancellation.h"
 
 #define GPS_DATA_FILE		"/sdcard/GpsData.txt"
 #define CALL_RECORDS_FILE	"/sdcard/CallRecords.txt"

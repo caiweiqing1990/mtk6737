@@ -79,13 +79,13 @@ int AppCnt = 0;
 #define DV		HW_GPIO61	//按键是否按下 new
 #define INH		HW_GPIO64
 #define PWDN	HW_GPIO63
-#define SATFI_VERSION "HTL8100_2.9_N"
+#define SATFI_VERSION "HTL8100_3.1_N"
 #else
 #define D3		HW_GPIO47
 #define DV		HW_GPIO48	//按键是否按下
 #define INH		HW_GPIO51
 #define PWDN	HW_GPIO52
-#define SATFI_VERSION "HTL8100_2.9"
+#define SATFI_VERSION "HTL8100_3.0"
 #endif
 
 #define SATFI_VERSION_SAT "HTL8100_1.0"
@@ -10788,7 +10788,6 @@ void hw_init(void)
 	gpio_in(D1);
 	gpio_in(D2);
 	gpio_in(D3);
-	gpio_in(DV);
 	gpio_in(DV);
 	gpio_pull_enable(DV);
 	gpio_pull_up(DV);
