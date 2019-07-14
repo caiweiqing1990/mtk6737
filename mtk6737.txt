@@ -90,9 +90,9 @@ adb shell restorecon system/bin/satfi
 adb shell restorecon system/bin/pppd
 
 
-adb push Y:\webrtcin\bin\WebRtcAudioTest /system/bin/
-adb push Y:\webrtcin\bin\record.pcm /mnt/
-adb push Y:\webrtcin\bin\playback.pcm /mnt/
+adb push Y:\webrtcout\bin\WebRtcAudioTest /system/bin/
+adb push Y:\webrtcout\bin\record.pcm /mnt/
+adb push Y:\webrtcout\bin\playback.pcm /mnt/
 adb push Y:\speextest\nosie.wav /mnt/
 adb push Y:\speextest\nosie1.wav /mnt/
 
@@ -104,7 +104,7 @@ adb push Z:\out\target\product\len6737t_66_sh_n\system\lib64\libwebrtc_audio_pre
 
 WebRtcAudioTest /mnt/playback.pcm /mnt/record.pcm
 
-adb pull /mnt/out.pcm Y:\webrtcin\bin\out.pcm
+adb pull /mnt/out.pcm Y:\webrtcout\bin\out.pcm
 adb pull /system/bin/satfi Y:\speextest\satfi
 adb push Y:\speextest\satfi /system/bin
 
@@ -684,11 +684,10 @@ frameworks/base/media/java/android/media/AudioSystem.java +785
 
 DEFAULT_STREAM_VOLUME
 
--rwxrw-rw- 1 book book 30363 Apr 28 14:58 ./kernel-3.18/drivers/misc/mediatek/mach/mt6735/len6737t_66_sh_n/dct/dct/codegen.dws
 -rwxrw-rw- 1 book book 30426 Apr  3 11:19 ./vendor/mediatek/proprietary/bootable/bootloader/lk/target/len6737t_66_sh_n/dct/dct/codegen.dws
+-rwxrw-rw- 1 book book 30363 Apr 28 14:58 ./kernel-3.18/drivers/misc/mediatek/mach/mt6735/len6737t_66_sh_n/dct/dct/codegen.dws
 -rwxrwxr-x 1 book book 30343 Jan 12 14:18 ./vendor/mediatek/proprietary/bootable/bootloader/preloader/custom/len6737t_66_sh_n/dct/dct/codegen.dws
 -rwxrwxr-x 1 book book 30353 Jan 12 14:18 ./vendor/mediatek/proprietary/custom/len6737t_66_sh_n/kernel/dct/dct/codegen.dws
-
 
 setprop net.dns1 219.150.32.132
 setprop net.dns2 123.150.150.150

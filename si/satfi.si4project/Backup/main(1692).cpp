@@ -93,7 +93,6 @@ int Delayns(long start, int time_ns)
 		{
 			return 1;
 		}
-		usleep(10);
 	}
 
 	return 0;
@@ -409,16 +408,8 @@ void *handle_pcm_data(void *p)
 				//	recordfd = open("/sdcard/record.pcm", O_RDWR|O_CREAT, 0644);
 				//}
 				//write(recordfd, echo, n);
-				speex_preprocess_run(stnoise, (short *)echo);
-				vad = speex_preprocess_run(stvad, (short *)echo);
-				if(vad)
-				{
-					write(base->sat.sat_pcmdata, echo, n);
-				}
-				else
-				{
-					write(base->sat.sat_pcmdata, zero, 320);
-				}
+
+				write(base->sat.sat_pcmdata, echo, n);
 			}
 			else
 			{

@@ -22,7 +22,7 @@
 #define DIR_IN				0
 #define DIR_OUT				1
 
-#define	PCM1_CLK			61
+#define	PCM1_CLK			47
 #define	PCM1_SYNC			62
 #define	PCM1_DI				63
 #define	PCM1_DO0			64
@@ -115,7 +115,7 @@ static void gpio_init(void)
 	//gpio_set_dir(PCM1_DI, DIR_IN);
 	//gpio_set_dir(PCM1_DO0, DIR_OUT);
 	
-	gpio_set_out(PCM1_CLK, DATA_LOW);
+	gpio_set_out(PCM1_CLK, DATA_HIGH);
 	//gpio_set_out(PCM1_SYNC, DATA_LOW);
 	//gpio_set_out(PCM1_DO0, DATA_LOW);
 }
@@ -123,11 +123,11 @@ static void gpio_init(void)
 static int pcm_master_start_init(void)
 {
 	gpio_init();
-	pcm_kthread = kthread_create(pcm_master_kthread, NULL, "pcm_master_kthread");
-	if (IS_ERR(pcm_kthread))
-		return PTR_ERR(pcm_kthread);
-	wake_up_process(pcm_kthread);
-	GPIOERR("pcm_master_start_init\n");
+	//pcm_kthread = kthread_create(pcm_master_kthread, NULL, "pcm_master_kthread");
+	//if (IS_ERR(pcm_kthread))
+	//	return PTR_ERR(pcm_kthread);
+	//wake_up_process(pcm_kthread);
+	//GPIOERR("pcm_master_start_init\n");
 	return 0;
 }
 
