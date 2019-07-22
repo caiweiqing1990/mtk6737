@@ -441,7 +441,7 @@ mmm vendor/mediatek/proprietary/bootable/bootloader/lk:lk （编译）
 
 kernel模块:
 mmm kernel-3.18:clean-kernel 					(clean操作)
-make kernel bootimage 							(在修改内核配置 arch/arm64/configs/len6737t_66_sh_n_defconfig 情况下必须使用该命令才生效)
+make kernel bootimage 							(在修改内核配置 kernel-3.18/arch/arm64/configs/len6737t_66_sh_n_defconfig 情况下必须使用该命令才生效)
 
 在无修改配置文件的情况下，可用如下命令模块编译:
 mmm kernel-3.18:kernel 							(编译)

@@ -5735,7 +5735,7 @@ int handle_app_msg_tcp(int socket, char *pack, char *tscbuf)
 			if(req->Mode == 0)
 			{
 				satfi_log("APMode\n");
-				gpio_out(HW_GPIO47, 0);//usb<-->mtk6737
+				gpio_out(HW_GPIO47, 0);//usb<-->mtk6737				
 			}
 			else
 			{
@@ -6228,7 +6228,7 @@ void Date_Parse(char *data)
 #ifdef NEW_BOARD
 				if(jstmp->valueint == 1)
 				{
-					gpio_out(HW_GPIO47, 0);
+					gpio_out(HW_GPIO47, 0);					
 				}
 				else
 				{

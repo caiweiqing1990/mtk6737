@@ -1,0 +1,3 @@
+pcm_master_gpio.c:79:6:DELAY	0	static
+pcm_master_gpio.c:155:12:pcm_master_init	64	static
+pcm_master_gpio.c:161:13:pcm_master_exit	32	static

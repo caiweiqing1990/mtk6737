@@ -79,7 +79,7 @@ int AppCnt = 0;
 #define DV		HW_GPIO61	//按键是否按下 new
 #define INH		HW_GPIO64
 #define PWDN	HW_GPIO63
-#define SATFI_VERSION "HTL8100_3.3_N"
+#define SATFI_VERSION "HTL8100_3.2_N"
 #else
 #define D3		HW_GPIO47
 #define DV		HW_GPIO48	//按键是否按下
@@ -5735,7 +5735,7 @@ int handle_app_msg_tcp(int socket, char *pack, char *tscbuf)
 			if(req->Mode == 0)
 			{
 				satfi_log("APMode\n");
-				gpio_out(HW_GPIO47, 0);//usb<-->mtk6737
+				gpio_out(HW_GPIO47, 0);//usb<-->mtk6737				
 			}
 			else
 			{
@@ -6228,7 +6228,7 @@ void Date_Parse(char *data)
 #ifdef NEW_BOARD
 				if(jstmp->valueint == 1)
 				{
-					gpio_out(HW_GPIO47, 0);
+					gpio_out(HW_GPIO47, 0);					
 				}
 				else
 				{

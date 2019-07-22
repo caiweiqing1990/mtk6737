@@ -5736,11 +5736,13 @@ int handle_app_msg_tcp(int socket, char *pack, char *tscbuf)
 			{
 				satfi_log("APMode\n");
 				gpio_out(HW_GPIO47, 0);//usb<-->mtk6737
+				gpio_out(HW_GPIO52, 0);
 			}
 			else
 			{
 				satfi_log("CPMode\n");
 				gpio_out(HW_GPIO47, 1);//usb<-->卫星模块	
+				gpio_out(HW_GPIO52, 1);
 			}
 		}
 		break;
@@ -6229,10 +6231,12 @@ void Date_Parse(char *data)
 				if(jstmp->valueint == 1)
 				{
 					gpio_out(HW_GPIO47, 0);
+					gpio_out(HW_GPIO52, 0);
 				}
 				else
 				{
 					gpio_out(HW_GPIO47, 1);
+					gpio_out(HW_GPIO52, 1);
 				}
 #endif
 			}
@@ -10794,6 +10798,7 @@ void hw_init(void)
 
 #ifdef NEW_BOARD
 	gpio_out(HW_GPIO47, 1);//usb<-->卫星模块	
+	gpio_out(HW_GPIO52, 1);
 #endif
 	myexec("echo \"noSuspend\" > /sys/power/wake_lock", NULL, NULL);
 }

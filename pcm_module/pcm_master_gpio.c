@@ -54,7 +54,9 @@ static void gpio_set_out(unsigned long pin, unsigned long output)
 	else
 	{
 		//mt_reg_sync_writel(1L << DATAOUT_offset[pin].offset, (gpio_regs + DATAOUT_addr[pin].addr + 4));
+		printk("gpio_regs=0x%p\n", *(volatile unsigned int *)(gpio_regs + DATAOUT_addr[pin].addr + 4));
 		*(volatile unsigned int *)(gpio_regs + DATAOUT_addr[pin].addr + 4) = 1L << DATAOUT_offset[pin].offset;
+		printk("gpio_regs=0x%p\n", *(volatile unsigned int *)(gpio_regs + DATAOUT_addr[pin].addr + 4));
 	}
 }
 
@@ -68,7 +70,9 @@ static void gpio_set_dir(unsigned long pin, unsigned long dir)
 	else
 	{
 		//mt_reg_sync_writel(1L << DIR_offset[pin].offset, (gpio_regs + DIR_addr[pin].addr + 4));
+		printk("gpio_regs=0x%p\n", *(volatile unsigned int *)(gpio_regs + DIR_addr[pin].addr + 4));
 		*(volatile unsigned int *)(gpio_regs + DIR_addr[pin].addr + 4) = 1L << DIR_offset[pin].offset;
+		printk("gpio_regs=0x%p\n", *(volatile unsigned int *)(gpio_regs + DIR_addr[pin].addr + 4));
 	}
 }
 
@@ -101,7 +105,7 @@ static int pcm_master_kthread(void *arg)
 }
 
 static void gpio_init(void)
-{	
+{
 	gpio_regs = ioremap(0x10211000, 0x1000);
 	GPIOERR("gpio_regs=0x%p\n", gpio_regs);
 	

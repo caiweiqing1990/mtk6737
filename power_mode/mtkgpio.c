@@ -36,6 +36,64 @@
 #define GPIO_IOCSDATALOW        _IOW(GPIO_IOC_MAGIC, 0x14, uint32_t)
 #define GPIO_IOCSDATAHIGH       _IOW(GPIO_IOC_MAGIC, 0x15, uint32_t)
 
+static const int op_map[] = {
+        GPIO_IOCQMODE,
+        GPIO_IOCTMODE0,
+        GPIO_IOCTMODE1,
+        GPIO_IOCTMODE2,
+        GPIO_IOCTMODE3,
+
+        GPIO_IOCQDIR,
+        GPIO_IOCSDIRIN,
+        GPIO_IOCSDIROUT,
+
+        GPIO_IOCQPULLEN,
+        GPIO_IOCSPULLENABLE,
+        GPIO_IOCSPULLDISABLE,
+
+        GPIO_IOCQPULL,
+        GPIO_IOCSPULLDOWN,
+        GPIO_IOCSPULLUP,
+
+        GPIO_IOCQINV,
+        GPIO_IOCSINVENABLE,
+        GPIO_IOCSINVDISABLE,
+
+        GPIO_IOCQDATAIN,
+        GPIO_IOCQDATAOUT,
+        GPIO_IOCSDATALOW,
+        GPIO_IOCSDATAHIGH
+};
+
+typedef enum {
+	GET_MODE_STA = 0,
+	SET_MODE_0,  // 00
+	SET_MODE_1,  // 01
+	SET_MODE_2,  // 10
+	SET_MODE_3,  // 11
+
+	GET_DIR_STA, 
+	SET_DIR_IN,  // 0
+	SET_DIR_OUT, // 1
+
+	GET_PULLEN_STA,  
+	SET_PULLEN_DISABLE,  // 0
+	SET_PULLEN_ENABLE,   // 1
+
+	GET_PULL_STA,
+	SET_PULL_DOWN,  // 0
+	SET_PULL_UP,    // 1
+
+	GET_INV_STA,
+	SET_INV_ENABLE,  // 1
+	SET_INV_DISABLE, // 0
+
+	GET_DATA_IN,
+	GET_DATA_OUT,
+	SET_DATA_LOW,  // 0
+	SET_DATA_HIGH, // 1
+}GPIO_OP;
+
 int main(int argc, char **argv)
 {
 	if (argc != 2 && argc != 3){
@@ -56,6 +114,9 @@ int main(int argc, char **argv)
 	
 	int	op = GPIO_IOCTMODE0;
 	ioctl(fd, op, pin);
+
+	op = GPIO_IOCQDIR;
+	printf("DIR=%d\n", ioctl(fd, op, pin));
 	
 	if(argc == 3)
 	{
@@ -88,7 +149,4 @@ int main(int argc, char **argv)
 		op = GPIO_IOCQDATAIN;
 		printf("DATAIN=%d\n", ioctl(fd, op, pin));
 	}
-	
-	
 }
-
