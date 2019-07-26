@@ -41,7 +41,6 @@
 
 #define DUDU_WAV			"/vendor/res/sound/dudu.wav"
 #define BUSY_WAV			"/vendor/res/sound/busy.wav"
-#define TONE_WAV			"/vendor/res/sound/bohao.wav"
 
 #define SAT_LINK_DISCONNECT	1
 #define SAT_LINK_NORMAL		0

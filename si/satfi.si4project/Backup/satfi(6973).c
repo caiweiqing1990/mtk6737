@@ -3510,22 +3510,19 @@ int handle_sat_data(int *satfd, char *data, int *ofs)
 						satfi_log("%s sat_calling=%d\n", data, base.sat.sat_calling);
 						if(base.sat.sat_calling)
 						{
-							if(base.sat.sat_state_phone != SAT_STATE_PHONE_HANGUP)
-							{
-								base.sat.playBusyToneFlag = 1;
-								base.sat.sat_state_phone = SAT_STATE_PHONE_HANGUP;
-							}
+							base.sat.sat_state_phone = SAT_STATE_PHONE_HANGUP;
 						}
 						
 						base.sat.secondLinePhoneMode = 0;
+						base.sat.playBusyToneFlag = 1;
 					}
 					else if(strstr(data, "VOICEFORMAT: 3,0"))
 					{
-						//satfi_log("%s sat_calling=%d\n", data, base.sat.sat_calling);
-						//if(base.sat.sat_calling == 0)
-						//{
-							//base.sat.sat_state_phone = SAT_STATE_PHONE_RING_COMING;
-						//}
+						satfi_log("%s sat_calling=%d\n", data, base.sat.sat_calling);
+						if(base.sat.sat_calling == 0)
+						{
+							base.sat.sat_state_phone = SAT_STATE_PHONE_RING_COMING;
+						}
 					}
 					else if(strstr(data, "SIMST: 0"))
 					{
@@ -3820,27 +3817,8 @@ void udp_voice_calc_money(char *msid, int money)
 
 int get_battery_level(void)
 {
-	int battery_level = 0;
-	static int battery_level_tmp = 0;
-
-	static int count=0;
-
+	int battery_level;
 	battery_level = Get_AUXIN2_Value();
-	if(battery_level_tmp > 0 && abs(battery_level - battery_level_tmp) >= 2)
-	{
-		count++;
-		if(count<10)
-		{
-			battery_level = battery_level_tmp;			
-		}
-	}
-	else
-	{
-		count = 0;
-	}
-
-	battery_level_tmp = battery_level;
-	
 	//satfi_log("battery_level=%d", battery_level);
 	if(battery_level >= 1280) battery_level = 1280;
 	if(battery_level <= 800) battery_level = 800;
@@ -9894,8 +9872,15 @@ static void *CallUpThread(void *p)
 				break;
 			case SAT_STATE_PHONE_DIALING_ERROR:	
 			case SAT_STATE_PHONE_DIALINGFAILE:
-				base->sat.sat_state_phone = SAT_STATE_PHONE_DIALING_FAILE_AND_ERROR;
-				base->sat.playBusyToneFlag = 1;	
+				dialfailecnt++;
+				if(dialfailecnt >= 3)
+				{
+					base->sat.sat_state_phone = SAT_STATE_PHONE_DIALING_FAILE_AND_ERROR;
+				}
+				else
+				{
+					base->sat.sat_state_phone = SAT_STATE_PHONE_CLCC;
+				}
 				break;
 			case SAT_STATE_PHONE_IDLE:
 			case SAT_STATE_PHONE_NOANSWER:
@@ -9918,7 +9903,7 @@ static void *CallUpThread(void *p)
 		if(base->sat.sat_state_phone == SAT_STATE_PHONE_CLCC)
 		{
 			++clcccnt;
-			if(clcccnt >= 5)
+			if(clcccnt >= 10)
 			{
 				clcccnt = 0;
 				base->sat.sat_state_phone = SAT_STATE_PHONE_DIALINGFAILE;
@@ -9980,7 +9965,6 @@ static void *CallUpThread(void *p)
 		{
 			base->sat.EndTime = time(0);
 			base->sat.sat_state_phone = SAT_STATE_PHONE_IDLE;
-			//base->sat.playBusyToneFlag = 1;			
 			break;
 		}
 	}
@@ -10010,6 +9994,7 @@ static void *CallUpThread(void *p)
 	base->sat.sat_state_phone = SAT_STATE_PHONE_IDLE;
 	base->sat.socket = 0;
 	base->sat.sat_calling = 0;
+	base->sat.playBusyToneFlag = 1;
 	base->sat.StartTime = 0;
 	satfi_log("CallUpThread Exit\n");
 	return NULL;
@@ -10048,7 +10033,7 @@ int StrToBcd(unsigned char *bcd, const char *str, int strlen)
 		}
 		else
 		{
-			strncpy(tmp,str,strlen);
+			strncpy(tmp,str,strlen);	
 		}
 		
         for(i = 0; i < strlen; i+=2)
@@ -10643,8 +10628,7 @@ void *Second_linePhone_Dial_Detect(void *p)
 			}
 		}
 
-		usleep(200000);
-		//sleep(1);
+		sleep(1);
 	}
 	
 	return NULL;
@@ -10828,7 +10812,6 @@ void base_init(void)
 	pthread_t id_1;
 	strcpy(satfi_version, SATFI_VERSION);
 	satfi_log("satfi_version=%s", satfi_version);
-	base.sat.VolumeTrack = 0.1;
 	hw_init();
 	if(pthread_create(&id_1, NULL, CheckProgramUpdateServer, (void *)&base) == -1) exit(1);
 	if(pthread_create(&id_1, NULL, func_y, (void *)&base) == -1) exit(1);						//卫星模块启动

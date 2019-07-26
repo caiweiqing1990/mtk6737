@@ -1,3 +1,10 @@
----- HW_GPIO47 Matches (2 in 2 files) ----
-gpio_exp.h (Y:\satfi) line 52 :     HW_GPIO44,    HW_GPIO45,   HW_GPIO46,    HW_GPIO47,
-satfi.c (Y:\satfi) line 84 : #define D3		HW_GPIO47
+---- SAT_STATE_PHONE_DIALINGFAILE Matches (9 in 2 files) ----
+get_sat_dailstatus in satfi.c (Y:\satfi) :   else if(base.sat.sat_state_phone == SAT_STATE_PHONE_DIALINGFAILE || 
+handle_sat_data in satfi.c (Y:\satfi) : 							base.sat.sat_state_phone = SAT_STATE_PHONE_DIALINGFAILE;
+handle_sat_data in satfi.c (Y:\satfi) : 						base.sat.sat_state_phone = SAT_STATE_PHONE_DIALINGFAILE;
+handle_sat_data in satfi.c (Y:\satfi) : 							base.sat.sat_state_phone = SAT_STATE_PHONE_DIALINGFAILE;
+handle_sat_data in satfi.c (Y:\satfi) : 						base.sat.sat_state_phone = SAT_STATE_PHONE_DIALINGFAILE;
+CallUpThread in satfi.c (Y:\satfi) : 				base->sat.sat_state_phone = SAT_STATE_PHONE_DIALINGFAILE;
+CallUpThread in satfi.c (Y:\satfi) : 			case SAT_STATE_PHONE_DIALINGFAILE:
+CallUpThread in satfi.c (Y:\satfi) : 				base->sat.sat_state_phone = SAT_STATE_PHONE_DIALINGFAILE;
+SAT_STATE_PHONE in satfi.h (Y:\satfi) :   SAT_STATE_PHONE_DIALINGFAILE,	//拨号失败

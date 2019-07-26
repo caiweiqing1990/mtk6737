@@ -207,19 +207,6 @@ void *handle_pcm_data(void *p)
 	int framesize = 2;
 	
 	sp<AudioRecord> record = NULL;
-
-	if(record == NULL)
-	{
-		record = new AudioRecord(AUDIO_SOURCE_MIC, 8000, AUDIO_FORMAT_PCM_16_BIT, audio_channel_in_mask_from_count(1),
-		String16(),(size_t)(2 * framesize * BUS_SIZE), NULL, NULL, minFrameCount, AUDIO_SESSION_ALLOCATE,
-		AudioRecord::TRANSFER_DEFAULT, AUDIO_INPUT_FLAG_NONE, -1, -1);
-	
-		if(record->initCheck() != OK)
-		{
-			satfi_log("AudioRecord initCheck error!");
-		}
-	}
-
 	int AudioRecordStart = 0;
 
 	SpeexPreprocessState *den;
@@ -387,6 +374,18 @@ void *handle_pcm_data(void *p)
 			{
 				if(AudioRecordStart == 0)
 				{
+					if(record == NULL)
+					{
+						record = new AudioRecord(AUDIO_SOURCE_MIC, 8000, AUDIO_FORMAT_PCM_16_BIT, audio_channel_in_mask_from_count(1),
+						String16(),(size_t)(2 * framesize * BUS_SIZE), NULL, NULL, minFrameCount, AUDIO_SESSION_ALLOCATE,
+						AudioRecord::TRANSFER_DEFAULT, AUDIO_INPUT_FLAG_NONE, -1, -1);
+					
+						if(record->initCheck() != OK)
+						{
+							satfi_log("AudioRecord initCheck error!");
+						}
+					}
+
 					AudioRecordStart = 1;
 					if(record->start() != android::NO_ERROR)
 					{
@@ -427,7 +426,7 @@ void *handle_pcm_data(void *p)
 				{
 					write(base->sat.sat_pcmdata, zero, 320);
 				}
-				usleep(20000);
+				sleep(1);
 			}
 		}
     }	
@@ -452,14 +451,6 @@ void main_thread_loop(void)
 	//AUDIO_CHANNEL_OUT_STEREO, 16 bit, stereo 22050 Hz
 	sp<AudioTrack> track = NULL;
 	//track->setVolume(2.0f, 2.0f);
-	if(track == NULL)
-	{
-		track = new AudioTrack(AUDIO_STREAM_MUSIC, 8000, AUDIO_FORMAT_PCM_16_BIT, AUDIO_CHANNEL_OUT_MONO, 0);
-		if(track->initCheck() != OK)
-		{
-			satfi_log("AudioTrack initCheck error!\n");
-		}
-	}
 
 	int AudioTrackStart = 0;
 	int GpsStart = 0;
@@ -570,10 +561,17 @@ void main_thread_loop(void)
 							//satfi_log("clientAddr1->sin_port zero\n");
 							if(base.sat.secondLinePhoneMode == 1)
 							{
-								static int dropcnt=0;
-							
 								if(AudioTrackStart == 0)
 								{
+									if(track == NULL)
+									{
+										track = new AudioTrack(AUDIO_STREAM_MUSIC, 8000, AUDIO_FORMAT_PCM_16_BIT, AUDIO_CHANNEL_OUT_MONO, 0);
+										if(track->initCheck() != OK)
+										{
+											satfi_log("AudioTrack initCheck error!\n");
+										}
+									}
+
 									if(track->start() != android::NO_ERROR)
 									{
 										satfi_log("AudioTrack start error!");
@@ -583,20 +581,9 @@ void main_thread_loop(void)
 										satfi_log("AudioTrack start success!");
 									}
 									AudioTrackStart = 1;
-									dropcnt = 0;
-								}
-
-								if(base.sat.sat_state_phone == SAT_STATE_PHONE_ONLINE)
-								{
-									dropcnt++;
-									if(dropcnt <= 100) bzero(SatDataBuf[3], 320);
 								}
 								
-								if(aecmInst)WebRtcAec_BufferFarend(aecmInst, (short*)SatDataBuf[3], NN);
-								if(base.sat.VolumeTrack * 10 > 0)
-								{
-									if(base.sat.VolumeTrack * 10 != 10)volume_adjust((short*)SatDataBuf[3], base.sat.VolumeTrack, n);
-								}
+								if(aecmInst)WebRtcAec_BufferFarend(aecmInst, (short*)SatDataBuf[3], NN);								
 								track->write(SatDataBuf[3], n);
 							}
 						}
@@ -634,7 +621,7 @@ void main_thread_loop(void)
 	
 }
 
-int AudioTrackPlay(const char *filename, int rate, int ch)
+int AudioTrackPlay(const char *filename)
 {
 	int framesize = 2;
 	int len;
@@ -650,9 +637,9 @@ int AudioTrackPlay(const char *filename, int rate, int ch)
 
 	lseek(fd, 0, 44);//跳过wav头大小
 	
-	AudioTrack::getMinFrameCount(&minFrameCount, AUDIO_STREAM_DEFAULT, rate);
+	AudioTrack::getMinFrameCount(&minFrameCount, AUDIO_STREAM_DEFAULT, 44100);
 	//satfi_log("minFrameCount = %d", (int)minFrameCount);
-	sp<AudioTrack> track = new AudioTrack(AUDIO_STREAM_MUSIC, rate, AUDIO_FORMAT_PCM_16_BIT, ch, 0);
+	sp<AudioTrack> track = new AudioTrack(AUDIO_STREAM_MUSIC, 44100, AUDIO_FORMAT_PCM_16_BIT, AUDIO_CHANNEL_OUT_STEREO, 0);
 	
 	if(track->initCheck() != OK)
 	{
@@ -692,9 +679,6 @@ int AudioTrackPlay(const char *filename, int rate, int ch)
 void *SecondLineHintTonePlay(void *p)
 {
 	BASE *base = (BASE *)p;
-
-	int flag=0;
-	
 	while(1)
 	{
 		if(base->sat.isSecondLinePickUp == 1)
@@ -703,7 +687,7 @@ void *SecondLineHintTonePlay(void *p)
 			{
 				if(base->sat.playBusyToneFlag == 1)
 				{
-					if(AudioTrackPlay(BUSY_WAV, 44100, AUDIO_CHANNEL_OUT_STEREO) < 0)
+					if(AudioTrackPlay(BUSY_WAV) < 0)
 					{
 						sleep(1);
 					}
@@ -712,12 +696,7 @@ void *SecondLineHintTonePlay(void *p)
 				{
 					if(base->sat.ring == 0 && base->sat.isSecondLineFirstKeyPress == 0)
 					{
-						if(flag == 0)
-						{
-							flag = 1;
-							AudioTrackPlay(TONE_WAV, 16000, AUDIO_CHANNEL_OUT_MONO);//每次摘机提示音按#号键拨打号码
-						}
-						else if(AudioTrackPlay(DUDU_WAV, 44100, AUDIO_CHANNEL_OUT_STEREO) < 0)
+						if(AudioTrackPlay(DUDU_WAV) < 0)
 						{
 							sleep(1);
 						}
@@ -736,7 +715,6 @@ void *SecondLineHintTonePlay(void *p)
 		else
 		{
 			base->sat.playBusyToneFlag = 0;
-			flag = 0;
 			sleep(1);
 		}
 	}
