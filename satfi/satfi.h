@@ -33,6 +33,7 @@
 #include <cutils/sockets.h>
 #include <cutils/log.h>     /*logging in logcat*/
 #include "webrtc/modules/audio_processing/aec/include/echo_cancellation.h"
+#include "webrtc/common_audio/vad/include/webrtc_vad.h"
 
 #define GPS_DATA_FILE		"/sdcard/GpsData.txt"
 #define CALL_RECORDS_FILE	"/sdcard/CallRecords.txt"
@@ -42,6 +43,7 @@
 #define DUDU_WAV			"/vendor/res/sound/dudu.wav"
 #define BUSY_WAV			"/vendor/res/sound/busy.wav"
 #define TONE_WAV			"/vendor/res/sound/bohao.wav"
+#define SATBUSY_WAV			"/vendor/res/sound/satbusy.wav"
 
 #define SAT_LINK_DISCONNECT	1
 #define SAT_LINK_NORMAL		0
@@ -217,6 +219,8 @@ typedef struct _sat
 
   float VolumeTrack;
   float VolumeRecord;
+
+  int satbusy;
 }SAT;
 
 typedef struct _gps

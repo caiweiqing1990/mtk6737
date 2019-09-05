@@ -5,6 +5,5 @@ LOCAL_SRC_FILES:= $(call all-c-files-under)
 LOCAL_MODULE := mytest
 LOCAL_SHARED_LIBRARIES := libc
 LOCAL_MODULE_TAGS := debug
-#LOCAL_MODULE_PATH := $(LOCAL_PATH)/bin
 include $(BUILD_EXECUTABLE)
 

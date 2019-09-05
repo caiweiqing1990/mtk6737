@@ -79,7 +79,7 @@ int AppCnt = 0;
 #define DV		HW_GPIO61	//按键是否按下 new
 #define INH		HW_GPIO64
 #define PWDN	HW_GPIO63
-#define SATFI_VERSION "HTL8100_3.3_N"
+#define SATFI_VERSION "HTL8100_3.7_N"
 #else
 #define D3		HW_GPIO47
 #define DV		HW_GPIO48	//按键是否按下
@@ -2327,7 +2327,6 @@ void *func_y(void *p)
 	msm01a_off();
 	msm01a_on();
 	base->sat.module_status = 1;
-	sleep(5);
 	ttygsmcreate();
 	
 	while(1)
@@ -2353,6 +2352,8 @@ void *func_y(void *p)
 					myexec("stop sat_pppd", NULL, NULL);												
 					base->sat.sat_available = 0;
 					base->sat.data_status = 0;
+
+					//base->sat.sat_state = SAT_STATE_CSQ;
 				}
 
 				if(base->sat.sat_available == 1)
@@ -2402,12 +2403,17 @@ void *func_y(void *p)
 			base->sat.sat_state = SAT_STATE_RESTART_W;
 			base->sat.sat_status = 0;
 			base->sat.sat_msg_sending = 0;
-			cmux = 0;
 			base->sat.module_status = 2;
-			myexec("n_gsm 1", NULL, NULL);
-			satfi_log("n_gsm 1\n");
+			base->sat.sat_dialing = 0;
+			base->sat.sat_available = 0;
+			if(cmux == 1)
+			{
+				myexec("n_gsm 1", NULL, NULL);
+				satfi_log("n_gsm 1\n");
+			}
 			msm01a_off();
 			msm01a_on();
+			cmux = 0;
 
 			if(base->sat.Upgrade2Confirm == 4)
 			{
@@ -2455,7 +2461,7 @@ void *func_y(void *p)
 					if(cmux == 0)
 					{
 						satfi_log("func_y:send AT+CMUX=0,0,5,1600 to SAT Module1\n");
-						uart_send(base->sat.sat_fd, "AT+CMUX=0,0,5,1600\r\n", strlen("AT+CMUX=0,0,5,1600\r\n"));						
+						uart_send(base->sat.sat_fd, "AT+CMUX=0,0,5,1600\r\n", strlen("AT+CMUX=0,0,5,1600\r\n"));
 					}
 					else
 					{
@@ -2488,7 +2494,7 @@ void *func_y(void *p)
 					}
 					base->sat.sat_state = SAT_STATE_AT_W;
 					counter++;
-					if(counter >= 20)
+					if(counter >= 5)
 					{
 						satfi_log("SAT_STATE_RESTART %d\n", __LINE__);
 						base->sat.sat_state = SAT_STATE_RESTART;
@@ -2538,16 +2544,22 @@ void *func_y(void *p)
 					base->sat.sat_state = SAT_STATE_IMSI;
 					break;
 				case SAT_STATE_CREG:
-				case SAT_STATE_CREG_W:
 					//satfi_log("func_y:send AT+CREG? to SAT Module\n");
 					uart_send(base->sat.sat_fd, "AT+CREG?\r\n", 10);
 					base->sat.sat_state = SAT_STATE_CREG_W;
+					counter=0;
+					break;
+				case SAT_STATE_CREG_W:
+					counter++;
 					break;
 				case SAT_STATE_CSQ:
-				case SAT_STATE_CSQ_W:
 					//satfi_log("func_y:send AT+CSQ to SAT Module\n");
 					uart_send(base->sat.sat_fd, "AT+CSQ\r\n", 8);
 					base->sat.sat_state = SAT_STATE_CSQ_W;
+					counter=0;
+					break;
+				case SAT_STATE_CSQ_W:
+					counter++;
 					break;
 				case SAT_STATE_DIALING:
 					satfi_log("func_y:SAT Module Trying to connect to GmPRS\n");
@@ -2595,7 +2607,7 @@ void *func_y(void *p)
 					break;
 			}
 		}
-		
+
 		sleep(2);	
 		//sat_unlock();
 		if(base->sat.sat_status == 1)
@@ -2947,25 +2959,16 @@ int handle_sat_data(int *satfd, char *data, int *ofs)
 					int i;
 					if(data[idx-2]=='\n' && data[idx-1]=='\n')
 					{
-						for(i=0;i<10;i++)
+						for(i=1;i<10;i++)
 						{
 							if(data[i] == '+')
 							{
+								satfi_log("%s", data);
 								bzero(passwd, sizeof(passwd));
 								strncpy(passwd, &data[i-1], sizeof(passwd));
 								break;
 							}
 						}
-					}
-					
-					if(i == 10)
-					{
-						if(strlen(passwd) + strlen(data) > sizeof(passwd))
-						{
-							satfi_log("bzero strcat passwd\n");
-							bzero(passwd, sizeof(passwd));
-						}
-						strcat(passwd, data);
 					}
 				}
 #endif
@@ -3080,7 +3083,7 @@ int handle_sat_data(int *satfd, char *data, int *ofs)
 						base.sat.sat_csq_value = parsecsq(data, idx);
 						base.sat.sat_csq_ltime = time(0);
 						if(sat_csq_bad % 5 == 0)satfi_log("sat_csq_value = %d\n", base.sat.sat_csq_value);
-						if(base.sat.sat_csq_value == 31 || base.sat.sat_csq_value == 99) base.sat.sat_csq_value = 0;
+						if(base.sat.sat_csq_value == 99) base.sat.sat_csq_value = 0;
 
 						if(base.sat.sat_csq_value>=base.sat.sat_csq_limit_value)
 						{
@@ -3542,6 +3545,11 @@ int handle_sat_data(int *satfd, char *data, int *ofs)
 					{
 						satfi_log("%s\n", data);
 						strncpy(ssid, strstr(data, "BEAMINFO"), 16);
+					}
+					else if(strstr(data, "CPEXCEPT"))
+					{
+						satfi_log("%s\n", data);
+						base.sat.sat_state = SAT_STATE_RESTART;
 					}
 					else
 					{
@@ -9564,12 +9572,12 @@ void Update_firmware_Sat(BASE *p)
 	char cmd[256] = {0};
 
 	char version_sat[256] = {0};
-	strcpy(version_sat, SATFI_VERSION_SAT);
 
 	while(1)
 	{
-		if(base->sat.lte_status == 1)
+		if(base->sat.lte_status == 1 && strlen(satfi_version_sat) != 0)
 		{
+			strcpy(version_sat, satfi_version_sat);
 			if(isFileExists(UPDATE_CONFIG))
 			{
 				GetIniKeyString("update_sat","VERSION",UPDATE_CONFIG,version);
@@ -9582,108 +9590,102 @@ void Update_firmware_Sat(BASE *p)
 
 				if(strcmp(version, version_sat)) // HTL8100 x.x
 				{
-					satfi_log("version diff\n");
-
-					if(version[8] > version_sat[8] || version[10] > version_sat[10])
+					if(strlen(version) == 0)
 					{
-						satfi_log("version update\n");
-
-						while(1)
+						break;
+					}
+					
+					satfi_log("version update\n");
+					while(1)
+					{
+						if(base->sat.Upgrade2Confirm == 2)
 						{
-							if(base->sat.Upgrade2Confirm == 2)
-							{
-								break;
-							}
-							else if(base->sat.Upgrade2Confirm == 1)
-							{
-								goto UpdateExit;
-							}
-							
-							satfi_log("Upgrade2_Notice Type=1\n");
-							Upgrade2_Notice(1, 0);
-							sleep(10);
+							break;
+						}
+						else if(base->sat.Upgrade2Confirm == 1)
+						{
+							goto UpdateExit;
 						}
 						
-						if(strlen(satfiurl))
+						satfi_log("Upgrade2_Notice Type=1\n");
+						Upgrade2_Notice(1, 0);
+						sleep(10);
+					}
+					
+					if(strlen(satfiurl))
+					{
+						if(isFileExists(UPDATE_PACKAGE_SAT))
 						{
-							if(isFileExists(UPDATE_PACKAGE_SAT))
+							int maxline = 3;
+							char md5sum_update[256] = {0};
+							
+							bzero(cmd, sizeof(cmd));
+							sprintf(cmd,"md5sum %s", UPDATE_PACKAGE_SAT);
+							myexec(cmd, md5sum_update, &maxline);
+							satfi_log("%s", cmd);
+							satfi_log("%s\n", md5sum_update);
+					
+							if(strstr(md5sum_update, md5sum))
 							{
-								int maxline = 3;
-								char md5sum_update[256] = {0};
-								
-								bzero(cmd, sizeof(cmd));
-								sprintf(cmd,"md5sum %s", UPDATE_PACKAGE_SAT);
-								myexec(cmd, md5sum_update, &maxline);
-								satfi_log("%s", cmd);
-								satfi_log("%s\n", md5sum_update);
-						
-								if(strstr(md5sum_update, md5sum))
+								satfi_log("md5sum same\n");
+								while(1)
 								{
-									satfi_log("md5sum same\n");
-									while(1)
+									if(base->sat.Upgrade2Confirm >= 3)
 									{
-										if(base->sat.Upgrade2Confirm >= 3)
-										{
-											goto UpdateExit;
-										}
-										satfi_log("Upgrade2_Notice Type=3\n");
-										Upgrade2_Notice(3, 0);
-										sleep(10);
-									}	
-								}
-								else
-								{
-									satfi_log("%s md5sum error\n", UPDATE_PACKAGE_SAT);
-								}
-								break;
+										goto UpdateExit;
+									}
+									satfi_log("Upgrade2_Notice Type=3\n");
+									Upgrade2_Notice(3, 0);
+									sleep(10);
+								}	
 							}
 							else
 							{
-								//download update.zip
-								bzero(cmd, sizeof(cmd));
-								sprintf(cmd,"busybox wget -c %s -O %s > %s 2>&1 &", satfiurl, UPDATE_PACKAGE_SAT, DOWNLOAD_INFO);								
-								satfi_log("%s", cmd);
-								myexec(cmd, NULL, NULL);
-								int percent=0;
-								char buf[128] = {0};
-								
-								while(1)
+								satfi_log("%s md5sum error\n", UPDATE_PACKAGE_SAT);
+							}
+							break;
+						}
+						else
+						{
+							//download update.zip
+							bzero(cmd, sizeof(cmd));
+							sprintf(cmd,"busybox wget -c %s -O %s > %s 2>&1 &", satfiurl, UPDATE_PACKAGE_SAT, DOWNLOAD_INFO);								
+							satfi_log("%s", cmd);
+							myexec(cmd, NULL, NULL);
+							int percent=0;
+							char buf[128] = {0};
+							
+							while(1)
+							{
+								sleep(3);
+								if(percent < 100)
 								{
-									sleep(3);
-									if(percent < 100)
+									int fd = open(DOWNLOAD_INFO, O_RDONLY);
+									if(fd > 0)
 									{
-										int fd = open(DOWNLOAD_INFO, O_RDONLY);
-										if(fd > 0)
+										lseek(fd, -80, SEEK_END);
+										bzero(buf, sizeof(buf));
+										read(fd, buf, sizeof(buf));
+										char *p = strchr(buf, '%');
+										if(p != NULL)
 										{
-											lseek(fd, -80, SEEK_END);
-											bzero(buf, sizeof(buf));
-											read(fd, buf, sizeof(buf));
-											char *p = strchr(buf, '%');
-											if(p != NULL)
-											{
-												buf[p - buf] = 0;
-												p = strrchr(buf, ' ');
-												percent = atoi(p+1);
-												//satfi_log("percent=%d\n", percent);
-											}
-											close(fd);
+											buf[p - buf] = 0;
+											p = strrchr(buf, ' ');
+											percent = atoi(p+1);
+											//satfi_log("percent=%d\n", percent);
 										}
+										close(fd);
+									}
 
-										satfi_log("Upgrade2_Notice Type=2, Percent=%d\n", percent);//升级包下载百分比
-										Upgrade2_Notice(2, percent);
-									}
-									else
-									{
-										break;
-									}
+									satfi_log("Upgrade2_Notice Type=2, Percent=%d\n", percent);//升级包下载百分比
+									Upgrade2_Notice(2, percent);
+								}
+								else
+								{
+									break;
 								}
 							}
 						}
-					}
-					else
-					{
-						satfi_log("version low\n");
-						break;
 					}
 				}
 				else
@@ -9719,6 +9721,18 @@ void *CheckProgramUpdateServer(void *p)
 	return NULL;
 }
 
+
+/* 卫星模块拨打电话状态
+ *	0-等待拨号
+ *	1-正在通话
+ *	2-正在呼叫
+ *	3-正在振铃
+ *	4-对方无应答
+ *	5-接听成功
+ *	6-电话已挂断
+ *	7-拨号失败
+ *	8-有来电
+ */
 int AppCallUpRsp(int socket, short sat_state_phone)
 {
 	static short stat = -1;
@@ -9743,16 +9757,26 @@ int AppCallUpRsp(int socket, short sat_state_phone)
 	return 0;
 }
 
- 
+/* 卫星模块拨打电话状态
+ *	0-等待拨号
+ *	1-正在通话
+ *	2-正在呼叫
+ *	3-正在振铃
+ *	4-对方无应答
+ *	5-接听成功
+ *	6-电话已挂断
+ *	7-拨号失败
+ *	8-有来电
+ */
 int AppCallUpRspForce(int socket, short sat_state_phone)
 {	
-	satfi_log("AppCallUpRspForce socket=%d sat_state_phone=%d\n",socket, sat_state_phone);
-	MsgAppCallUpRsp rsp;
-	rsp.header.length = sizeof(MsgAppCallUpRsp);
-	rsp.header.mclass = CALLUP_RSP;
-	rsp.result = sat_state_phone;
 	if(socket>0)
 	{
+		satfi_log("AppCallUpRspForce socket=%d sat_state_phone=%d\n",socket, sat_state_phone);
+		MsgAppCallUpRsp rsp;
+		rsp.header.length = sizeof(MsgAppCallUpRsp);
+		rsp.header.mclass = CALLUP_RSP;
+		rsp.result = sat_state_phone;
 		int n = write(socket, &rsp, rsp.header.length);
 		if(n<0) satfi_log("write return error: errno=%d (%s) %d %d %d\n", errno, strerror(errno),socket,__LINE__,sat_state_phone);
 	}
@@ -9859,7 +9883,9 @@ static void *CallUpThread(void *p)
 		{
 			case SAT_STATE_PHONE_CLCC:
 				satfi_log("SAT_STATE_PHONE_CLCC\n");
-		        uart_send(base->sat.sat_phone, "AT^PCMMODE=0,1,0,0,2,0,0\r\n", 26);
+				uart_send(base->sat.sat_phone, "AT^VOICERATE=2\r\n", strlen("AT^VOICERATE=2\r\n"));
+				sleep(1);
+		        uart_send(base->sat.sat_phone, "AT\r\n", 4);
 		        break;
 			case SAT_STATE_PHONE_CLCC_OK:
 				satfi_log("SAT_STATE_PHONE_CLCC_OK\n");
@@ -9867,6 +9893,9 @@ static void *CallUpThread(void *p)
 				//satfi_log("ATD = %s\n", buf);
 				uart_send(base->sat.sat_phone, buf, 6+strlen(base->sat.calling_number));
 				base->sat.sat_state_phone = SAT_STATE_PHONE_DIALING_CLCC;
+
+				if(base->sat.sat_available == 1) gpio_out(HW_GPIO78, 0);
+				
 				break;
 			case SAT_STATE_PHONE_ATD_W:
 				satfi_log("SAT_STATE_PHONE_ATD_W\n");
@@ -9922,6 +9951,7 @@ static void *CallUpThread(void *p)
 			{
 				clcccnt = 0;
 				base->sat.sat_state_phone = SAT_STATE_PHONE_DIALINGFAILE;
+				base->sat.sat_state = SAT_STATE_RESTART;
 			}
 		}
 		
@@ -9953,8 +9983,13 @@ static void *CallUpThread(void *p)
 	}
 
 	int cnt = 10;
-	while(cnt--)
+	while(--cnt)
 	{
+		if(cnt<=1)
+		{
+			//base->sat.sat_state = SAT_STATE_RESTART;
+		}
+
 		if(base->sat.sat_state_phone != SAT_STATE_PHONE_ATH_W)
 		{
 			satfi_log("CallUpThread SAT_STATE_PHONE_ATH_W\n");
@@ -9980,7 +10015,8 @@ static void *CallUpThread(void *p)
 		{
 			base->sat.EndTime = time(0);
 			base->sat.sat_state_phone = SAT_STATE_PHONE_IDLE;
-			//base->sat.playBusyToneFlag = 1;			
+			//base->sat.playBusyToneFlag = 1;
+			if(base->sat.sat_available == 1) gpio_out(HW_GPIO78, 1);
 			break;
 		}
 	}
@@ -10544,6 +10580,15 @@ static int Get_Second_LinePhone_Num(char * PhoneNumber)
 		if(ioctl(mtgpiofd, GPIO_IOCQDATAIN, SHR) == 0)
 		{
 			base.sat.isSecondLinePickUp = 1;
+			if(base.sat.sat_calling == 1)
+			{
+				base.sat.satbusy = 1;
+			}
+			else
+			{
+				base.sat.satbusy = 0;
+			}
+			
 			if(ioctl(mtgpiofd, GPIO_IOCQDATAIN, DV) == 1)
 			{
 				if(keypress == 0)
@@ -10554,7 +10599,14 @@ static int Get_Second_LinePhone_Num(char * PhoneNumber)
 						tmp[i] = 0;
 						strncpy(PhoneNumber, tmp, i);
 						satfi_log("break # PhoneNumber=%s %d\n", PhoneNumber, strlen(PhoneNumber));
-						return i;
+						if(base.sat.satbusy == 1)
+						{
+							return 0;
+						}
+						else
+						{
+							return i;
+						}
 					}
 					else
 					{
@@ -10594,7 +10646,7 @@ void *Second_linePhone_Dial_Detect(void *p)
 	int len;
 	while(1)
 	{
-		if(base->sat.ring == 0)
+		if(base->sat.ring == 0 && base->sat.sat_status == 1)
 		{
 			if(base->sat.secondLinePhoneMode == 0)
 			{

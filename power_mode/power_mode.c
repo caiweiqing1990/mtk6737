@@ -10,6 +10,7 @@
 #include <sys/ioctl.h>
 #include <string.h> 
 #include <linux/serial.h>
+#include <time.h>
 
 typedef enum {
     HW_GPIO0=0,   HW_GPIO1,    HW_GPIO2,     HW_GPIO3, 

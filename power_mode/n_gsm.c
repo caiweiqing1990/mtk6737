@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
 		ioctl(fd, GSMIOC_SETCONF, &c);		
 		/* and wait for ever to keep the line discipline enabled */
 		daemon(0,0);
-		pause();
+		pause();	
 	}
 	else
 	{

@@ -603,10 +603,12 @@ am broadcast -a android.intent.action.BOOT_COMPLETED -n com.mediatek.settings/.B
 
 tinyplay /storage/self/primary/Alarm01.wav -D 0 -d 0
 adb push Y:\satfi\bin\Alarm01.wav /mnt
-adb push Z:\out\target\product\len6737t_66_sh_n\system\bintinymix /system/bin/
+adb push Z:\out\target\product\len6737t_66_sh_n\system\bin\tinymix /system/bin/
 adb push Z:\out\target\product\len6737t_66_sh_n\system\bin\tinycap /system/bin/
 adb push Z:\out\target\product\len6737t_66_sh_n\system\bin\tinyplay /system/bin/
 adb push Z:\out\target\product\len6737t_66_sh_n\system\bin\tinypcminfo /system/bin/
+
+adb push Y:\speextest\speaker.wav /sdcard/speaker.wav
 
 /system/bin/iptables -t nat -F
 /system/bin/iptables -F

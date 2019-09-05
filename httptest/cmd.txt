@@ -1,0 +1,20 @@
+http://192.168.88.1:10086/?op=login&guid=1234567890&host=112.35.28.14&port=6060&realm=4gpoc.com&impi=100310003&password=123456
+
+
+./httptest "http://192.168.88.1:10086/?op=login&guid=1234567890&host=112.35.28.14&port=6060&realm=4gpoc.com&impi=100310003&password=123456"
+
+./httptest "http://192.168.88.1:10086/?op=login&guid=100310001&host=112.35.28.14&port=6060&realm=4gpoc.com&impi=100310003&password=123456"
+
+
+./httptest "http://192.168.88.1:10086/?op=logout&guid=1234567890"
+
+./httptest "http://192.168.88.1:10086/?op=callOne&guid=1234567890&oneUri=sip:100310001@4gpoc.com"
+
+
+./websocket_client 192.168.88.1 "op=login&guid=1234567890&host=112.35.28.14&port=6060&realm=4gpoc.com&impi=100310003&password=123456"
+
+
+./websocket_client 192.168.88.1 "op=login&guid=1234567891&host=112.35.28.14&port=6060&realm=4gpoc.com&impi=100310003&password=123456"
+
+
+ws://192.168.88.1:10087
