@@ -79,7 +79,7 @@ int AppCnt = 0;
 #define DV		HW_GPIO61	//按键是否按下 new
 #define INH		HW_GPIO64
 #define PWDN	HW_GPIO63
-#define SATFI_VERSION "HTL8100_3.8_N"
+#define SATFI_VERSION "HTL8100_3.7_N"
 #else
 #define D3		HW_GPIO47
 #define DV		HW_GPIO48	//按键是否按下
@@ -10579,6 +10579,7 @@ static int Get_Second_LinePhone_Num(char * PhoneNumber)
 	{
 		if(ioctl(mtgpiofd, GPIO_IOCQDATAIN, SHR) == 0)
 		{
+			satfi_log("%d", __LINE__);
 			base.sat.isSecondLinePickUp = 1;
 			if(base.sat.sat_calling == 1)
 			{
@@ -10646,7 +10647,7 @@ void *Second_linePhone_Dial_Detect(void *p)
 	int len;
 	while(1)
 	{
-		if(base->sat.ring == 0)
+		if(base->sat.ring == 0 && base->sat.sat_status == 1)
 		{
 			if(base->sat.secondLinePhoneMode == 0)
 			{
@@ -10861,7 +10862,7 @@ void hw_init(void)
 	gpio_pull_up(DV);
 
 #ifdef NEW_BOARD
-	gpio_out(HW_GPIO47, 1);//usb<-->卫星模块	
+	//gpio_out(HW_GPIO47, 1);//usb<-->卫星模块	
 #endif
 	myexec("echo \"noSuspend\" > /sys/power/wake_lock", NULL, NULL);
 }

@@ -10,9 +10,23 @@
 
 static int http_tcpclient_recv(int socket, char *lpbuff) {
     int ret = 0;
-    ret = recv(socket, lpbuff, BUFFER_SIZE, 0);
-	if(ret>0)lpbuff[ret] = 0;
-    return ret;
+	int offset = 0;
+	while(1)
+	{
+		ret = recv(socket, &lpbuff[offset], BUFFER_SIZE, 0);
+		if(ret>0)
+		{
+			offset += ret;
+		}
+		
+		if(ret<=0)
+		{
+			lpbuff[offset] = 0;
+			//printf("%s", lpbuff);
+			break;
+		}
+	}
+    return offset;
 }
 
 static int http_tcpclient_create(const char *host, int port) {

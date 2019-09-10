@@ -27,10 +27,11 @@ typedef enum {
 
 //编码
 int base64_encode( const unsigned char *bindata, char *base64, int binlength);
-
 //解码
 int base64_decode( const char *base64, unsigned char *bindata);
 
+void http_result_free(char *response);
+char *http_get(const char *url);
 // server回复client的http请求
 //int webSocket_serverLinkToClient(int fd, char *recvBuf, unsigned int bufLen);
 // client向server发送http连接请求, 并处理返回

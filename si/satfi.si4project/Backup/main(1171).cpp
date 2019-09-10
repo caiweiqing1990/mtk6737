@@ -390,7 +390,7 @@ void *handle_pcm_data(void *p)
 
 		while(base->sat.secondLinePhoneMode == 1)
 		{
-			//static int dropcnt=0;
+			static int dropcnt=0;
 			if(base->sat.sat_state_phone == SAT_STATE_PHONE_ONLINE)
 			{
 				if(AudioRecordStart == 0)
@@ -416,7 +416,7 @@ void *handle_pcm_data(void *p)
 					}
 
 					satfi_log("AudioRecordStart start=%ld", start);
-					//dropcnt=0;
+					dropcnt=0;
 				}
 
 				//bzero(tmp, 320);
@@ -436,8 +436,8 @@ void *handle_pcm_data(void *p)
 					}
 					Delayns(start, 20000000);
 					start += 20000000;
-					//dropcnt+=1;
-					//if(dropcnt<=150)bzero(echo, 320);
+					dropcnt+=1;
+					if(dropcnt<=150)bzero(echo, 320);
 
 					speex_preprocess_run(stnoise, (short *)echo);
 					vad = speex_preprocess_run(stvad, (short *)echo);

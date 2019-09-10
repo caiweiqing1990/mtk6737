@@ -79,7 +79,7 @@ int AppCnt = 0;
 #define DV		HW_GPIO61	//按键是否按下 new
 #define INH		HW_GPIO64
 #define PWDN	HW_GPIO63
-#define SATFI_VERSION "HTL8100_3.8_N"
+#define SATFI_VERSION "HTL8100_3.7_N"
 #else
 #define D3		HW_GPIO47
 #define DV		HW_GPIO48	//按键是否按下
@@ -10646,7 +10646,7 @@ void *Second_linePhone_Dial_Detect(void *p)
 	int len;
 	while(1)
 	{
-		if(base->sat.ring == 0)
+		if(base->sat.ring == 0 && base->sat.sat_status == 1)
 		{
 			if(base->sat.secondLinePhoneMode == 0)
 			{
@@ -10850,7 +10850,7 @@ void hw_init(void)
 	
 	gpio_out(INH, 0);//PWDN
 	gpio_out(PWDN, 0);//INH
-	//gpio_out(OE, 1);//OE
+	gpio_out(OE, 1);//OE
 
 	gpio_in(D0);
 	gpio_in(D1);

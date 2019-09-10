@@ -210,7 +210,6 @@ int login(char * guid, char *host, int port, char *realm, char *impi, char *pass
 	char *result = http_get(url);
 	if(result)
 	{
-		//printf("result=%s\n", result);
 		http_result_free(result);
 	}
 	return 0;
@@ -261,7 +260,7 @@ int hangUp(char * guid, int sessionId)
 {
 	char url[2048] = {0};
 	sprintf(url, "http://%s:%d/?op=hangUp&guid=%s&sessionId=%d", SERVER, PORT, guid, sessionId);
-	//printf("%s\n", url);
+	printf("%s\n", url);
 	char *result = http_get(url);
 	if(result)
 	{
@@ -283,10 +282,10 @@ int acceptCall(char *guid, int sessionId)
 }
 
 //http://127.0.0.1:10086/?op=callOne&guid=1234567891&oneUri=sip:100310003@4gpoc.com
-int callOne(char *from, char *to)
+int callOne(char *guid, char *impi)
 {
 	char url[2048] = {0};
-	sprintf(url, "http://%s:%d/?op=callOne&guid=%s&oneUri=sip:%s@4gpoc.com", SERVER, PORT, from, to);
+	sprintf(url, "http://%s:%d/?op=callOne&guid=%s&oneUri=sip:%s@4gpoc.com", SERVER, PORT, guid, impi);
 	//printf("%s\n", url);
 	char *result = http_get(url);
 	if(result)

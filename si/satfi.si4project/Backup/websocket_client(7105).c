@@ -10,77 +10,49 @@
 int fromsessionId = 0;
 int tosessionId = 0;
 
+int ilogin = 0;
+int sessionId = 0;
+
+int stop = 0;
+
 void *httptest(void *p)
 {
 	char *username = (char *)p;
-	char buf[1024] = {0};
 	
 	while(1)
 	{
-		printf("%s 1-login 2-acceptCall 3-requestTalk 4-releaseTalk 5-hangUp 6-logout : \n", username);
-		printf("input username callone : ");
-		fgets(buf, 1024, stdin);
-		buf[strlen(buf) - 1] = 0;
-		if(strlen(buf) == strlen(username))
-		{
-			callOne(username, buf);
-		}		
-		else if(buf[0] == '1')
+		if(ilogin == 0)
 		{
 			login(username, "112.35.28.14", 6060, "4gpoc.com", username, "123456");
 		}
-		else if(buf[0] == '2')
+		
+		if(sessionId > 0)
+		{
+			printf("接听来电\n");
+			acceptCall(username, sessionId);
+			sessionId = 0;
+		}
+		
+		if(stop > 0)
 		{
 			if(fromsessionId > 0)
 			{
-				acceptCall(username, fromsessionId);
+				//hangUp(username, fromsessionId);
+				fromsessionId = 0;
 			}
-			else if(tosessionId > 0)
+
+			if(tosessionId > 0)
 			{
-				acceptCall(username, tosessionId);
+				//hangUp(username, tosessionId);
+				tosessionId = 0;
 			}
+						
+			//logout(username);
+			
+			stop = 0;
 		}
-		else if(buf[0] == '3')
-		{
-			if(fromsessionId > 0)
-			{
-				requestTalk(username, fromsessionId);
-			}
-			else if(tosessionId > 0)
-			{
-				requestTalk(username, tosessionId);
-			}
-		}
-		else if(buf[0] == '4')
-		{
-			if(fromsessionId > 0)
-			{
-				releaseTalk(username, fromsessionId);
-			}
-			else if(tosessionId > 0)
-			{
-				releaseTalk(username, tosessionId);
-			}
-		}
-		else if(buf[0] == '5')
-		{
-			if(fromsessionId > 0)
-			{
-				hangUp(username, fromsessionId);
-			}
-			else if(tosessionId > 0)
-			{
-				hangUp(username, tosessionId);
-			}
-		}
-		else if(buf[0] == '6')
-		{
-			logout(username, tosessionId);
-		}
-		else if(buf[0] == 'q')
-		{
-			exit(0);
-		}
+		
+		sleep(1);
 	}
 	return NULL;
 }
@@ -98,9 +70,9 @@ int main(int argc, char *argv[])
 
 	if(argc != 2)
 	{
-		printf("Usage: %s username\n", argv[1]);
+		printf("%s username\n", argv[0]);
 		return -1;
-	}
+	}	
 	
     fd = webSocket_clientLinkToServer("192.168.88.1", 10087, NULL);
     if(fd <= 0) {
@@ -108,19 +80,21 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-	char *username = argv[1];//用户名
+	char *username = argv[1];	//用户名		
     ret = webSocket_send(fd, username, strlen(username), true, WCT_TXTDATA);
 	//base64_encode("sip:C1699&100310001@4gpoc.com", buf, strlen("sip:C1699&100310001@4gpoc.com"));
 	if(pthread_create(&id_1, NULL, httptest, (void *)username) == -1) exit(1);
-		
+	
     while(1) {
 		FD_ZERO(&fds);
 		FD_SET(fd, &fds);
-		timeout.tv_sec = 2;
+		timeout.tv_sec = 10;
 		timeout.tv_usec = 0;
 	    switch(select(fd+1, &fds, NULL, NULL, &timeout)) {
 			case -1: break;
-			case  0: break;
+			case  0: {
+				if(fromsessionId > 0 || 0 < tosessionId) stop = 1;
+			}
 			default: {
 				if(FD_ISSET(fd, &fds)) {
 					memset(buf, 0, sizeof(buf));
@@ -143,12 +117,13 @@ int main(int argc, char *argv[])
 										//printf("code=%d\n", jstmp->valueint);
 										if(jstmp->valueint == 101)
 										{
-											printf("正在登陆");
+											printf("正在登陆\n");
 										}
 										
 										if(jstmp->valueint == 102)
 										{
-											printf("登陆成功");
+											printf("登陆成功\n");
+											ilogin = 1;
 										}
 										
 										if(jstmp->valueint == 103)
@@ -159,11 +134,12 @@ int main(int argc, char *argv[])
 										if(jstmp->valueint == 104)
 										{
 											printf("已经登出\n");
+											ilogin = 0;
 										}
 										
 										if(jstmp->valueint == 201)
 										{
-											printf("正在呼叫 ");
+											printf("正在呼叫\n");
 											jstmp = cJSON_GetObjectItem(root, "sessionId");
 											if(jstmp)
 											{
@@ -188,6 +164,7 @@ int main(int argc, char *argv[])
 										if(jstmp->valueint == 204)
 										{
 											printf("呼叫终止\n");
+											sessionId = 0;
 										}
 									}
 								}
@@ -197,8 +174,9 @@ int main(int argc, char *argv[])
 									jstmp = cJSON_GetObjectItem(root, "sessionId");
 									if(jstmp)
 									{
-										printf("tosessionId=%d ", jstmp->valueint);
-										tosessionId = jstmp->valueint;
+										printf("tosessionId=%d\n", jstmp->valueint);
+										sessionId = jstmp->valueint;
+										tosessionId = sessionId;
 									}
 									
 									jstmp = cJSON_GetObjectItem(root, "fromWho");
@@ -207,57 +185,9 @@ int main(int argc, char *argv[])
 										printf("fromWho=%s\n", jstmp->valuestring);
 									}
 								}
-								else if(jstmp->valueint == 3)
-								{
-									jstmp = cJSON_GetObjectItem(root, "sessionId");
-									if(jstmp)
-									{
-										//printf("sessionId=%d ", jstmp->valueint);
-									}
-									
-									jstmp = cJSON_GetObjectItem(root, "takenName");
-									if(jstmp)
-									{
-										//printf("takenName=%s ", jstmp->valuestring);
-									}
-									
-									jstmp = cJSON_GetObjectItem(root, "code");
-									if(jstmp)
-									{
-										//printf("code=%d ", jstmp->valueint);
-										if(jstmp->valueint == 301)
-										{
-											printf("被授权\n");
-										}
-										else if(jstmp->valueint == 302)
-										{
-											printf("别人正在讲话\n");
-										}
-										else if(jstmp->valueint == 303)
-										{
-											printf("用户已释放当前授权\n");
-										}
-										else if(jstmp->valueint == 304)
-										{
-											printf("用户处于空闲状态\n");
-										}
-										else if(jstmp->valueint == 305)
-										{
-											printf("用户讲话请求被拒绝\n");
-										}
-										else if(jstmp->valueint == 306)
-										{
-											printf("被剥夺说话权\n");
-										}
-										else if(jstmp->valueint == 307)
-										{
-											printf("收到一条命令\n");
-										}
-									}									
-								}
 								else
 								{
-									//printf("type=%d\n", jstmp->valueint);
+									//printf("%s\r\n", buf);
 								}
 							}
 

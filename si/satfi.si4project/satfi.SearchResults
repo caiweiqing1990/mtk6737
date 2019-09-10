@@ -1,3 +1,4 @@
----- HW_GPIO3 Matches (2 in 2 files) ----
-gpio_exp.h (Y:\satfi) line 41 :     HW_GPIO0=0,   HW_GPIO1,    HW_GPIO2,     HW_GPIO3, 
-satfi.c (Y:\satfi) line 2123 : #define MSM_POWER		HW_GPIO3
+---- OE Matches (4 in 2 files) ----
+latin9_translit in iconv.c (Y:\satfi) : 	case 0x0152: return 0xBC; /* OE */
+satfi.c (Y:\satfi) line 73 : #define OE		HW_GPIO53
+hw_init in satfi.c (Y:\satfi) : 	gpio_out(OE, 1);//OE
