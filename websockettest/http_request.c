@@ -3,6 +3,9 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <string.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 
 #define HTTP_DEFAULT_PORT 	80
 #define BUFFER_SIZE 		2048

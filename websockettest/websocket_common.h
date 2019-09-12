@@ -12,6 +12,10 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <unistd.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 
 // websocket根据data[0]判别数据包类型    比如0x81 = 0x80 | 0x1 为一个txt类型数据包
 typedef enum {
@@ -26,16 +30,24 @@ typedef enum {
 }Websocket_CommunicationType;
 
 //编码
-int base64_encode( const unsigned char *bindata, char *base64, int binlength);
+extern int base64_encode( const unsigned char *bindata, char *base64, int binlength);
 //解码
-int base64_decode( const char *base64, unsigned char *bindata);
+extern int base64_decode( const char *base64, unsigned char *bindata);
 
-void http_result_free(char *response);
-char *http_get(const char *url);
+extern void http_result_free(char *response);
+extern char *http_get(const char *url);
+
+extern int callOne(char *from, char *to);
+extern int acceptCall(char *guid, int sessionId);
+extern int hangUp(char * guid, int sessionId);
+extern int releaseTalk(char * guid, int sessionId);
+extern int requestTalk(char * guid, int sessionId);
+extern int logout(char * guid);
+extern int login(char * guid, char *host, int port, char *realm, char *impi, char *password);
 // server回复client的http请求
 //int webSocket_serverLinkToClient(int fd, char *recvBuf, unsigned int bufLen);
 // client向server发送http连接请求, 并处理返回
-int webSocket_clientLinkToServer(char *ip, int port, char *interface_path);
-int webSocket_send(int fd, unsigned char *data, unsigned int dataLen, bool mod, Websocket_CommunicationType type);
-int webSocket_recv(int fd, unsigned char *data, unsigned int dataMaxLen);
+extern int webSocket_clientLinkToServer(char *ip, int port, char *interface_path);
+extern int webSocket_send(int fd, unsigned char *data, unsigned int dataLen, bool mod, Websocket_CommunicationType type);
+extern int webSocket_recv(int fd, unsigned char *data, unsigned int dataMaxLen);
 #endif

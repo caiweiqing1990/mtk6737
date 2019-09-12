@@ -849,8 +849,7 @@ int webSocket_clientLinkToServer(char *ip, int port, char *interface_path)
     {
         if(++timeOut > REPORT_LOGIN_CONNECT_TIMEOUT)
         {
-            printf("webSocket_login : %s:%d cannot connect !  %d\r\n" , ip, port, timeOut);  
-            //
+            //printf("webSocket_login : %s:%d cannot connect !  %d\r\n" , ip, port, timeOut);  
             sprintf(loginBuf, "webSocket_login : %s:%d cannot connect !  %d" , ip, port, timeOut);
             close(fd); 
             return -timeOut;  

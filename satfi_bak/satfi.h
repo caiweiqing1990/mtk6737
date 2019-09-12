@@ -32,6 +32,8 @@
 #include <linux/gsmmux.h>
 #include <cutils/sockets.h>
 #include <cutils/log.h>     /*logging in logcat*/
+#include "webrtc/modules/audio_processing/aec/include/echo_cancellation.h"
+#include "webrtc/common_audio/vad/include/webrtc_vad.h"
 
 #define GPS_DATA_FILE		"/sdcard/GpsData.txt"
 #define CALL_RECORDS_FILE	"/sdcard/CallRecords.txt"
@@ -40,6 +42,8 @@
 
 #define DUDU_WAV			"/vendor/res/sound/dudu.wav"
 #define BUSY_WAV			"/vendor/res/sound/busy.wav"
+#define TONE_WAV			"/vendor/res/sound/bohao.wav"
+#define SATBUSY_WAV			"/vendor/res/sound/satbusy.wav"
 
 #define SAT_LINK_DISCONNECT	1
 #define SAT_LINK_NORMAL		0
@@ -51,7 +55,7 @@
 #define UDP_VOICE_DSTPORT	12056	//对讲语音目的端口
 
 #define NN 160
-#define TAIL 3200
+#define TAIL 2000
 
 //3G模块状态
 enum N3G_STATE {
@@ -213,7 +217,10 @@ typedef struct _sat
   int Upgrade1Confirm; //1：不下载 2：下载 3：不升级 4：升级
   int Upgrade2Confirm; //1：不下载 2：下载 3：不升级 4：升级
 
-  float volumeFactor;
+  float VolumeTrack;
+  float VolumeRecord;
+
+  int satbusy;
 }SAT;
 
 typedef struct _gps

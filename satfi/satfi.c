@@ -32,7 +32,7 @@ pthread_mutex_t pack_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 BASE base = { 0 };
 char satfi_version[32] = {0}; //当前satfi版本
-char satfi_version_sat[32] = {0}; 
+char satfi_version_sat[64] = {0}; 
 int version_num = 0; 			//当前satfi版本
 char config_url[512] = {0};	//update.ini在服务器中的路径
 
@@ -2448,6 +2448,8 @@ void *func_y(void *p)
 				if(base->sat.sat_phone <= 0)init_serial(&base->sat.sat_phone, "/dev/ttygsm2", base->sat.sat_baud_rate);
 				if(base->sat.sat_message <= 0)init_serial(&base->sat.sat_message, "/dev/ttygsm3", base->sat.sat_baud_rate);
 				if(base->sat.sat_pcmdata <= 0)init_serial(&base->sat.sat_pcmdata, "/dev/ttygsm9", base->sat.sat_baud_rate);
+
+				gpio_out(HW_GPIO47, 1);
 			}
 			
 		}
@@ -2504,8 +2506,8 @@ void *func_y(void *p)
 					break;
 				case SAT_STATE_SIM_ACTIVE:
 				case SAT_STATE_SIM_ACTIVE_W:
-					satfi_log("func_y:send AT+CFUN=1 to SAT Module1\n");
-					uart_send(base->sat.sat_fd, "AT+CFUN=1\r\n", 11);
+					satfi_log("func_y:send AT+CFUN=5 to SAT Module1\n");
+					uart_send(base->sat.sat_fd, "AT+CFUN=5\r\n", 11);
 					base->sat.sat_state = SAT_STATE_SIM_ACTIVE_W;
 					sleep(10);
 					break;
@@ -2921,7 +2923,7 @@ int handle_sat_data(int *satfd, char *data, int *ofs)
 		}
 		n = read(*satfd, &data[idx], 1);
 		if(n>0)
-		{		
+		{
 			if(data[idx]=='\r') data[idx]='\n';
 			idx++;
 			if(idx==1 && data[0] != '\n')
@@ -3376,7 +3378,7 @@ int handle_sat_data(int *satfd, char *data, int *ofs)
 
 					if(base.sat.sat_state == SAT_STATE_IMSI_W)
 					{
-						base.sat.sat_state = SAT_SIM_NOT_INSERTED;
+						base.sat.sat_state = SAT_STATE_SIM_ACTIVE;//54所模块
 					}
 					
 					if(base.sat.sat_state == SAT_STATE_FULL_FUN_W)
@@ -3550,6 +3552,24 @@ int handle_sat_data(int *satfd, char *data, int *ofs)
 					{
 						satfi_log("%s\n", data);
 						base.sat.sat_state = SAT_STATE_RESTART;
+					}
+					else if(strstr(data, "DSMNI"))
+					{
+						if(strstr(data, "0,0"))
+						{
+							satfi_log("SAT_SIM_NOT_INSERTED\n");
+							base.sat.sat_state = SAT_SIM_NOT_INSERTED;
+						}
+						else if(strstr(data, "0,40"))
+						{
+							satfi_log("%s\n", data);
+							base.sat.sat_state = SAT_STATE_IMSI;
+						}
+					}
+					else if(strstr(data, "DPROFI") || strstr(data, "DPBMFI") 			\
+						|| strstr(data, "DEWALKU") || strstr(data, "MESINFO") || strstr(data, "MODE"))
+					{
+						
 					}
 					else
 					{
@@ -10861,7 +10881,7 @@ void hw_init(void)
 	gpio_pull_up(DV);
 
 #ifdef NEW_BOARD
-	gpio_out(HW_GPIO47, 1);//usb<-->卫星模块	
+	gpio_out(HW_GPIO47, 0);//usb<-->卫星模块	
 #endif
 	myexec("echo \"noSuspend\" > /sys/power/wake_lock", NULL, NULL);
 }

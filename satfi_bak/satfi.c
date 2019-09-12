@@ -32,7 +32,7 @@ pthread_mutex_t pack_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 BASE base = { 0 };
 char satfi_version[32] = {0}; //当前satfi版本
-char satfi_version_sat[32] = {0}; 
+char satfi_version_sat[64] = {0}; 
 int version_num = 0; 			//当前satfi版本
 char config_url[512] = {0};	//update.ini在服务器中的路径
 
@@ -79,13 +79,13 @@ int AppCnt = 0;
 #define DV		HW_GPIO61	//按键是否按下 new
 #define INH		HW_GPIO64
 #define PWDN	HW_GPIO63
-#define SATFI_VERSION "HTL8100_2.9_N"
+#define SATFI_VERSION "HTL8100_3.8_N"
 #else
 #define D3		HW_GPIO47
 #define DV		HW_GPIO48	//按键是否按下
 #define INH		HW_GPIO51
 #define PWDN	HW_GPIO52
-#define SATFI_VERSION "HTL8100_2.9"
+#define SATFI_VERSION "HTL8100_3.0"
 #endif
 
 #define SATFI_VERSION_SAT "HTL8100_1.0"
@@ -2327,7 +2327,6 @@ void *func_y(void *p)
 	msm01a_off();
 	msm01a_on();
 	base->sat.module_status = 1;
-	sleep(5);
 	ttygsmcreate();
 	
 	while(1)
@@ -2353,6 +2352,8 @@ void *func_y(void *p)
 					myexec("stop sat_pppd", NULL, NULL);												
 					base->sat.sat_available = 0;
 					base->sat.data_status = 0;
+
+					//base->sat.sat_state = SAT_STATE_CSQ;
 				}
 
 				if(base->sat.sat_available == 1)
@@ -2402,12 +2403,17 @@ void *func_y(void *p)
 			base->sat.sat_state = SAT_STATE_RESTART_W;
 			base->sat.sat_status = 0;
 			base->sat.sat_msg_sending = 0;
-			cmux = 0;
 			base->sat.module_status = 2;
-			myexec("n_gsm 1", NULL, NULL);
-			satfi_log("n_gsm 1\n");
+			base->sat.sat_dialing = 0;
+			base->sat.sat_available = 0;
+			if(cmux == 1)
+			{
+				myexec("n_gsm 1", NULL, NULL);
+				satfi_log("n_gsm 1\n");
+			}
 			msm01a_off();
 			msm01a_on();
+			cmux = 0;
 
 			if(base->sat.Upgrade2Confirm == 4)
 			{
@@ -2442,6 +2448,8 @@ void *func_y(void *p)
 				if(base->sat.sat_phone <= 0)init_serial(&base->sat.sat_phone, "/dev/ttygsm2", base->sat.sat_baud_rate);
 				if(base->sat.sat_message <= 0)init_serial(&base->sat.sat_message, "/dev/ttygsm3", base->sat.sat_baud_rate);
 				if(base->sat.sat_pcmdata <= 0)init_serial(&base->sat.sat_pcmdata, "/dev/ttygsm9", base->sat.sat_baud_rate);
+
+				gpio_out(HW_GPIO47, 1);
 			}
 			
 		}
@@ -2455,7 +2463,7 @@ void *func_y(void *p)
 					if(cmux == 0)
 					{
 						satfi_log("func_y:send AT+CMUX=0,0,5,1600 to SAT Module1\n");
-						uart_send(base->sat.sat_fd, "AT+CMUX=0,0,5,1600\r\n", strlen("AT+CMUX=0,0,5,1600\r\n"));						
+						uart_send(base->sat.sat_fd, "AT+CMUX=0,0,5,1600\r\n", strlen("AT+CMUX=0,0,5,1600\r\n"));
 					}
 					else
 					{
@@ -2488,7 +2496,7 @@ void *func_y(void *p)
 					}
 					base->sat.sat_state = SAT_STATE_AT_W;
 					counter++;
-					if(counter >= 20)
+					if(counter >= 5)
 					{
 						satfi_log("SAT_STATE_RESTART %d\n", __LINE__);
 						base->sat.sat_state = SAT_STATE_RESTART;
@@ -2498,8 +2506,8 @@ void *func_y(void *p)
 					break;
 				case SAT_STATE_SIM_ACTIVE:
 				case SAT_STATE_SIM_ACTIVE_W:
-					satfi_log("func_y:send AT+CFUN=1 to SAT Module1\n");
-					uart_send(base->sat.sat_fd, "AT+CFUN=1\r\n", 11);
+					satfi_log("func_y:send AT+CFUN=5 to SAT Module1\n");
+					uart_send(base->sat.sat_fd, "AT+CFUN=5\r\n", 11);
 					base->sat.sat_state = SAT_STATE_SIM_ACTIVE_W;
 					sleep(10);
 					break;
@@ -2520,11 +2528,14 @@ void *func_y(void *p)
 						break;
 					}
 
-					satfi_log("func_y:send AT+CIMI to SAT Module\n");
-					uart_send(base->sat.sat_fd, "AT+CIMI\r\n", 9);
-					base->sat.sat_state = SAT_STATE_IMSI_W;
-					uart_send(base->sat.sat_phone, "AT\r\n", 4);
-					uart_send(base->sat.sat_message, "AT\r\n", 4);
+					if(strlen(base->sat.sat_imsi) == 0)
+					{
+						satfi_log("func_y:send AT+CIMI to SAT Module\n");
+						uart_send(base->sat.sat_fd, "AT+CIMI\r\n", 9);
+						base->sat.sat_state = SAT_STATE_IMSI_W;
+						uart_send(base->sat.sat_phone, "AT\r\n", 4);
+						uart_send(base->sat.sat_message, "AT\r\n", 4);
+					}
 					break;
 				case SAT_STATE_FULL_FUN:
 					satfi_log("func_y:send AT+CFUN=1 to SAT Module2\n");
@@ -2538,16 +2549,22 @@ void *func_y(void *p)
 					base->sat.sat_state = SAT_STATE_IMSI;
 					break;
 				case SAT_STATE_CREG:
-				case SAT_STATE_CREG_W:
 					//satfi_log("func_y:send AT+CREG? to SAT Module\n");
 					uart_send(base->sat.sat_fd, "AT+CREG?\r\n", 10);
 					base->sat.sat_state = SAT_STATE_CREG_W;
+					counter=0;
+					break;
+				case SAT_STATE_CREG_W:
+					counter++;
 					break;
 				case SAT_STATE_CSQ:
-				case SAT_STATE_CSQ_W:
 					//satfi_log("func_y:send AT+CSQ to SAT Module\n");
 					uart_send(base->sat.sat_fd, "AT+CSQ\r\n", 8);
 					base->sat.sat_state = SAT_STATE_CSQ_W;
+					counter=0;
+					break;
+				case SAT_STATE_CSQ_W:
+					counter++;
 					break;
 				case SAT_STATE_DIALING:
 					satfi_log("func_y:SAT Module Trying to connect to GmPRS\n");
@@ -2595,7 +2612,7 @@ void *func_y(void *p)
 					break;
 			}
 		}
-		
+
 		sleep(2);	
 		//sat_unlock();
 		if(base->sat.sat_status == 1)
@@ -2610,6 +2627,14 @@ void *func_y(void *p)
 						val = GetIniKeyInt("satellite","ACTIVE",CONFIG_FILE);
 						if(val >= 0)base->sat.active = val;
 						satfi_log("base->sat.active=%d\n", base->sat.active);
+
+						val = GetIniKeyInt("satellite","VOLUMETRACK",CONFIG_FILE);
+						if(val >= 0)base->sat.VolumeTrack = (val)*1.0 / 10.0;
+						satfi_log("base->sat.VolumeTrack=%f\n", base->sat.VolumeTrack);
+
+						val = GetIniKeyInt("satellite","VOLUMERECORD",CONFIG_FILE);
+						if(val >= 0)base->sat.VolumeRecord = (val)*1.0 / 10.0;
+						satfi_log("base->sat.VolumeRecord=%f\n", base->sat.VolumeRecord);
 					}
 				}
 			
@@ -2901,7 +2926,7 @@ int handle_sat_data(int *satfd, char *data, int *ofs)
 		}
 		n = read(*satfd, &data[idx], 1);
 		if(n>0)
-		{		
+		{
 			if(data[idx]=='\r') data[idx]='\n';
 			idx++;
 			if(idx==1 && data[0] != '\n')
@@ -2939,25 +2964,16 @@ int handle_sat_data(int *satfd, char *data, int *ofs)
 					int i;
 					if(data[idx-2]=='\n' && data[idx-1]=='\n')
 					{
-						for(i=0;i<10;i++)
+						for(i=1;i<10;i++)
 						{
 							if(data[i] == '+')
 							{
+								satfi_log("%s", data);
 								bzero(passwd, sizeof(passwd));
 								strncpy(passwd, &data[i-1], sizeof(passwd));
 								break;
 							}
 						}
-					}
-					
-					if(i == 10)
-					{
-						if(strlen(passwd) + strlen(data) > sizeof(passwd))
-						{
-							satfi_log("bzero strcat passwd\n");
-							bzero(passwd, sizeof(passwd));
-						}
-						strcat(passwd, data);
 					}
 				}
 #endif
@@ -3072,7 +3088,7 @@ int handle_sat_data(int *satfd, char *data, int *ofs)
 						base.sat.sat_csq_value = parsecsq(data, idx);
 						base.sat.sat_csq_ltime = time(0);
 						if(sat_csq_bad % 5 == 0)satfi_log("sat_csq_value = %d\n", base.sat.sat_csq_value);
-						if(base.sat.sat_csq_value == 31 || base.sat.sat_csq_value == 99) base.sat.sat_csq_value = 0;
+						if(base.sat.sat_csq_value == 99) base.sat.sat_csq_value = 0;
 
 						if(base.sat.sat_csq_value>=base.sat.sat_csq_limit_value)
 						{
@@ -3365,7 +3381,7 @@ int handle_sat_data(int *satfd, char *data, int *ofs)
 
 					if(base.sat.sat_state == SAT_STATE_IMSI_W)
 					{
-						base.sat.sat_state = SAT_SIM_NOT_INSERTED;
+						base.sat.sat_state = SAT_STATE_SIM_ACTIVE;//54所模块
 					}
 					
 					if(base.sat.sat_state == SAT_STATE_FULL_FUN_W)
@@ -3502,19 +3518,22 @@ int handle_sat_data(int *satfd, char *data, int *ofs)
 						satfi_log("%s sat_calling=%d\n", data, base.sat.sat_calling);
 						if(base.sat.sat_calling)
 						{
-							base.sat.sat_state_phone = SAT_STATE_PHONE_HANGUP;
+							if(base.sat.sat_state_phone != SAT_STATE_PHONE_HANGUP)
+							{
+								base.sat.playBusyToneFlag = 1;
+								base.sat.sat_state_phone = SAT_STATE_PHONE_HANGUP;
+							}
 						}
 						
 						base.sat.secondLinePhoneMode = 0;
-						base.sat.playBusyToneFlag = 1;
 					}
 					else if(strstr(data, "VOICEFORMAT: 3,0"))
 					{
-						satfi_log("%s sat_calling=%d\n", data, base.sat.sat_calling);
-						if(base.sat.sat_calling == 0)
-						{
-							base.sat.sat_state_phone = SAT_STATE_PHONE_RING_COMING;
-						}
+						//satfi_log("%s sat_calling=%d\n", data, base.sat.sat_calling);
+						//if(base.sat.sat_calling == 0)
+						//{
+							//base.sat.sat_state_phone = SAT_STATE_PHONE_RING_COMING;
+						//}
 					}
 					else if(strstr(data, "SIMST: 0"))
 					{
@@ -3531,6 +3550,28 @@ int handle_sat_data(int *satfd, char *data, int *ofs)
 					{
 						satfi_log("%s\n", data);
 						strncpy(ssid, strstr(data, "BEAMINFO"), 16);
+					}
+					else if(strstr(data, "CPEXCEPT"))
+					{
+						satfi_log("%s\n", data);
+						base.sat.sat_state = SAT_STATE_RESTART;
+					}
+					else if(strstr(data, "DSMNI"))
+					{
+						satfi_log("%s\n", data);
+						if(strstr(data, "0,0"))
+						{
+							base.sat.sat_state = SAT_SIM_NOT_INSERTED;
+						}
+						else if(strstr(data, "0,40"))
+						{
+							base.sat.sat_state = SAT_STATE_IMSI;
+						}
+					}
+					else if(strstr(data, "DPROFI") || strstr(data, "DPBMFI") 			\
+						|| strstr(data, "DEWALKU") || strstr(data, "MESINFO") || strstr(data, "MODE"))
+					{
+						
 					}
 					else
 					{
@@ -3809,8 +3850,27 @@ void udp_voice_calc_money(char *msid, int money)
 
 int get_battery_level(void)
 {
-	int battery_level;
+	int battery_level = 0;
+	static int battery_level_tmp = 0;
+
+	static int count=0;
+
 	battery_level = Get_AUXIN2_Value();
+	if(battery_level_tmp > 0 && abs(battery_level - battery_level_tmp) >= 2)
+	{
+		count++;
+		if(count<10)
+		{
+			battery_level = battery_level_tmp;			
+		}
+	}
+	else
+	{
+		count = 0;
+	}
+
+	battery_level_tmp = battery_level;
+	
 	//satfi_log("battery_level=%d", battery_level);
 	if(battery_level >= 1280) battery_level = 1280;
 	if(battery_level <= 800) battery_level = 800;
@@ -4176,8 +4236,8 @@ int handle_app_msg_tcp(int socket, char *pack, char *tscbuf)
 				rsp.result = 0;
 				n = write(socket, &rsp, rsp.header.length);
 				
+				base.sat.sat_state_phone = SAT_STATE_PHONE_ATH_W;
 			}
-			base.sat.sat_state_phone = SAT_STATE_PHONE_ATH_W;
 		}
 		break;
 		
@@ -4207,10 +4267,8 @@ int handle_app_msg_tcp(int socket, char *pack, char *tscbuf)
 					base.sat.sat_calling = 0;
 				}
 				
-				//AnsweringPhone();
+				AnsweringPhone();
 			}
-			base.sat.sat_state_phone = SAT_STATE_PHONE_ONLINE;
-			AppCallUpRsp(gp_users->socketfd, get_sat_dailstatus());
 		}
 		break;
 		
@@ -5470,7 +5528,11 @@ int handle_app_msg_tcp(int socket, char *pack, char *tscbuf)
 			rsp->Result = 0;
 			write(socket, tmp, rsp->header.length);				
 
-			//CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest wifiapstart weiqing 12345678
+			//CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest wifiapstart req->ssid req->passwd
+			char cmd[128]={0};
+			sprintf(cmd, "CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest wifiapstart %s %s", req->ssid, req->passwd);
+			satfi_log("cmd=%s\n",cmd);
+			myexec(cmd, NULL, NULL);
 		}
 		break;
 		
@@ -5686,14 +5748,26 @@ int handle_app_msg_tcp(int socket, char *pack, char *tscbuf)
 		case VOLUME_REQUEST:
 		{
 			MsgVolumeReq *req = (MsgVolumeReq *)pack;
-			base.sat.volumeFactor = (req->Volume)*1.0 / 10.0;
-			satfi_log("volumeFactor=%f Volume=%d\n", base.sat.volumeFactor, req->Volume);
+			if(req->VolumeTrack > 0)
+			{
+				SetKeyInt("satellite", "VOLUMETRACK", CONFIG_FILE, req->VolumeTrack);
+				base.sat.VolumeTrack = (req->VolumeTrack)*1.0 / 10.0;
+			}
+			
+			if(req->VolumeRecord > 0)
+			{
+				SetKeyInt("satellite", "VOLUMERECORD", CONFIG_FILE, req->VolumeRecord);
+				base.sat.VolumeRecord = (req->VolumeRecord)*1.0 / 10.0;
+			}
+			satfi_log("VolumeTrack=%f\n", base.sat.VolumeTrack);
+			satfi_log("VolumeRecord=%f\n", base.sat.VolumeRecord);
 			
 			memset(tmp,0,2048);
 			MsgVolumeRsp *rsp = (MsgVolumeRsp *)tmp;
 			rsp->header.length = sizeof(MsgVolumeRsp);
 			rsp->header.mclass = VOLUME_RESPONSE;
-			rsp->Volume = req->Volume;
+			rsp->VolumeTrack = req->VolumeTrack;
+			rsp->VolumeRecord = req->VolumeRecord;
 			write(socket, tmp, rsp->header.length);
 		}
 		break;
@@ -5713,7 +5787,7 @@ int handle_app_msg_tcp(int socket, char *pack, char *tscbuf)
 			if(req->Mode == 0)
 			{
 				satfi_log("APMode\n");
-				gpio_out(HW_GPIO47, 0);//usb<-->mtk6737				
+				gpio_out(HW_GPIO47, 0);//usb<-->mtk6737
 			}
 			else
 			{
@@ -6206,7 +6280,7 @@ void Date_Parse(char *data)
 #ifdef NEW_BOARD
 				if(jstmp->valueint == 1)
 				{
-					gpio_out(HW_GPIO47, 0);					
+					gpio_out(HW_GPIO47, 0);
 				}
 				else
 				{
@@ -9520,12 +9594,12 @@ void Update_firmware_Sat(BASE *p)
 	char cmd[256] = {0};
 
 	char version_sat[256] = {0};
-	strcpy(version_sat, SATFI_VERSION_SAT);
 
 	while(1)
 	{
-		if(base->sat.lte_status == 1)
+		if(base->sat.lte_status == 1 && strlen(satfi_version_sat) != 0)
 		{
+			strcpy(version_sat, satfi_version_sat);
 			if(isFileExists(UPDATE_CONFIG))
 			{
 				GetIniKeyString("update_sat","VERSION",UPDATE_CONFIG,version);
@@ -9538,108 +9612,102 @@ void Update_firmware_Sat(BASE *p)
 
 				if(strcmp(version, version_sat)) // HTL8100 x.x
 				{
-					satfi_log("version diff\n");
-
-					if(version[8] > version_sat[8] || version[10] > version_sat[10])
+					if(strlen(version) == 0)
 					{
-						satfi_log("version update\n");
-
-						while(1)
+						break;
+					}
+					
+					satfi_log("version update\n");
+					while(1)
+					{
+						if(base->sat.Upgrade2Confirm == 2)
 						{
-							if(base->sat.Upgrade2Confirm == 2)
-							{
-								break;
-							}
-							else if(base->sat.Upgrade2Confirm == 1)
-							{
-								goto UpdateExit;
-							}
-							
-							satfi_log("Upgrade2_Notice Type=1\n");
-							Upgrade2_Notice(1, 0);
-							sleep(10);
+							break;
+						}
+						else if(base->sat.Upgrade2Confirm == 1)
+						{
+							goto UpdateExit;
 						}
 						
-						if(strlen(satfiurl))
+						satfi_log("Upgrade2_Notice Type=1\n");
+						Upgrade2_Notice(1, 0);
+						sleep(10);
+					}
+					
+					if(strlen(satfiurl))
+					{
+						if(isFileExists(UPDATE_PACKAGE_SAT))
 						{
-							if(isFileExists(UPDATE_PACKAGE_SAT))
+							int maxline = 3;
+							char md5sum_update[256] = {0};
+							
+							bzero(cmd, sizeof(cmd));
+							sprintf(cmd,"md5sum %s", UPDATE_PACKAGE_SAT);
+							myexec(cmd, md5sum_update, &maxline);
+							satfi_log("%s", cmd);
+							satfi_log("%s\n", md5sum_update);
+					
+							if(strstr(md5sum_update, md5sum))
 							{
-								int maxline = 3;
-								char md5sum_update[256] = {0};
-								
-								bzero(cmd, sizeof(cmd));
-								sprintf(cmd,"md5sum %s", UPDATE_PACKAGE_SAT);
-								myexec(cmd, md5sum_update, &maxline);
-								satfi_log("%s", cmd);
-								satfi_log("%s\n", md5sum_update);
-						
-								if(strstr(md5sum_update, md5sum))
+								satfi_log("md5sum same\n");
+								while(1)
 								{
-									satfi_log("md5sum same\n");
-									while(1)
+									if(base->sat.Upgrade2Confirm >= 3)
 									{
-										if(base->sat.Upgrade2Confirm >= 3)
-										{
-											goto UpdateExit;
-										}
-										satfi_log("Upgrade2_Notice Type=3\n");
-										Upgrade2_Notice(3, 0);
-										sleep(10);
-									}	
-								}
-								else
-								{
-									satfi_log("%s md5sum error\n", UPDATE_PACKAGE_SAT);
-								}
-								break;
+										goto UpdateExit;
+									}
+									satfi_log("Upgrade2_Notice Type=3\n");
+									Upgrade2_Notice(3, 0);
+									sleep(10);
+								}	
 							}
 							else
 							{
-								//download update.zip
-								bzero(cmd, sizeof(cmd));
-								sprintf(cmd,"busybox wget -c %s -O %s > %s 2>&1 &", satfiurl, UPDATE_PACKAGE_SAT, DOWNLOAD_INFO);								
-								satfi_log("%s", cmd);
-								myexec(cmd, NULL, NULL);
-								int percent=0;
-								char buf[128] = {0};
-								
-								while(1)
+								satfi_log("%s md5sum error\n", UPDATE_PACKAGE_SAT);
+							}
+							break;
+						}
+						else
+						{
+							//download update.zip
+							bzero(cmd, sizeof(cmd));
+							sprintf(cmd,"busybox wget -c %s -O %s > %s 2>&1 &", satfiurl, UPDATE_PACKAGE_SAT, DOWNLOAD_INFO);								
+							satfi_log("%s", cmd);
+							myexec(cmd, NULL, NULL);
+							int percent=0;
+							char buf[128] = {0};
+							
+							while(1)
+							{
+								sleep(3);
+								if(percent < 100)
 								{
-									sleep(3);
-									if(percent < 100)
+									int fd = open(DOWNLOAD_INFO, O_RDONLY);
+									if(fd > 0)
 									{
-										int fd = open(DOWNLOAD_INFO, O_RDONLY);
-										if(fd > 0)
+										lseek(fd, -80, SEEK_END);
+										bzero(buf, sizeof(buf));
+										read(fd, buf, sizeof(buf));
+										char *p = strchr(buf, '%');
+										if(p != NULL)
 										{
-											lseek(fd, -80, SEEK_END);
-											bzero(buf, sizeof(buf));
-											read(fd, buf, sizeof(buf));
-											char *p = strchr(buf, '%');
-											if(p != NULL)
-											{
-												buf[p - buf] = 0;
-												p = strrchr(buf, ' ');
-												percent = atoi(p+1);
-												//satfi_log("percent=%d\n", percent);
-											}
-											close(fd);
+											buf[p - buf] = 0;
+											p = strrchr(buf, ' ');
+											percent = atoi(p+1);
+											//satfi_log("percent=%d\n", percent);
 										}
+										close(fd);
+									}
 
-										satfi_log("Upgrade2_Notice Type=2, Percent=%d\n", percent);//升级包下载百分比
-										Upgrade2_Notice(2, percent);
-									}
-									else
-									{
-										break;
-									}
+									satfi_log("Upgrade2_Notice Type=2, Percent=%d\n", percent);//升级包下载百分比
+									Upgrade2_Notice(2, percent);
+								}
+								else
+								{
+									break;
 								}
 							}
 						}
-					}
-					else
-					{
-						satfi_log("version low\n");
-						break;
 					}
 				}
 				else
@@ -9675,6 +9743,18 @@ void *CheckProgramUpdateServer(void *p)
 	return NULL;
 }
 
+
+/* 卫星模块拨打电话状态
+ *	0-等待拨号
+ *	1-正在通话
+ *	2-正在呼叫
+ *	3-正在振铃
+ *	4-对方无应答
+ *	5-接听成功
+ *	6-电话已挂断
+ *	7-拨号失败
+ *	8-有来电
+ */
 int AppCallUpRsp(int socket, short sat_state_phone)
 {
 	static short stat = -1;
@@ -9699,16 +9779,26 @@ int AppCallUpRsp(int socket, short sat_state_phone)
 	return 0;
 }
 
- 
+/* 卫星模块拨打电话状态
+ *	0-等待拨号
+ *	1-正在通话
+ *	2-正在呼叫
+ *	3-正在振铃
+ *	4-对方无应答
+ *	5-接听成功
+ *	6-电话已挂断
+ *	7-拨号失败
+ *	8-有来电
+ */
 int AppCallUpRspForce(int socket, short sat_state_phone)
 {	
-	satfi_log("AppCallUpRspForce socket=%d sat_state_phone=%d\n",socket, sat_state_phone);
-	MsgAppCallUpRsp rsp;
-	rsp.header.length = sizeof(MsgAppCallUpRsp);
-	rsp.header.mclass = CALLUP_RSP;
-	rsp.result = sat_state_phone;
 	if(socket>0)
 	{
+		satfi_log("AppCallUpRspForce socket=%d sat_state_phone=%d\n",socket, sat_state_phone);
+		MsgAppCallUpRsp rsp;
+		rsp.header.length = sizeof(MsgAppCallUpRsp);
+		rsp.header.mclass = CALLUP_RSP;
+		rsp.result = sat_state_phone;
 		int n = write(socket, &rsp, rsp.header.length);
 		if(n<0) satfi_log("write return error: errno=%d (%s) %d %d %d\n", errno, strerror(errno),socket,__LINE__,sat_state_phone);
 	}
@@ -9815,7 +9905,9 @@ static void *CallUpThread(void *p)
 		{
 			case SAT_STATE_PHONE_CLCC:
 				satfi_log("SAT_STATE_PHONE_CLCC\n");
-		        uart_send(base->sat.sat_phone, "AT^PCMMODE=0,1,0,0,2,0,0\r\n", 26);
+				uart_send(base->sat.sat_phone, "AT^VOICERATE=2\r\n", strlen("AT^VOICERATE=2\r\n"));
+				sleep(1);
+		        uart_send(base->sat.sat_phone, "AT\r\n", 4);
 		        break;
 			case SAT_STATE_PHONE_CLCC_OK:
 				satfi_log("SAT_STATE_PHONE_CLCC_OK\n");
@@ -9823,6 +9915,9 @@ static void *CallUpThread(void *p)
 				//satfi_log("ATD = %s\n", buf);
 				uart_send(base->sat.sat_phone, buf, 6+strlen(base->sat.calling_number));
 				base->sat.sat_state_phone = SAT_STATE_PHONE_DIALING_CLCC;
+
+				if(base->sat.sat_available == 1) gpio_out(HW_GPIO78, 0);
+				
 				break;
 			case SAT_STATE_PHONE_ATD_W:
 				satfi_log("SAT_STATE_PHONE_ATD_W\n");
@@ -9850,15 +9945,8 @@ static void *CallUpThread(void *p)
 				break;
 			case SAT_STATE_PHONE_DIALING_ERROR:	
 			case SAT_STATE_PHONE_DIALINGFAILE:
-				dialfailecnt++;
-				if(dialfailecnt >= 3)
-				{
-					base->sat.sat_state_phone = SAT_STATE_PHONE_DIALING_FAILE_AND_ERROR;
-				}
-				else
-				{
-					base->sat.sat_state_phone = SAT_STATE_PHONE_CLCC;
-				}
+				base->sat.sat_state_phone = SAT_STATE_PHONE_DIALING_FAILE_AND_ERROR;
+				base->sat.playBusyToneFlag = 1;	
 				break;
 			case SAT_STATE_PHONE_IDLE:
 			case SAT_STATE_PHONE_NOANSWER:
@@ -9881,10 +9969,11 @@ static void *CallUpThread(void *p)
 		if(base->sat.sat_state_phone == SAT_STATE_PHONE_CLCC)
 		{
 			++clcccnt;
-			if(clcccnt >= 10)
+			if(clcccnt >= 5)
 			{
 				clcccnt = 0;
 				base->sat.sat_state_phone = SAT_STATE_PHONE_DIALINGFAILE;
+				base->sat.sat_state = SAT_STATE_RESTART;
 			}
 		}
 		
@@ -9916,8 +10005,13 @@ static void *CallUpThread(void *p)
 	}
 
 	int cnt = 10;
-	while(cnt--)
+	while(--cnt)
 	{
+		if(cnt<=1)
+		{
+			//base->sat.sat_state = SAT_STATE_RESTART;
+		}
+
 		if(base->sat.sat_state_phone != SAT_STATE_PHONE_ATH_W)
 		{
 			satfi_log("CallUpThread SAT_STATE_PHONE_ATH_W\n");
@@ -9943,6 +10037,8 @@ static void *CallUpThread(void *p)
 		{
 			base->sat.EndTime = time(0);
 			base->sat.sat_state_phone = SAT_STATE_PHONE_IDLE;
+			//base->sat.playBusyToneFlag = 1;
+			if(base->sat.sat_available == 1) gpio_out(HW_GPIO78, 1);
 			break;
 		}
 	}
@@ -9972,7 +10068,6 @@ static void *CallUpThread(void *p)
 	base->sat.sat_state_phone = SAT_STATE_PHONE_IDLE;
 	base->sat.socket = 0;
 	base->sat.sat_calling = 0;
-	base->sat.playBusyToneFlag = 1;
 	base->sat.StartTime = 0;
 	satfi_log("CallUpThread Exit\n");
 	return NULL;
@@ -10011,7 +10106,7 @@ int StrToBcd(unsigned char *bcd, const char *str, int strlen)
 		}
 		else
 		{
-			strncpy(tmp,str,strlen);	
+			strncpy(tmp,str,strlen);
 		}
 		
         for(i = 0; i < strlen; i+=2)
@@ -10507,6 +10602,15 @@ static int Get_Second_LinePhone_Num(char * PhoneNumber)
 		if(ioctl(mtgpiofd, GPIO_IOCQDATAIN, SHR) == 0)
 		{
 			base.sat.isSecondLinePickUp = 1;
+			if(base.sat.sat_calling == 1)
+			{
+				base.sat.satbusy = 1;
+			}
+			else
+			{
+				base.sat.satbusy = 0;
+			}
+			
 			if(ioctl(mtgpiofd, GPIO_IOCQDATAIN, DV) == 1)
 			{
 				if(keypress == 0)
@@ -10517,7 +10621,14 @@ static int Get_Second_LinePhone_Num(char * PhoneNumber)
 						tmp[i] = 0;
 						strncpy(PhoneNumber, tmp, i);
 						satfi_log("break # PhoneNumber=%s %d\n", PhoneNumber, strlen(PhoneNumber));
-						return i;
+						if(base.sat.satbusy == 1)
+						{
+							return 0;
+						}
+						else
+						{
+							return i;
+						}
 					}
 					else
 					{
@@ -10565,28 +10676,9 @@ void *Second_linePhone_Dial_Detect(void *p)
 				{
 					if((len = Get_Second_LinePhone_Num(PhoneNumber)) > 0)
 					{
-						//base->sat.secondLinePhoneMode = 1;
-						//StartCallUp(PhoneNumber);
-						//bzero(PhoneNumber, len);
-						if(gp_users)
-						{
-							USER * t = gp_users;
-							int ringsocket=0;
-							while(t)
-							{
-								ringsocket = t->socketfd;
-								if(ringsocket>0)
-								{
-									break;
-								}
-								t=t->next;
-							}
-
-							base->sat.sat_state_phone = SAT_STATE_PHONE_RING_COMING;
-							AppRingUpRsp(ringsocket, PhoneNumber);
-							AppCallUpRsp(ringsocket, get_sat_dailstatus());
-						}
-						
+						base->sat.secondLinePhoneMode = 1;
+						StartCallUp(PhoneNumber);
+						bzero(PhoneNumber, len);
 					}
 				}
 			}
@@ -10625,7 +10717,8 @@ void *Second_linePhone_Dial_Detect(void *p)
 			}
 		}
 
-		sleep(1);
+		usleep(200000);
+		//sleep(1);
 	}
 	
 	return NULL;
@@ -10770,7 +10863,7 @@ void hw_init(void)
 	gpio_out(MSM_POWER, 1);//卫星模块开关
 	gpio_out(HW_GPIO4, 1);
 	gpio_out(HW_GPIO19, 1);
-	gpio_out(HW_GPIO54, 1);
+	//gpio_out(HW_GPIO54, 1);
 
 	gpio_out(RC, 0);//振铃
 	gpio_in(SHR);//摘机
@@ -10779,19 +10872,18 @@ void hw_init(void)
 	
 	gpio_out(INH, 0);//PWDN
 	gpio_out(PWDN, 0);//INH
-	gpio_out(OE, 1);//OE
+	//gpio_out(OE, 1);//OE
 
 	gpio_in(D0);
 	gpio_in(D1);
 	gpio_in(D2);
 	gpio_in(D3);
 	gpio_in(DV);
-	gpio_in(DV);
 	gpio_pull_enable(DV);
 	gpio_pull_up(DV);
 
 #ifdef NEW_BOARD
-	gpio_out(HW_GPIO47, 1);//usb<-->卫星模块	
+	gpio_out(HW_GPIO47, 0);//usb<-->卫星模块	
 #endif
 	myexec("echo \"noSuspend\" > /sys/power/wake_lock", NULL, NULL);
 }
@@ -10810,12 +10902,13 @@ void base_init(void)
 	pthread_t id_1;
 	strcpy(satfi_version, SATFI_VERSION);
 	satfi_log("satfi_version=%s", satfi_version);
+	base.sat.VolumeTrack = 0.1;
 	hw_init();
 	if(pthread_create(&id_1, NULL, CheckProgramUpdateServer, (void *)&base) == -1) exit(1);
-	//if(pthread_create(&id_1, NULL, func_y, (void *)&base) == -1) exit(1);						//卫星模块启动
+	if(pthread_create(&id_1, NULL, func_y, (void *)&base) == -1) exit(1);						//卫星模块启动
 	if(pthread_create(&id_1, NULL, SystemServer, (void *)&base) == -1) exit(1);					//系统检测 led
 	if(pthread_create(&id_1, NULL, handle_app_data, (void *)&base) == -1) exit(1); 				//处理app数据
-	//if(pthread_create(&id_1, NULL, sat_ring_detect, (void *)&base) == -1) exit(1); 				//卫星来电检测
+	if(pthread_create(&id_1, NULL, sat_ring_detect, (void *)&base) == -1) exit(1); 				//卫星来电检测
 	if(pthread_create(&id_1, NULL, Second_linePhone_Dial_Detect, (void *)&base) == -1) exit(1);//二线电话拨号检测
 }
 
