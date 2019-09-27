@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
 		/* we are initiator and need encoding 0 (basic) */
 		c.initiator = 1;
 		c.encapsulation = 0;
-		/* our modem defaults to a maximum size of 127 bytes */
+		/* our modem defaults to a maximum size of 1500 bytes */
 		c.mru = 1500;
 		c.mtu = 1500;
 		/* set the new configuration */

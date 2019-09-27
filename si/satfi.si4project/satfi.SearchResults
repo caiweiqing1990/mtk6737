@@ -1,4 +1,0 @@
----- OE Matches (4 in 2 files) ----
-latin9_translit in iconv.c (Y:\satfi) : 	case 0x0152: return 0xBC; /* OE */
-satfi.c (Y:\satfi) line 73 : #define OE		HW_GPIO53
-hw_init in satfi.c (Y:\satfi) : 	gpio_out(OE, 1);//OE

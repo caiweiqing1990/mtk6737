@@ -40,10 +40,10 @@
 #define CONFIG_FILE			"/sdcard/config.ini"
 #define SOS_FILE			"/sdcard/sos.ini"
 
-#define DUDU_WAV			"/vendor/res/sound/dudu.wav"
-#define BUSY_WAV			"/vendor/res/sound/busy.wav"
-#define TONE_WAV			"/vendor/res/sound/bohao.wav"
-#define SATBUSY_WAV			"/vendor/res/sound/satbusy.wav"
+#define DUDU_WAV			"/vendor/res/sound/dudu.wav"	//摘机嘟嘟声
+#define BUSY_WAV			"/vendor/res/sound/busy.wav"	//被叫已挂断提示音
+#define TONE_WAV			"/vendor/res/sound/bohao.wav"	//按#号进行拨号
+#define SATBUSY_WAV			"/vendor/res/sound/satbusy.wav"	//卫星线路忙
 
 #define SAT_LINK_DISCONNECT	1
 #define SAT_LINK_NORMAL		0

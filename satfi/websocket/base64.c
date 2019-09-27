@@ -13,136 +13,91 @@
  ********************************************************************************/
 #include "base64.h"
  
-static const char basechar[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/="; 
- 
-char *base64_encode(const char* data, int data_len) 
-{ 
-    int prepare = 0; 
-    int ret_len; 
-    int temp = 0; 
-    char *ret = NULL; 
-    char *f = NULL; 
-    int tmp = 0; 
-    unsigned char changed[4]; 
-    int i = 0; 
-    ret_len = data_len / 3; 
-    temp = data_len % 3; 
- 
-    if (temp > 0) 
-        ret_len += 1; 
- 
-    ret_len = ret_len*4 + 1; 
-    ret = (char *)malloc(ret_len); 
-    if ( ret == NULL) { 
-        printf("ret alloc failure.\n"); 
-        return NULL; 
-    } 
-    memset(ret, 0, ret_len); 
- 
-    f = ret; 
-    while (tmp < data_len) 
-    { 
-        temp = 0; 
-        prepare = 0; 
-        memset(changed, '\0', 4); 
-        while (temp < 3) 
-        { 
-            if (tmp >= data_len) 
-                break; 
- 
-            prepare = ((prepare << 8) | (data[tmp] & 0xFF)); 
-            tmp++; 
-            temp++; 
-        } 
- 
-        prepare = (prepare<<((3-temp)*8)); 
-        for (i=0; i<4 ;i++) { 
-            if (temp < i) 
-                changed[i] = 0x40; 
-            else 
-                changed[i] = (prepare>>((3-i)*6)) & 0x3F; 
- 
-            *f = basechar[changed[i]]; 
-            f++; 
-        } 
-    } 
-    *f = '\0'; 
-      
-    return ret; 
-} 
- 
-static char find_pos(char ch)   
-{ 
-    char *ptr = (char*)strrchr(basechar, ch);//the last position (the only) in base[] 
-    return (ptr - basechar); 
-} 
- 
-char *base64_decode(const char *data, int data_len) 
-{ 
-    int ret_len = (data_len / 4) * 3; 
-    int equal_count = 0; 
-    char *ret = NULL; 
-    char *f = NULL; 
-    int tmp = 0; 
-    int temp = 0; 
-    char need[3]; 
-    int prepare = 0; 
-    int i = 0; 
- 
-    if (*(data + data_len - 1) == '=') 
-        equal_count += 1; 
- 
-    if (*(data + data_len - 2) == '=') 
-        equal_count += 1; 
- 
-    if (*(data + data_len - 3) == '=') 
-        equal_count += 1; 
- 
-    switch (equal_count) 
-    { 
-    case 0: 
-        ret_len += 4;//3 + 1 [1 for NULL] 
-        break; 
-    case 1: 
-        ret_len += 4;//Ceil((6*3)/8)+1 
-        break; 
-    case 2: 
-        ret_len += 3;//Ceil((6*2)/8)+1 
-        break; 
-    case 3: 
-        ret_len += 2;//Ceil((6*1)/8)+1 
-        break; 
-    } 
-    ret = (char *)malloc(ret_len); 
-    if (NULL == ret) { 
-        printf("ret alloc failure.\n"); 
-        return NULL; 
-    } 
-    memset(ret, 0, ret_len); 
- 
-    f = ret; 
-    while (tmp < (data_len - equal_count)) 
-    { 
-        temp = 0; 
-        prepare = 0; 
-        memset(need, 0, 4); 
-        while (temp < 4) 
-        { 
-            if (tmp >= (data_len - equal_count)) 
-                break; 
-            prepare = (prepare << 6) | (find_pos(data[tmp])); 
-            temp++; 
-            tmp++; 
-        } 
- 
-        prepare = prepare << ((4-temp) * 6); 
-        for (i=0; i<3; i++) { 
-            if (i == temp) 
-                break; 
-            *f = (char)((prepare>>((2-i)*8)) & 0xFF); 
-            f++; 
-        } 
-    } 
-    *f = '\0'; 
-    return ret; 
+static const char base64char[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+
+//±àÂë unsigned char --> char
+char *base64_encode(const unsigned char *indata, char *outdata, int inlength)
+{
+    int i, j;
+    unsigned char current;
+
+    for ( i = 0, j = 0 ; i < inlength ; i += 3 )
+    {
+        current = (indata[i] >> 2) ;
+        current &= (unsigned char)0x3F;
+        outdata[j++] = base64char[(int)current];
+
+        current = ( (unsigned char)(indata[i] << 4 ) ) & ( (unsigned char)0x30 ) ;
+        if ( i + 1 >= inlength )
+        {
+            outdata[j++] = base64char[(int)current];
+            outdata[j++] = '=';
+            outdata[j++] = '=';
+            break;
+        }
+        current |= ( (unsigned char)(indata[i+1] >> 4) ) & ( (unsigned char) 0x0F );
+        outdata[j++] = base64char[(int)current];
+
+        current = ( (unsigned char)(indata[i+1] << 2) ) & ( (unsigned char)0x3C ) ;
+        if ( i + 2 >= inlength )
+        {
+            outdata[j++] = base64char[(int)current];
+            outdata[j++] = '=';
+            break;
+        }
+        current |= ( (unsigned char)(indata[i+2] >> 6) ) & ( (unsigned char) 0x03 );
+        outdata[j++] = base64char[(int)current];
+
+        current = ( (unsigned char)indata[i+2] ) & ( (unsigned char)0x3F ) ;
+        outdata[j++] = base64char[(int)current];
+    }
+    outdata[j] = '\0';
+    return outdata;
 }
+
+//½âÂë char --> unsigned char
+int base64_decode(const char *indata, unsigned char *outdata, int inlength)
+{
+    int i, j;
+    unsigned char k;
+    unsigned char temp[4];
+    for ( i = 0, j = 0; indata[i] != '\0' && i < inlength; i += 4 )
+    {
+        memset( temp, 0xFF, sizeof(temp) );
+        for ( k = 0 ; k < 64 ; k ++ )
+        {
+            if ( base64char[k] == indata[i] )
+                temp[0]= k;
+        }
+        for ( k = 0 ; k < 64 ; k ++ )
+        {
+            if ( base64char[k] == indata[i+1] )
+                temp[1]= k;
+        }
+        for ( k = 0 ; k < 64 ; k ++ )
+        {
+            if ( base64char[k] == indata[i+2] )
+                temp[2]= k;
+        }
+        for ( k = 0 ; k < 64 ; k ++ )
+        {
+            if ( base64char[k] == indata[i+3] )
+                temp[3]= k;
+        }
+
+        outdata[j++] = ((unsigned char)(((unsigned char)(temp[0] << 2))&0xFC)) |
+                ((unsigned char)((unsigned char)(temp[1]>>4)&0x03));
+        if ( indata[i+2] == '=' )
+            break;
+
+        outdata[j++] = ((unsigned char)(((unsigned char)(temp[1] << 4))&0xF0)) |
+                ((unsigned char)((unsigned char)(temp[2]>>2)&0x0F));
+        if ( indata[i+3] == '=' )
+            break;
+
+        outdata[j++] = ((unsigned char)(((unsigned char)(temp[2] << 6))&0xF0)) |
+                ((unsigned char)(temp[3]&0x3F));
+    }
+    return j;
+}
+

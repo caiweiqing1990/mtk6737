@@ -66,12 +66,11 @@ static char *extract_client_key(const char * buffer)
  *   Output Args: 输出服务器发送的handshake key
  *  Return Value: server_key 服务器发送的handshake key
  *************************************************************************************/
-char *calculate_accept_key(const char * buffer)
+char *calculate_accept_key(const char *buffer, char *server_key)
 {
     int         i;
     int         n;
     char        *client_key = NULL;
-    char        *server_key = NULL; 
     char        *sha1_data_tmp = NULL;
     char        *sha1_data = NULL;
     const char  *guid = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"; /* "258EAFA5-E914-47DA-95CA-C5AB0DC85B11" 存放于.rodata段 */
@@ -102,7 +101,7 @@ char *calculate_accept_key(const char * buffer)
     for(i=0; i<n; i+=2)
         sha1_data[i/2] = htoi(sha1_data_tmp, i, 2);    
 
-    server_key = base64_encode(sha1_data, strlen(sha1_data)); 
+    server_key = base64_encode(sha1_data, server_key, strlen(sha1_data)); 
 
     if (client_key != NULL) {
         free(client_key);

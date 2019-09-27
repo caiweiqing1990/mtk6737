@@ -1,6 +1,0 @@
-ABORT "BUSY"
-ABORT "ERROR"
-ABORT "NO DIALTONE"
-SAY "/nSending break to the modem/n"
-'' "AT+CGACT=0,4"
-SAY "/nGoodbye/n"

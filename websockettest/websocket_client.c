@@ -127,7 +127,7 @@ int main(int argc, char *argv[])
 		FD_SET(fd, &fds);
 		timeout.tv_sec = 2;
 		timeout.tv_usec = 0;
-	    switch(select(fd+1, &fds, NULL, NULL, &timeout)) {
+		switch(select(fd+1, &fds, NULL, NULL, &timeout)) {
 			case -1: break;
 			case  0: break;
 			default: {

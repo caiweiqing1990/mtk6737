@@ -177,7 +177,7 @@ adb push Y:\gpsinf\bin\gps_test /system/bin/
 logcat pseudo:* *:S
 logcat RILD:* *:S
 logcat satfi:* *:S
-
+logcat AudioALSAStreamOut:* *:S
 
 start ril-daemon-mtk
 logcat RIL:D *:S
@@ -601,8 +601,11 @@ ndc softap stopap
 ndc softap startap
 am broadcast -a android.intent.action.BOOT_COMPLETED -n com.mediatek.settings/.BootFinishBroadcastReceiver
 
-tinyplay /storage/self/primary/Alarm01.wav -D 0 -d 0
-adb push Y:\satfi\bin\Alarm01.wav /mnt
+logcat AudioALSADeviceParser:* *:S
+cat /proc/interrupts  | grep Afe_ISR_Handle
+
+tinyplay /sdcard/bohao.wav -D 0 -d 8 
+adb push Y:\satfi\bin\bohao.wav /sdcard/bohao.wav
 adb push Z:\out\target\product\len6737t_66_sh_n\system\bin\tinymix /system/bin/
 adb push Z:\out\target\product\len6737t_66_sh_n\system\bin\tinycap /system/bin/
 adb push Z:\out\target\product\len6737t_66_sh_n\system\bin\tinyplay /system/bin/
@@ -731,3 +734,14 @@ PRODUCT_COPY_FILES += device/lentek/len6737t_66_sh_n/busybox:system/bin/busybox
 
 codegen.dws文件路径	
 Z:\vendor\mediatek\proprietary\bootable\bootloader\lk\target\len6737t_66_sh_n\dct\dct
+
+
+#dsds表示双卡双待，dsda表示双卡双通，ss表示单卡
+
+device/lentek/len6737t_66_sh_n/ProjectConfig.mk
+MTK_MULTI_SIM_SUPPORT = ss
+
+device/lentek/len6737t_66_sh_n/device.mk
+SIM_COUNT := 1
+
+

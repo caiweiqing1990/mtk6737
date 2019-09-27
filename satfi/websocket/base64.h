@@ -18,6 +18,6 @@
 #include <stdlib.h>
 #include <string.h>
  
-char* base64_encode(const char* data, int data_len); 
-char *base64_decode(const char* data, int data_len); 
+char * base64_encode(const unsigned char *indata, char *outdata, int inlength);
+int base64_decode(const char *indata, unsigned char *outdata, int inlength);
 #endif
