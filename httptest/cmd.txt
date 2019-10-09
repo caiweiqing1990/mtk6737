@@ -1,3 +1,5 @@
+和对讲测试
+
 http://192.168.88.1:10086/?op=login&guid=1234567890&host=112.35.28.14&port=6060&realm=4gpoc.com&impi=100310003&password=123456
 
 
