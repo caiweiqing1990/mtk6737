@@ -23,4 +23,5 @@ cp AndroidManifest.xml $ANDROID_PATH/packages/apps/Settings/AndroidManifest.xml
 cp BootFinishBroadcastReceiver.java $ANDROID_PATH/packages/apps/Settings/src/com/mediatek/settings/BootFinishBroadcastReceiver.java
 cp IMEIUtils.java $ANDROID_PATH/packages/apps/Settings/src/com/mediatek/sim/IMEIUtils.java
 
-cp codegen.dws $ANDROID_PATH/vendor/mediatek/proprietary/bootable/bootloader/lk/target/len6737t_66_sh_n/dct/dct/codegen.dws
+#cp codegen.dws $ANDROID_PATH/vendor/mediatek/proprietary/bootable/bootloader/lk/target/len6737t_66_sh_n/dct/dct/codegen.dws
+cp len6737t_66_sh_n_defconfig $ANDROID_PATH/kernel-3.18/arch/arm64/configs/len6737t_66_sh_n_defconfig
