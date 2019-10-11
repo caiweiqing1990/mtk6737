@@ -567,7 +567,7 @@ lrwxrwxrwx 1 root root 21 2019-01-31 18:41 userdata -> /dev/block/mmcblk0 p22
 $GNRMC,035511.011,V,2309.6627,N,11324.6487,E,0.000,0.00,150219,,,N*50
 
 WIFIAP IP
-frameworks/opt/net/wifi/service/java/com/android/server/wifi/SoftApManager.java +317
+frameworks/opt/net/wifi/service/java/com/android/server/wifi/SoftApManager.java +317 //192.168.43.1
 
 vendor/mediatek/proprietary/hardware/ril/gsm/rild/Android.mk:58:LOCAL_MODULE:= mtkrild
 
