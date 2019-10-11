@@ -22,3 +22,5 @@ cp EthernetConfigStore.java $ANDROID_PATH/frameworks/opt/net/ethernet/java/com/a
 cp AndroidManifest.xml $ANDROID_PATH/packages/apps/Settings/AndroidManifest.xml
 cp BootFinishBroadcastReceiver.java $ANDROID_PATH/packages/apps/Settings/src/com/mediatek/settings/BootFinishBroadcastReceiver.java
 cp IMEIUtils.java $ANDROID_PATH/packages/apps/Settings/src/com/mediatek/sim/IMEIUtils.java
+
+cp codegen.dws $ANDROID_PATH/vendor/mediatek/proprietary/bootable/bootloader/lk/target/len6737t_66_sh_n/dct/dct/codegen.dws
