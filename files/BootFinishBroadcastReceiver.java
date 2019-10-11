@@ -26,7 +26,7 @@ public class BootFinishBroadcastReceiver extends BroadcastReceiver {
 			
 			IMEIUtils.getInstance().Init(context);
 
-			mWifiConfig.SSID = "SatFi-"+getLastFourIMEI();
+			mWifiConfig.SSID = "SatFi-HTL8100-"+getLastFourIMEI();
 			mWifiConfig.preSharedKey ="12345678";
 			mWifiConfig.apBand = 0;
 			mWifiConfig.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.WPA2_PSK);
