@@ -1,0 +1,3 @@
+device/mediatek/mt6735/init.mt6735.rc
+system/sepolicy/satfi.te
+system/sepolicy/pppd.te

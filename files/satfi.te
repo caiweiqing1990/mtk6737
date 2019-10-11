@@ -1,0 +1,46 @@
+type satfi, domain;
+type satfi_exec, exec_type, file_type;
+init_daemon_domain(satfi)
+domain_trans(init, shell_exec, satfi)
+net_domain(satfi)
+
+allow satfi toolbox_exec:file { getattr execute read open execute_no_trans };
+allow satfi storage_file:lnk_file { read open };
+allow satfi tmpfs:dir { write read open search };
+allow satfi mnt_user_file:dir { write read open search };
+allow satfi fuse:dir { write read open search remove_name add_name };
+allow satfi fuse:file { write read open getattr rename create unlink };
+allow satfi self:tcp_socket { create setopt bind listen connect };
+allow satfi self:capability { net_raw };
+allow satfi self:udp_socket { create bind };
+allow satfi port:tcp_socket { name_bind };
+allow satfi node:tcp_socket { node_bind };
+allow satfi port:udp_socket { name_bind };
+allow satfi node:udp_socket { node_bind };
+
+allow satfi sysfs:dir { read open };
+allow satfi debuggerd_exec:file { read open };
+allow satfi ttyMT_device:chr_file { read write open ioctl };
+allow satfi shell_exec:file { execute_no_trans };
+allow satfi mnt_user_file:lnk_file { write read open };
+allow satfi self:capability { dac_override };
+allow satfi mtgpio_device:chr_file { read write open ioctl };
+allow satfi device:chr_file { read write open ioctl };
+allow satfi servicemanager:binder { call };
+allow satfi audioserver:binder { call transfer };
+allow satfi proc_ged:file { read open };
+allow satfi audioserver_service:service_manager { find };
+allow satfi wifi_service:service_manager { find };
+allow satfi gas_srv_service:service_manager { find };
+allow satfi proc_net:file { read open getattr };
+allow satfi system_file:file { execute_no_trans };
+allow satfi mnld:unix_dgram_socket { sendto };
+
+allow satfi property_socket:sock_file { write };
+allow satfi init:unix_stream_socket { connectto };
+
+allow satfi proc:file { read };
+allow satfi device:dir { write };
+allow satfi self:binder { call transfer };
+allow satfi sysfs:file { read open };
+

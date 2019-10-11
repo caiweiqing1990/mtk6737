@@ -135,6 +135,7 @@ enum SAT_STATE_PHONE {
 typedef  struct _n3g
 {
   int n3g_fd;                //3G模块串口文件
+  int n3g_available;
   int n3g_status;            //0：command 1：online data
   enum N3G_STATE n3g_state;
   int n3g_hb_seconds;
@@ -282,6 +283,7 @@ typedef struct _base
   GPS gps;
   TSC tsc;
   APP app;
+  OMC omc;
 }BASE;
 
 typedef struct _grpinfo
@@ -366,6 +368,7 @@ extern int parseGpsData(char *buf, int len);
 extern void gps_start(void);
 extern int gps_stop(void);
 extern int create_satfi_udp_fd(void);
+extern void milliseconds_sleep(unsigned long milliseconds);
 extern int safe_sendto(const char* path, const char* buff, int len);
 
 #endif
