@@ -79,7 +79,7 @@ int AppCnt = 0;
 #define DV		HW_GPIO61	//按键是否按下 new
 #define INH		HW_GPIO64
 #define PWDN	HW_GPIO63
-#define SATFI_VERSION "HTL8100_3.9_N"
+#define SATFI_VERSION "HTL8100_4.0_N"
 #else
 #define D3		HW_GPIO47
 #define DV		HW_GPIO48	//按键是否按下
@@ -87,8 +87,6 @@ int AppCnt = 0;
 #define PWDN	HW_GPIO52
 #define SATFI_VERSION "HTL8100_3.0"
 #endif
-
-#define SATFI_VERSION_SAT "HTL8100_1.0"
 
 #define UPDATE_INI_URL	"http://zzhjjt.tt-box.cn:9098/TSCWEB/satfi/"SATFI_VERSION".ini"
 #define UPDATE_CONFIG	"/cache/recovery/update.ini"
@@ -10404,9 +10402,9 @@ void *sat_ring_detect(void *p)
 				else
 				{
 					//satfi_log("sat_state_phone=%d\n", base->sat.sat_state_phone);
-					if(base->sat.sat_state_phone == SAT_STATE_PHONE_ONLINE || \
-						base->sat.sat_state_phone == SAT_STATE_PHONE_COMING_HANGUP)
+					if(base->sat.sat_state_phone == SAT_STATE_PHONE_ONLINE)
 					{
+						base->sat.sat_state_phone = SAT_STATE_PHONE_ATH_W;
 						break;
 					}
 

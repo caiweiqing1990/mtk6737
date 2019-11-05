@@ -20,6 +20,15 @@ import com.android.internal.telephony.TelephonyProperties;
 import com.android.internal.telephony.IPhoneSubInfo;
 import android.telephony.PhoneStateListener;
 
+//adb push Z:\out\target\product\len6737t_66_sh_n\system\framework\WifiTest.jar /system/framework
+//CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest wifiapstop
+//CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest wifiapstart weiqing 12345678
+//CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest setDataEnabled
+//CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest setDataDisabled
+//CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest getnetworktype
+//CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest getimei
+//CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest getimsi
+
 //wifi Telephony Ethernet control
 public class WifiTest {
     private static final String TAG = "WifiTest";
@@ -207,8 +216,8 @@ public class WifiTest {
 		}
 
 
-/*
-		IBinder binder = ServiceManager.getService("ethernet");
+
+		IBinder binder = ServiceManager.getService("ethernet");//获取ethernet服务
 		if (binder == null)
 		{
 			System.out.println("can not get ethernet service");
@@ -218,19 +227,19 @@ public class WifiTest {
 
 		System.out.println("get ethernet service ok");
 		StaticIpConfiguration staticIpConfiguration = new StaticIpConfiguration();
-		LinkAddress linkAddr = new LinkAddress(NetworkUtils.numericToInetAddress("192.168.1.1"),24);
+		LinkAddress linkAddr = new LinkAddress(NetworkUtils.numericToInetAddress("192.168.1.1"),24);//ip
 		staticIpConfiguration.ipAddress= linkAddr;
 		
-		InetAddress gateway = NetworkUtils.numericToInetAddress("192.168.1.1");
+		InetAddress gateway = NetworkUtils.numericToInetAddress("192.168.1.1");//gateway
 		staticIpConfiguration.gateway = gateway;
 		
-		staticIpConfiguration.dnsServers.add(NetworkUtils.numericToInetAddress("192.168.1.1"));
+		staticIpConfiguration.dnsServers.add(NetworkUtils.numericToInetAddress("192.168.1.1"));//dns
 		
 		IpConfiguration config = new IpConfiguration(IpAssignment.STATIC, ProxySettings.NONE, staticIpConfiguration, null);
 		IEthernetManager mEthernet = IEthernetManager.Stub.asInterface(binder);
 		mEthernet.setConfiguration(config);
 		
 		System.out.println("mEthernet.setConfiguration" + mEthernet.isAvailable());
-*/
+
 	}
 }

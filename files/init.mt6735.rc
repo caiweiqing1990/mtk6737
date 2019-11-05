@@ -505,7 +505,7 @@ on post-fs-data
 # End of adding by MTK drivers
 # -----------------------
 
-on boot	
+on boot
     write /proc/bootprof "INIT:boot"
 
 
@@ -674,8 +674,7 @@ service start_modem /vendor/bin/md_ctrl 1
     setprop net.tcp.buffersize.hspap   4094,87380,1220608,4096,16384,1220608
     setprop net.tcp.buffersize.edge    4093,26280,35040,4096,16384,35040
     setprop net.tcp.buffersize.gprs    4092,8760,11680,4096,8760,11680
-    setprop net.dns1 219.150.32.132
-    setprop net.dns2 123.150.150.150
+
     setprop persist.sys.strictmode.disable 1
 
 ## mtk printk uart controller

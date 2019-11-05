@@ -39,6 +39,16 @@ make;make otapackage
 制作2.7到2.8版本的差分包
 ./build/tools/releasetools/ota_from_target_files --block -s ./device/mediatek/build/releasetools/mt_ota_from_target_files.py -i out/target/product/len6737t_66_sh_n/obj/PACKAGING/target_files_intermediates/HTL8100_2.7.zip out/target/product/len6737t_66_sh_n/obj/PACKAGING/target_files_intermediates/HTL8100_2.8.zip HTL8100_2.7.zip 
 
+./build/tools/releasetools/ota_from_target_files --block -s ./device/mediatek/build/releasetools/mt_ota_from_target_files.py -i out/target/product/len6737t_66_sh_n/obj/PACKAGING/target_files_intermediates/HTL8100_3.1.zip out/target/product/len6737t_66_sh_n/obj/PACKAGING/target_files_intermediates/HTL8100_4.0.zip HTL8100_3.1.zip
+
+./build/tools/releasetools/ota_from_target_files --block -s ./device/mediatek/build/releasetools/mt_ota_from_target_files.py -i out/target/product/len6737t_66_sh_n/obj/PACKAGING/target_files_intermediates/HTL8100_3.6.zip out/target/product/len6737t_66_sh_n/obj/PACKAGING/target_files_intermediates/HTL8100_4.0.zip HTL8100_3.6.zip
+
+./build/tools/releasetools/ota_from_target_files --block -s ./device/mediatek/build/releasetools/mt_ota_from_target_files.py -i out/target/product/len6737t_66_sh_n/obj/PACKAGING/target_files_intermediates/HTL8100_3.7.zip out/target/product/len6737t_66_sh_n/obj/PACKAGING/target_files_intermediates/HTL8100_4.0.zip HTL8100_3.7.zip
+
+./build/tools/releasetools/ota_from_target_files --block -s ./device/mediatek/build/releasetools/mt_ota_from_target_files.py -i out/target/product/len6737t_66_sh_n/obj/PACKAGING/target_files_intermediates/HTL8100_3.8.zip out/target/product/len6737t_66_sh_n/obj/PACKAGING/target_files_intermediates/HTL8100_4.0.zip HTL8100_3.8.zip
+
+./build/tools/releasetools/ota_from_target_files --block -s ./device/mediatek/build/releasetools/mt_ota_from_target_files.py -i out/target/product/len6737t_66_sh_n/obj/PACKAGING/target_files_intermediates/HTL8100_3.9.zip out/target/product/len6737t_66_sh_n/obj/PACKAGING/target_files_intermediates/HTL8100_4.0.zip HTL8100_3.9.zip
+
 
 adb connect 192.168.43.1
 adb root

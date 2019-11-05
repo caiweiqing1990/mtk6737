@@ -204,7 +204,7 @@ char *http_get(const char *url)
 
 //"http://192.168.88.1:10086/?op=login&guid=1234567890&host=112.35.28.14&port=6060&realm=4gpoc.com&impi=100310003&password=123456"
 #define SERVER	"192.168.88.1"
-#define PORT	10086
+#define PORT	10086 
 int login(char * guid, char *host, int port, char *realm, char *impi, char *password)
 {
 	char url[2048] = {0};

@@ -89,6 +89,7 @@ void *httptest(void *p)
 	return NULL;
 }
 
+//websocket_client 100310003 100310004
 int main(int argc, char *argv[])
 {
     int ret;

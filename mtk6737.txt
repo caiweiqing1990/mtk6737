@@ -744,4 +744,4 @@ MTK_MULTI_SIM_SUPPORT = ss
 device/lentek/len6737t_66_sh_n/device.mk
 SIM_COUNT := 1
 
-
+echo 'file n_gsm.c +p' > /sys/kernel/debug/dynamic_debug/control
