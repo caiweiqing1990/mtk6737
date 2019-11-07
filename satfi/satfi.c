@@ -79,7 +79,7 @@ int AppCnt = 0;
 #define DV		HW_GPIO61	//按键是否按下 new
 #define INH		HW_GPIO64
 #define PWDN	HW_GPIO63
-#define SATFI_VERSION "HTL8100_4.0_N"
+#define SATFI_VERSION "HTL8100_4.1_N"
 #else
 #define D3		HW_GPIO47
 #define DV		HW_GPIO48	//按键是否按下
@@ -5550,20 +5550,14 @@ int handle_app_msg_tcp(int socket, char *pack, char *tscbuf)
 			if(req->gprs_on == 1)
 			{
 				//GPRS关
-				if(base.sat.lte_status == 1)
-				{
-					satfi_log("CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest setDataDisabled");
-					myexec("CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest setDataDisabled", NULL, NULL);
-				}
+				satfi_log("CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest setDataDisabled");
+				myexec("CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest setDataDisabled", NULL, NULL);
 			}
 			else if(req->gprs_on == 2)
 			{
 				//GPRS开
-				if(base.sat.lte_status == 2)
-				{
-					satfi_log("CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest setDataEnabled");
-					myexec("CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest setDataEnabled", NULL, NULL);
-				}
+				satfi_log("CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest setDataEnabled");
+				myexec("CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest setDataEnabled", NULL, NULL);
 			}
 
 		}
