@@ -9952,7 +9952,6 @@ static void *CallUpThread(void *p)
 			base->sat.EndTime = time(0);
 			base->sat.sat_state_phone = SAT_STATE_PHONE_IDLE;
 			//base->sat.playBusyToneFlag = 1;
-			if(base->sat.sat_available == 1) gpio_out(HW_GPIO78, 1);
 			break;
 		}
 	}
@@ -9983,6 +9982,8 @@ static void *CallUpThread(void *p)
 	base->sat.socket = 0;
 	base->sat.sat_calling = 0;
 	base->sat.StartTime = 0;
+	
+	if(base->sat.sat_available == 1) gpio_out(HW_GPIO78, 1);
 	satfi_log("CallUpThread Exit\n");
 	return NULL;
 }
@@ -10228,6 +10229,8 @@ void *sat_ring_detect(void *p)
 
 			ringnocarriercnt = 0;
 			ringcnt = 0;
+
+			if(base->sat.sat_available == 1) gpio_out(HW_GPIO78, 0);
 
 			//检测到电话来电，查询来电号码，并找是否有链接的APP，没有APP链接振铃电话机
 			while(base->sat.sat_calling)
@@ -10482,6 +10485,9 @@ void *sat_ring_detect(void *p)
 			ringsocket = -1;
 			base->sat.sat_calling = 0;
 			base->sat.sat_state_phone = SAT_STATE_PHONE_IDLE;
+
+			if(base->sat.sat_available == 1) gpio_out(HW_GPIO78, 1);
+			
 			net_unlock();
 		}
 
