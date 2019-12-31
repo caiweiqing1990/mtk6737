@@ -25,7 +25,7 @@
 adb push update.zip /sdcard/
 2.使用adb shell进入开发板控制台
 mkdir /cache/recovery
-echo --update_package=/sdcard/update.zip > /cache/recovery/command
+echo --update_package=/sdcard/HTL8100_4.1.zip > /cache/recovery/command
 reboot recovery
 
 make;make otapackage
@@ -49,13 +49,16 @@ make;make otapackage
 
 ./build/tools/releasetools/ota_from_target_files --block -s ./device/mediatek/build/releasetools/mt_ota_from_target_files.py -i out/target/product/len6737t_66_sh_n/obj/PACKAGING/target_files_intermediates/HTL8100_3.9.zip out/target/product/len6737t_66_sh_n/obj/PACKAGING/target_files_intermediates/HTL8100_4.0.zip HTL8100_3.9.zip
 
+./build/tools/releasetools/ota_from_target_files --block -s ./device/mediatek/build/releasetools/mt_ota_from_target_files.py -i out/target/product/len6737t_66_sh_n/obj/PACKAGING/target_files_intermediates/HTL8100_4.1.zip out/target/product/len6737t_66_sh_n/obj/PACKAGING/target_files_intermediates/HTL8100_4.2.zip HTL8100_4.1.zip
+
 
 adb connect 192.168.43.1
 adb root
 adb remount
-adb push C:\Users\AnandLin\Desktop\update.zip /cache/recovery/update.zip
-echo --update_package=/cache/recovery/update.zip > /cache/recovery/command
-reboot recovery
+adb connect 192.168.43.1
+adb push C:\Users\AnandLin\Desktop\HTL8100_4.1.zip /cache/recovery/update.zip
+adb shell "echo --update_package=/cache/recovery/update.zip > /cache/recovery/command"
+adb shell "reboot recovery"
 
 查看升级结果
 cat /cache/recovery/last_install

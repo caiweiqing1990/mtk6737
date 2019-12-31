@@ -79,7 +79,7 @@ int AppCnt = 0;
 #define DV		HW_GPIO61	//按键是否按下 new
 #define INH		HW_GPIO64
 #define PWDN	HW_GPIO63
-#define SATFI_VERSION "HTL8100_4.1_N"
+#define SATFI_VERSION "HTL8100_4.3_N"
 #else
 #define D3		HW_GPIO47
 #define DV		HW_GPIO48	//按键是否按下
@@ -2420,12 +2420,12 @@ void *func_y(void *p)
 
 			if(base->sat.Upgrade2Confirm == 4)
 			{
+				bzero(satfi_version_sat, sizeof(satfi_version_sat));
 				satfi_log("modem_update\n");
 				satfi_log("modem_update_result=%d", modem_update(SERIAL_PORT, UPDATE_PACKAGE_SAT));//0 成功
 				//satfi_log("reboot");
 				//myexec("reboot", NULL, NULL);
 				base->sat.Upgrade2Confirm = 0;
-				bzero(satfi_version_sat, sizeof(satfi_version_sat));
 				msm01a_off();
 				msm01a_on();//升级完成，重启模块
 			}
@@ -2454,7 +2454,7 @@ void *func_y(void *p)
 				if(base->sat.sat_message <= 0)init_serial(&base->sat.sat_message, "/dev/ttygsm3", base->sat.sat_baud_rate);
 				if(base->sat.sat_pcmdata <= 0)init_serial(&base->sat.sat_pcmdata, "/dev/ttygsm9", base->sat.sat_baud_rate);
 
-				//gpio_out(HW_GPIO47, 1);
+				gpio_out(HW_GPIO47, 1);
 			}
 			
 		}
@@ -2598,7 +2598,7 @@ void *func_y(void *p)
 			}
 		}
 
-		sleep(2);	
+		sleep(2);
 		//sat_unlock();
 		if(base->sat.sat_status == 1)
 		{
@@ -3042,6 +3042,22 @@ int handle_sat_data(int *satfd, char *data, int *ofs)
 								strncpy(rsp->MsID, toUser->userid, USERID_LLEN);
 								Data_To_MsID(toUser->userid, rsp);
 							}
+						}
+
+						if(strncmp(Decode, "active:0", 8) == 0)
+						{
+							//开卫星数据
+							base.sat.active = 1;//激活
+							SetKeyInt("satellite", "ACTIVE", CONFIG_FILE, base.sat.active);
+						}
+						else if(strncmp(Decode, "active:1", 8) == 0)
+						{
+							//关卫星数据
+							if(base.sat.sat_available == 1 || base.sat.sat_available == 2)
+								base.sat.sat_state = SAT_STATE_CGACT;
+
+							base.sat.active = 0;
+							SetKeyInt("satellite", "ACTIVE", CONFIG_FILE, base.sat.active);
 						}
 					}
 				}								
@@ -9098,8 +9114,8 @@ void *SystemServer(void *p)
 					myexec("iptables -F", NULL, NULL);
 					myexec("iptables -A OUTPUT -o lo -j ACCEPT", NULL, NULL);
 					
-					myexec("iptables -t nat -A PREROUTING -d 192.168.43.1 -p udp --dport 53 -j DNAT --to 219.150.32.132:53", NULL, NULL);
-					myexec("iptables -t nat -A PREROUTING -d 192.168.1.1 -p udp --dport 53 -j DNAT --to 219.150.32.132:53", NULL, NULL);
+					myexec("iptables -t nat -A PREROUTING -d 192.168.43.1 -p udp --dport 53 -j DNAT --to 123.150.150.150:53", NULL, NULL);
+					myexec("iptables -t nat -A PREROUTING -d 192.168.1.1 -p udp --dport 53 -j DNAT --to 123.150.150.150:53", NULL, NULL);
 					myexec("iptables -t nat -A POSTROUTING -o ppp0 -s 192.168.43.0/24 -j MASQUERADE", NULL, NULL);
 					myexec("iptables -t nat -A POSTROUTING -o ppp0 -s 192.168.1.0/24 -j MASQUERADE", NULL, NULL);
 					myexec("ip rule add from all lookup main", NULL, NULL);
@@ -10800,7 +10816,7 @@ void hw_init(void)
 	gpio_pull_up(DV);
 
 #ifdef NEW_BOARD
-	gpio_out(HW_GPIO47, 0);//usb<-->卫星模块	
+	gpio_out(HW_GPIO47, 1);//usb<-->卫星模块	
 #endif
 	//myexec("echo \"noSuspend\" > /sys/power/wake_lock", NULL, NULL);
 }

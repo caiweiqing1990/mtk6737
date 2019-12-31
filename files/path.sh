@@ -16,6 +16,7 @@ cp $ANDROID_PATH/vendor/mediatek/proprietary/hardware/connectivity/gps/mtk_mnld/
 
 cp $ANDROID_PATH/kernel-3.18/drivers/misc/mediatek/imgsensor/src/mt6735/kd_sensorlist.c $FILES_BAK/
 cp $ANDROID_PATH/kernel-3.18/arch/arm64/configs/len6737t_66_sh_n_defconfig $FILES_BAK/
+cp $ANDROID_PATH/kernel-3.18/drivers/tty/n_gsm.c $FILES_BAK/
 
 cp $ANDROID_PATH/vendor/mediatek/proprietary/bootable/bootloader/preloader/custom/len6737t_66_sh_n/inc/custom_MemoryDevice.h $FILES_BAK/
 cp $ANDROID_PATH/vendor/mediatek/proprietary/bootable/bootloader/preloader/tools/emigen/MT6735/MemoryDeviceList_MT6737T.xls $FILES_BAK/
@@ -48,6 +49,7 @@ cp pseudo_mnl.c $ANDROID_PATH/vendor/mediatek/proprietary/hardware/connectivity/
 
 cp kd_sensorlist.c $ANDROID_PATH/kernel-3.18/drivers/misc/mediatek/imgsensor/src/mt6735/kd_sensorlist.c
 cp len6737t_66_sh_n_defconfig $ANDROID_PATH/kernel-3.18/arch/arm64/configs/len6737t_66_sh_n_defconfig
+cp n_gsm.c $ANDROID_PATH/kernel-3.18/drivers/tty/n_gsm.c
 
 cp custom_MemoryDevice.h $ANDROID_PATH/vendor/mediatek/proprietary/bootable/bootloader/preloader/custom/len6737t_66_sh_n/inc/custom_MemoryDevice.h
 cp MemoryDeviceList_MT6737T.xls $ANDROID_PATH/vendor/mediatek/proprietary/bootable/bootloader/preloader/tools/emigen/MT6735/MemoryDeviceList_MT6737T.xls

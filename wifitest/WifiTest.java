@@ -216,30 +216,29 @@ public class WifiTest {
 		}
 
 
-
-		IBinder binder = ServiceManager.getService("ethernet");//获取ethernet服务
-		if (binder == null)
-		{
-			System.out.println("can not get ethernet service");
+		//IBinder binder = ServiceManager.getService("ethernet");//获取ethernet服务
+		//if (binder == null)
+		//{
+		//	System.out.println("can not get ethernet service");
 			//Slog.i(TAG, "can not get wifi service");
-			return;
-		}
+		//	return;
+		//}
 
-		System.out.println("get ethernet service ok");
-		StaticIpConfiguration staticIpConfiguration = new StaticIpConfiguration();
-		LinkAddress linkAddr = new LinkAddress(NetworkUtils.numericToInetAddress("192.168.1.1"),24);//ip
-		staticIpConfiguration.ipAddress= linkAddr;
+		//System.out.println("get ethernet service ok");
+		//StaticIpConfiguration staticIpConfiguration = new StaticIpConfiguration();
+		//LinkAddress linkAddr = new LinkAddress(NetworkUtils.numericToInetAddress("192.168.1.1"),24);//ip
+		//staticIpConfiguration.ipAddress= linkAddr;
 		
-		InetAddress gateway = NetworkUtils.numericToInetAddress("192.168.1.1");//gateway
-		staticIpConfiguration.gateway = gateway;
+		//InetAddress gateway = NetworkUtils.numericToInetAddress("192.168.1.1");//gateway
+		//staticIpConfiguration.gateway = gateway;
 		
-		staticIpConfiguration.dnsServers.add(NetworkUtils.numericToInetAddress("192.168.1.1"));//dns
+		//staticIpConfiguration.dnsServers.add(NetworkUtils.numericToInetAddress("192.168.1.1"));//dns
 		
-		IpConfiguration config = new IpConfiguration(IpAssignment.STATIC, ProxySettings.NONE, staticIpConfiguration, null);
-		IEthernetManager mEthernet = IEthernetManager.Stub.asInterface(binder);
-		mEthernet.setConfiguration(config);
+		//IpConfiguration config = new IpConfiguration(IpAssignment.STATIC, ProxySettings.NONE, staticIpConfiguration, null);
+		//IEthernetManager mEthernet = IEthernetManager.Stub.asInterface(binder);
+		//mEthernet.setConfiguration(config);
 		
-		System.out.println("mEthernet.setConfiguration" + mEthernet.isAvailable());
+		//System.out.println("mEthernet.setConfiguration" + mEthernet.isAvailable());
 
 	}
 }
