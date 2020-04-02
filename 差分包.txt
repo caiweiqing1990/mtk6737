@@ -56,7 +56,7 @@ adb connect 192.168.43.1
 adb root
 adb remount
 adb connect 192.168.43.1
-adb push C:\Users\AnandLin\Desktop\HTL8100_4.1.zip /cache/recovery/update.zip
+adb push C:\Users\AnandLin\Desktop\HTL8100_4.2.zip /cache/recovery/update.zip
 adb shell "echo --update_package=/cache/recovery/update.zip > /cache/recovery/command"
 adb shell "reboot recovery"
 

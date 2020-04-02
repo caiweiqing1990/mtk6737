@@ -1,6 +1,6 @@
 #!/bin/bash
 
-ANDROID_PATH=/home/book/work/XY3701_N0
+ANDROID_PATH=/home/book/work/XY3701_N0_BAK/XY3701_N0
 
 FILES_BAK=./files_bak
 
@@ -18,12 +18,16 @@ cp $ANDROID_PATH/kernel-3.18/drivers/misc/mediatek/imgsensor/src/mt6735/kd_senso
 cp $ANDROID_PATH/kernel-3.18/arch/arm64/configs/len6737t_66_sh_n_defconfig $FILES_BAK/
 cp $ANDROID_PATH/kernel-3.18/drivers/tty/n_gsm.c $FILES_BAK/
 
+cp $ANDROID_PATH/kernel-3.18/drivers/misc/mediatek/auxadc/mt_auxadc.c $FILES_BAK/
+cp $ANDROID_PATH/kernel-3.18/drivers/misc/mediatek/dm9051/dm9051.c $FILES_BAK/
+cp $ANDROID_PATH/kernel-3.18/drivers/spi/mediatek/mt6735/spi.c $FILES_BAK/
+
 cp $ANDROID_PATH/vendor/mediatek/proprietary/bootable/bootloader/preloader/custom/len6737t_66_sh_n/inc/custom_MemoryDevice.h $FILES_BAK/
 cp $ANDROID_PATH/vendor/mediatek/proprietary/bootable/bootloader/preloader/tools/emigen/MT6735/MemoryDeviceList_MT6737T.xls $FILES_BAK/
 
 cp $ANDROID_PATH/packages/apps/Settings/AndroidManifest.xml $FILES_BAK/
 
-#cp $ANDROID_PATH/vendor/mediatek/proprietary/bootable/bootloader/lk/target/len6737t_66_sh_n/dct/dct/codegen.dws $FILES_BAK/
+cp $ANDROID_PATH/vendor/mediatek/proprietary/bootable/bootloader/lk/target/len6737t_66_sh_n/dct/dct/codegen.dws $FILES_BAK/
 ########################################################################################################################################
 
 cp init.mt6735.rc $ANDROID_PATH/device/mediatek/mt6735/init.mt6735.rc
@@ -51,12 +55,18 @@ cp kd_sensorlist.c $ANDROID_PATH/kernel-3.18/drivers/misc/mediatek/imgsensor/src
 cp len6737t_66_sh_n_defconfig $ANDROID_PATH/kernel-3.18/arch/arm64/configs/len6737t_66_sh_n_defconfig
 cp n_gsm.c $ANDROID_PATH/kernel-3.18/drivers/tty/n_gsm.c
 
+cp mt_auxadc.c $ANDROID_PATH/kernel-3.18/drivers/misc/mediatek/auxadc/mt_auxadc.c
+cp dm9051.c $ANDROID_PATH/kernel-3.18/drivers/misc/mediatek/dm9051/dm9051.c
+cp spi.c $ANDROID_PATH/kernel-3.18/drivers/spi/mediatek/mt6735/spi.c
+
 cp custom_MemoryDevice.h $ANDROID_PATH/vendor/mediatek/proprietary/bootable/bootloader/preloader/custom/len6737t_66_sh_n/inc/custom_MemoryDevice.h
 cp MemoryDeviceList_MT6737T.xls $ANDROID_PATH/vendor/mediatek/proprietary/bootable/bootloader/preloader/tools/emigen/MT6735/MemoryDeviceList_MT6737T.xls
 
 cp AndroidManifest.xml $ANDROID_PATH/packages/apps/Settings/AndroidManifest.xml
 cp BootFinishBroadcastReceiver.java $ANDROID_PATH/packages/apps/Settings/src/com/mediatek/settings/BootFinishBroadcastReceiver.java
+
+mkdir -p $ANDROID_PATH/packages/apps/Settings/src/com/mediatek/sim
 cp IMEIUtils.java $ANDROID_PATH/packages/apps/Settings/src/com/mediatek/sim/IMEIUtils.java
 
-#cp codegen.dws $ANDROID_PATH/vendor/mediatek/proprietary/bootable/bootloader/lk/target/len6737t_66_sh_n/dct/dct/codegen.dws
+cp codegen.dws $ANDROID_PATH/vendor/mediatek/proprietary/bootable/bootloader/lk/target/len6737t_66_sh_n/dct/dct/codegen.dws
 

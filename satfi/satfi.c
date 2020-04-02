@@ -72,21 +72,12 @@ int AppCnt = 0;
 #define D2		HW_GPIO57
 #define OE		HW_GPIO53
 
-#define NEW_BOARD
-
-#ifdef NEW_BOARD
 #define D3		HW_GPIO62
 #define DV		HW_GPIO61	//按键是否按下 new
 #define INH		HW_GPIO64
 #define PWDN	HW_GPIO63
-#define SATFI_VERSION "HTL8100_4.3_N"
-#else
-#define D3		HW_GPIO47
-#define DV		HW_GPIO48	//按键是否按下
-#define INH		HW_GPIO51
-#define PWDN	HW_GPIO52
-#define SATFI_VERSION "HTL8100_3.0"
-#endif
+
+#define SATFI_VERSION "HTL8100_4.4_N"
 
 #define UPDATE_INI_URL	"http://zzhjjt.tt-box.cn:9098/TSCWEB/satfi/"SATFI_VERSION".ini"
 #define UPDATE_CONFIG	"/cache/recovery/update.ini"
@@ -5566,16 +5557,21 @@ int handle_app_msg_tcp(int socket, char *pack, char *tscbuf)
 			if(req->gprs_on == 1)
 			{
 				//GPRS关
-				satfi_log("CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest setDataDisabled");
-				myexec("CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest setDataDisabled", NULL, NULL);
+				if(base.sat.lte_status == 1)
+				{
+					satfi_log("CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest setDataDisabled");
+					myexec("CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest setDataDisabled", NULL, NULL);
+				}
 			}
 			else if(req->gprs_on == 2)
 			{
 				//GPRS开
-				satfi_log("CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest setDataEnabled");
-				myexec("CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest setDataEnabled", NULL, NULL);
+				if(base.sat.lte_status != 1)
+				{
+					satfi_log("CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest setDataEnabled");
+					myexec("CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest setDataEnabled", NULL, NULL);
+				}
 			}
-
 		}
 		break;
 
@@ -5975,7 +5971,7 @@ int update_system_check(void)
 	return -1;
 }
 
-void Date_Parse(char *data)
+int Date_Parse(char *data)
 {
 	cJSON *root,*jstmp;
 	char *out;
@@ -5989,7 +5985,7 @@ void Date_Parse(char *data)
 		if(jstmp == NULL)
 		{
 			satfi_log("cJSON_GetErrorPtr=%d\n", __LINE__);
-			return;
+			return -1;
 		}
 		
 		//satfi_log("type=%s\n", jstmp->valuestring);
@@ -6246,7 +6242,6 @@ void Date_Parse(char *data)
 				cJSON_Delete(jstmp);
 				response(web_socketfd, out);
 				free(out);
-#ifdef NEW_BOARD
 				if(jstmp->valueint == 1)
 				{
 					gpio_out(HW_GPIO47, 0);
@@ -6255,7 +6250,6 @@ void Date_Parse(char *data)
 				{
 					gpio_out(HW_GPIO47, 1);
 				}
-#endif
 			}
 			else
 			{
@@ -6319,7 +6313,10 @@ void Date_Parse(char *data)
 	else
 	{
 		satfi_log("cJSON_GetErrorPtr=%d\n", __LINE__);
+		return -1;
 	}
+
+	return 0;
 }
 
 void *handle_app_data(void *p)
@@ -6417,12 +6414,12 @@ void *handle_app_data(void *p)
 						{
 							data[n] = 0;
 							//satfi_log("%s\n", data);
-							Date_Parse(data);
+							ret = Date_Parse(data);
 							//response(web_socketfd, data);
 						}			
 					}
 					
-					if(n <= 0)
+					if(n <= 0 || ret < 0)
 					{
 						satfi_log("close(conn_fd)2\n");
 						FD_CLR(web_socketfd, &fdread);
@@ -8482,6 +8479,15 @@ int socket_bind_udp(const char* path)
         return -1;
     }
     satfi_log("fd=%d\n", fd);
+
+    unsigned int value = 1;
+    if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR,
+                (void *)&value, sizeof(value)) < 0)
+    {
+        satfi_log("fail to setsockopt\n");
+		close(fd);
+        exit(1);
+    }
 
     memset(&addr, 0, sizeof(addr));
     addr.sun_path[0] = 0;
@@ -10815,9 +10821,7 @@ void hw_init(void)
 	gpio_pull_enable(DV);
 	gpio_pull_up(DV);
 
-#ifdef NEW_BOARD
 	gpio_out(HW_GPIO47, 1);//usb<-->卫星模块	
-#endif
 	//myexec("echo \"noSuspend\" > /sys/power/wake_lock", NULL, NULL);
 }
 
