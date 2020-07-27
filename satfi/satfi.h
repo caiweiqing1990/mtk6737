@@ -210,7 +210,8 @@ typedef struct _sat
   int net_status;//0-无天通卫星卡 1-正在入网 2-已入网
   int data_status;//0-天通数据未激活 1-正在激活 2-已激活
   int module_status; //0-卫星模块加载失败 1-正在开机 2-正在复位 3-工作正常
-
+  int power_satus;
+  
   int locak_socket_audio_cancel;
   int lte_status;//0-无4G卡 1-4G已开启 2-4G未开启
   int sim_status;
@@ -221,6 +222,9 @@ typedef struct _sat
   float VolumeRecord;
 
   int satbusy;
+
+  int hasMissedCall;//有未接电话
+  int hasUnreadMsg;//有未读短信
 }SAT;
 
 typedef struct _gps
@@ -310,6 +314,12 @@ typedef struct _log {
   void *data;
   struct _log *next;
 }LOG;
+
+typedef struct _unreadmsgandcall {
+  char data[1024];
+  int len;
+  struct _unreadmsgandcall *next;
+}UNREADMSGANDCALL;
 
 typedef  struct Pack{
 	unsigned int Name;			//消息 语音 图片 唯一识别码

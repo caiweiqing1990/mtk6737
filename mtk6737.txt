@@ -706,7 +706,7 @@ len6737t_66_sh_n.mk
 
 adb logcat -b radio > log_07_09_1
 
-adb push Z:\out\target\product\len6737t_66_sh_n\system\framework\WifiTest.jar /system/framework
+adb push Z:\XY3701_N0_BAK\XY3701_N0\out\target\product\len6737t_66_sh_n\system\framework\WifiTest.jar /system/framework
 CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest wifiapstop
 CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest wifiapstart weiqing 12345678
 CLASSPATH=/system/framework/WifiTest.jar app_process / WifiTest setDataEnabled
@@ -745,3 +745,13 @@ device/lentek/len6737t_66_sh_n/device.mk
 SIM_COUNT := 1
 
 echo 'file n_gsm.c +p' > /sys/kernel/debug/dynamic_debug/control
+
+
+adb connect 192.168.43.1
+adb root
+adb remount
+adb connect 192.168.43.1
+adb push C:\Users\AnandLin\Desktop\HTL8100_4.2.zip /cache/recovery/update.zip
+adb shell "echo --update_package=/cache/recovery/update.zip > /cache/recovery/command"
+adb shell "reboot recovery"
+

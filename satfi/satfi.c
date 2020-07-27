@@ -43,6 +43,8 @@ static MESSAGE *MessagesHead = NULL;	//短信记录
 static LOG *gp_log = NULL;
 static USER *gp_users = NULL;				//用户列表
 
+static UNREADMSGANDCALL *UnReadMsgCall = NULL;//未接电话,未读短信
+
 //发送给TSC的GPS数据，非标准格式
 char GpsData[256] = "$GPRMC,0.0,A,0.0,N,0.0,E,0.0,2000,A*60,00,00,00000000,";
 //发送给TSC的心跳间隔时间
@@ -77,7 +79,7 @@ int AppCnt = 0;
 #define INH		HW_GPIO64
 #define PWDN	HW_GPIO63
 
-#define SATFI_VERSION "HTL8100_4.4_N"
+#define SATFI_VERSION "HTL8100_4.5_N"
 
 #define UPDATE_INI_URL	"http://zzhjjt.tt-box.cn:9098/TSCWEB/satfi/"SATFI_VERSION".ini"
 #define UPDATE_CONFIG	"/cache/recovery/update.ini"
@@ -98,7 +100,7 @@ void net_unlock() { pthread_mutex_unlock(&net_mutex); }
 void AnsweringPhone(void);
 void StartCallUp(char calling_number[15]);
 void Data_To_MsID(char *MsID, void *data);
-void Data_To_ExceptMsID(char *MsID, void *data);
+int Data_To_ExceptMsID(char *MsID, void *data);
 void Data_Transmit(char *MsID, void *data);
 
 void NotifyAllUserSatState(unsigned short state)
@@ -791,6 +793,66 @@ int MessageParse(char *indata, char *OAphonenum, char *Decode)
 	}
 	printf("weiqing %d\n", __LINE__);
 	return 0;
+}
+
+void UnReadMsgCallADD(char *data, int len)
+{
+	pthread_mutex_lock(&pack_mutex);
+	
+	UNREADMSGANDCALL *tmp = NULL;
+	UNREADMSGANDCALL *p = UnReadMsgCall;
+	UNREADMSGANDCALL *q = NULL;
+
+	while(p)
+	{
+		q = p;
+		p = p->next;
+	}
+
+	if(p == NULL)
+	{
+		tmp = calloc(1, sizeof(UNREADMSGANDCALL));
+		if(tmp == NULL)
+		{
+			satfi_log("UNREADMSGANDCALL error %d\n",__LINE__);
+		}
+		else
+		{
+			memcpy(tmp->data, data, len);
+			tmp->len = len;
+			tmp->next = NULL;
+			
+			if(UnReadMsgCall == NULL)
+			{
+				satfi_log("UNREADMSGANDCALL len1=%d\n",len);
+				UnReadMsgCall = tmp;
+			}
+			else
+			{
+				satfi_log("UNREADMSGANDCALL len2=%d\n",len);
+				q->next = tmp;
+			}
+		}
+	}
+
+	pthread_mutex_unlock(&pack_mutex);
+}
+
+void UnReadMsgCallDel(void)
+{
+	pthread_mutex_lock(&pack_mutex);
+	
+	UNREADMSGANDCALL *p = UnReadMsgCall;
+	UNREADMSGANDCALL *n = NULL;
+	
+	if(p)
+	{
+		UnReadMsgCall = p->next;
+		satfi_log("UnReadMsgCallDel\n");
+		free(p);
+	}
+	
+	pthread_mutex_unlock(&pack_mutex);
 }
 
 
@@ -2317,7 +2379,7 @@ void *func_y(void *p)
 	msm01a_on();
 	base->sat.module_status = 1;
 	ttygsmcreate();
-	
+
 	while(1)
 	{
 		//sat_lock();
@@ -2444,8 +2506,6 @@ void *func_y(void *p)
 				if(base->sat.sat_phone <= 0)init_serial(&base->sat.sat_phone, "/dev/ttygsm2", base->sat.sat_baud_rate);
 				if(base->sat.sat_message <= 0)init_serial(&base->sat.sat_message, "/dev/ttygsm3", base->sat.sat_baud_rate);
 				if(base->sat.sat_pcmdata <= 0)init_serial(&base->sat.sat_pcmdata, "/dev/ttygsm9", base->sat.sat_baud_rate);
-
-				gpio_out(HW_GPIO47, 1);
 			}
 			
 		}
@@ -2469,6 +2529,7 @@ void *func_y(void *p)
 						{
 							satfi_log("func_y:send AT+CGMR to SAT Module\n");
 							uart_send(base->sat.sat_fd, "AT+CGMR\r\n", 9);
+							gpio_out(HW_GPIO47, 1);							
 						}
 					}
 					base->sat.sat_state = SAT_STATE_AT_W;
@@ -2998,40 +3059,14 @@ int handle_sat_data(int *satfd, char *data, int *ofs)
 						rsp->ID = time(0);
 						unsigned long long t = (unsigned long long)rsp->ID*1000;
 						memcpy(rsp->Date, &t, sizeof(rsp->Date));
-						memcpy(rsp->message, Decode, strlen(Decode)+1);
-						USER * toUser = gp_users;
-						int toUserSocket=-1;
-						while(toUser)
-						{
-							//satfi_log("toUser->famNumConut=%d\n", toUser->famNumConut);
-							for(i=0; i<toUser->famNumConut && i<10; i++)
-							{
-								if(strstr(toUser->FamiliarityNumber[i], OAphonenum))
-								{
-									satfi_log("%s OAphonenum=%s %.21s\n", toUser->FamiliarityNumber[i], OAphonenum, toUser->userid);
-									toUserSocket = toUser->socketfd;
-									break;
-								}
-							}
-						
-							if(toUserSocket>0)
-							{
-								break;
-							}
-							
-							toUser=toUser->next;
-						}
+						memcpy(rsp->message, Decode, strlen(Decode)+1);						
 
 						if(*satfd == base.sat.sat_message)
 						{
-							if(toUserSocket == -1)
+							if(Data_To_ExceptMsID("TOALLMSID", rsp) == 0)
 							{
-								Data_To_ExceptMsID("TOALLMSID", rsp);
-							}
-							else
-							{
-								strncpy(rsp->MsID, toUser->userid, USERID_LLEN);
-								Data_To_MsID(toUser->userid, rsp);
+								UnReadMsgCallADD(rsp, rsp->header.length);
+								base.sat.hasUnreadMsg = 1;
 							}
 						}
 
@@ -3416,22 +3451,6 @@ int handle_sat_data(int *satfd, char *data, int *ofs)
 					{
 						if(base.sat.sat_msg_sending)
 						{
-							if(strlen(MessagesHead->MsID) != 0)
-							{
-								satfi_log("MessagesHead->MsID=%.21s\n", MessagesHead->MsID);
-								Msg_Message_Money_Req req;
-								bzero(&req, sizeof(req));
-								req.header.length = sizeof(Msg_Message_Money_Req);
-								req.header.mclass = APP_MESSAGE_MONEY_CMD;
-								StrToBcd(req.MsID, &(MessagesHead->MsID[USERID_LLEN - USERID_LEN]), USERID_LEN);
-								memcpy(req.MsPhoneNum, req.MsID, sizeof(req.MsPhoneNum));
-								StrToBcd(req.DesPhoneNum, MessagesHead->toPhoneNum, 11);
-								req.StartTime = (unsigned long long)time(0) * 1000;
-								req.Money = 40;
-
-								//SaveDataToFile(CALL_RECORDS_FILE ,(char *)&req, req.header.length);
-							}
-
 							MsgSendMsgRsp rsp;
 							rsp.header.length = sizeof(MsgSendMsgRsp);
 							rsp.header.mclass = SEND_MESSAGE_RESP;
@@ -3483,7 +3502,11 @@ int handle_sat_data(int *satfd, char *data, int *ofs)
 						satfi_log("%s sat_calling=%d sat_state_phone=%d\n", data, base.sat.sat_calling, base.sat.sat_state_phone);
 						if(base.sat.sat_calling)
 						{
-							if(base.sat.sat_state_phone != SAT_STATE_PHONE_HANGUP)
+							if(base.sat.ring == 1)
+							{
+								base.sat.sat_state_phone = SAT_STATE_PHONE_COMING_HANGUP;
+							}
+							else
 							{
 								base.sat.playBusyToneFlag = 1;
 								base.sat.sat_state_phone = SAT_STATE_PHONE_HANGUP;
@@ -3821,26 +3844,30 @@ int get_battery_level(void)
 
 	static int count=0;
 
-	battery_level = Get_AUXIN2_Value();
-	if(battery_level_tmp > 0 && abs(battery_level - battery_level_tmp) >= 2)
+	if(base.sat.power_satus || battery_level_tmp == 0)
 	{
-		count++;
-		if(count<10)
+		battery_level = Get_AUXIN2_Value();
+		if(battery_level_tmp > 0 && abs(battery_level - battery_level_tmp) >= 2)
 		{
-			battery_level = battery_level_tmp;			
+			count++;
+			if(count<10)
+			{
+				battery_level = battery_level_tmp;			
+			}
 		}
-	}
-	else
-	{
-		count = 0;
+		else
+		{
+			count = 0;
+		}
+		
+		battery_level_tmp = battery_level;
 	}
 
-	battery_level_tmp = battery_level;
 	
 	//satfi_log("battery_level=%d", battery_level);
-	if(battery_level >= 1280) battery_level = 1280;
-	if(battery_level <= 800) battery_level = 800;
-	return (48000 - (128000 - battery_level * 100)) / 480;	
+	if(battery_level_tmp >= 1480) battery_level_tmp = 1480;
+	if(battery_level_tmp <= 900) battery_level_tmp = 900;
+	return 100*(battery_level_tmp-900)/(1480 - 900);	
 }
 
 int handle_app_msg_tcp(int socket, char *pack, char *tscbuf)
@@ -3947,8 +3974,25 @@ int handle_app_msg_tcp(int socket, char *pack, char *tscbuf)
 				n = write(socket, tmp, rsp->header.length);
 				if(n<0) satfi_log("write return error: errno=%d (%s) %d %d\n", errno, strerror(errno),__LINE__,socket);
 			}
-
-			//satfi_log("HEART_BEAT_CMD %.21s\n",&buf[8]);
+			
+			if(base.sat.hasUnreadMsg || base.sat.hasMissedCall)
+			{
+				//处理未读短信,处理未接来电
+				while(UnReadMsgCall)
+				{
+					USER * t = gp_users;
+					while(t) {
+						if(t->socketfd>0) {
+							write(t->socketfd, UnReadMsgCall->data, UnReadMsgCall->len);
+						}
+						t=t->next;
+					}
+					UnReadMsgCallDel();
+				}
+				
+				base.sat.hasMissedCall = 0;
+				base.sat.hasUnreadMsg = 0;
+			}
 		}
 		break;
 
@@ -4149,29 +4193,25 @@ int handle_app_msg_tcp(int socket, char *pack, char *tscbuf)
 			{
 				bzero(base.sat.MsID,sizeof(base.sat.MsID));
 				bzero(base.sat.MsPhoneNum,sizeof(base.sat.MsPhoneNum));
-				bzero(base.sat.DesPhoneNum,sizeof(base.sat.DesPhoneNum));
 				
-				USER *pUser = gp_users;
-				while(pUser)
+				USER *t = gp_users;
+				while(t)
 				{
-					if(pUser->socketfd == socket)
+					if(t->socketfd == socket)
 					{
-						memcpy(base.sat.MsID, pUser->userid, 21);
-						memcpy(base.sat.MsPhoneNum, &(pUser->userid[USERID_LLEN - 11]), 11);
+						memcpy(base.sat.MsID, t->userid, 21);
+						memcpy(base.sat.MsPhoneNum, &(t->userid[USERID_LLEN - 11]), 11);
 						break;
 					}
-					pUser = pUser->next;
+					t = t->next;
 				}
-
-				int len = strlen(&pack[4]);
-				if(len >= 11 && len <= 15)memcpy(base.sat.DesPhoneNum, &pack[4 + len - 11], 11);
 
 				base.sat.EndTime = 0;
 				base.sat.StartTime = 0;
 				base.sat.CallTime = 0;
 				base.sat.Money = 0;
 
-				satfi_log("%d %.21s %.11s %.11s\n",len, base.sat.MsID, base.sat.MsPhoneNum, base.sat.DesPhoneNum);
+				satfi_log("%.21s %.11s\n",base.sat.MsID, base.sat.DesPhoneNum);
 				
 				base.sat.socket = socket;
 				strncpy(base.sat.calling_number, &pack[4],sizeof(base.sat.called_number));
@@ -4203,6 +4243,19 @@ int handle_app_msg_tcp(int socket, char *pack, char *tscbuf)
 				n = write(socket, &rsp, rsp.header.length);
 				
 				base.sat.sat_state_phone = SAT_STATE_PHONE_ATH_W;
+				
+				ioctl(mtgpiofd, GPIO_IOCSDATALOW, RC);//取消响铃电话机
+
+				USER * t = gp_users;
+				while(t) {
+					if(t->socketfd>0) {
+						AppCallUpRspForce(t->socketfd, 6);
+					}
+					t=t->next;
+				}
+
+				base.sat.socket = 0;
+				base.sat.secondLinePhoneMode = 0;
 			}
 		}
 		break;
@@ -4215,25 +4268,38 @@ int handle_app_msg_tcp(int socket, char *pack, char *tscbuf)
 		
 		case ANSWERINGPHONE_CMD:
 		{
-			//printf("ANSWERINGPHONE_CMD\n");
 			if(base.sat.sat_calling == 1)
 			{
 				satfi_log("ANSWERINGPHONE_CMD %d\n", base.sat.sat_state_phone);
-				if(base.sat.sat_state_phone==SAT_STATE_PHONE_RING_COMING)
+				if(base.sat.sat_state_phone == SAT_STATE_PHONE_RING_COMING)
 				{
 					MsgAppHangUpRsp rsp;
 					rsp.header.length = sizeof(MsgAppHangUpRsp);
 					rsp.header.mclass = ANSWERINGPHONE_RSP;
 					rsp.result = 0;
 					n = write(socket, &rsp, rsp.header.length);			
+					
+					if(base.sat.socket == 0) {
+						base.sat.socket = socket;
+					}
+					
+					ioctl(mtgpiofd, GPIO_IOCSDATALOW, RC);//取消响铃电话机
+					AnsweringPhone();//摘机
+					
+					USER *t = gp_users;
+					while(t) {
+						if(t->socketfd == socket) {
+							memcpy(base.sat.MsID, t->userid, USERID_LLEN);
+						} else {
+							AppCallUpRspForce(t->socketfd, 6);	//挂断其他app
+						}
+						t = t->next;
+					}
 				}
 				else
 				{
-					AppCallUpRsp(socket, 6);
-					base.sat.sat_calling = 0;
+					AppCallUpRspForce(socket, 6);
 				}
-				
-				AnsweringPhone();
 			}
 		}
 		break;
@@ -5585,7 +5651,7 @@ int handle_app_msg_tcp(int socket, char *pack, char *tscbuf)
 			rsp->header.length = sizeof(MsgStatusRsp);
 			rsp->header.mclass = STATUS_RESPONSE;
 			rsp->power_satus = !ioctl(mtgpiofd, GPIO_IOCQDATAIN, HW_GPIO44);
-			
+			base.sat.power_satus = rsp->power_satus;
 			rsp->battery_level = get_battery_level();
 			rsp->battery_status = !rsp->power_satus;
 			rsp->sat_status = base.sat.module_status;
@@ -5600,7 +5666,7 @@ int handle_app_msg_tcp(int socket, char *pack, char *tscbuf)
 			strncpy(rsp->version, satfi_version, 32);
 			rsp->sos_mode = sos_mode;
 			
-			write(socket, tmp, rsp->header.length);	
+			write(socket, tmp, rsp->header.length);
 		}
 		break;
 
@@ -5638,10 +5704,7 @@ int handle_app_msg_tcp(int socket, char *pack, char *tscbuf)
 			else
 				rsp->DownBandWidth = 3;
 
-			if(base.sat.lte_status == 2)
-				rsp->gprs_on = 1;
-			else
-				rsp->gprs_on = 2;
+			rsp->gprs_on = base.sat.gprs_on;
 			
 			GetIniKeyString("SOS","PHONE",SOS_FILE,rsp->Phone);
 			GetIniKeyString("SOS","MESSAGE",SOS_FILE,rsp->Message);
@@ -5704,7 +5767,7 @@ int handle_app_msg_tcp(int socket, char *pack, char *tscbuf)
 			rsp->Result = 1;
 			write(socket, tmp, rsp->header.length);
 			
-			satfi_log("REBOOT_REQUEST\n");
+			satfi_log("REBOOT_REQUEST %d\n", req->header.length);
 			satfi_log("reboot");
 			myexec("reboot", NULL, NULL);
 		}
@@ -5931,44 +5994,6 @@ int App_Fd_Set(fd_set *set, int TimeOut, int *maxfd)
 	}
 
 	return 0;
-}
-
-int update_system_check(void)
-{
-	if(isFileExists("/sdcard/update.zip"))
-	{
-		satfi_log("mv /sdcard/update.zip /cache/recovery/update.zip\n");
-		myexec("mv /sdcard/update.zip /cache/recovery/update.zip", NULL, NULL);
-		satfi_log("mv /sdcard/update.zip /cache/recovery/update.zip finish\n");
-
-		if(isFileExists("/cache/recovery/update.zip"))
-		{
-			satfi_log("echo --update_package=/cache/recovery/update.zip > /cache/recovery/command\n");
-			myexec("echo --update_package=/cache/recovery/update.zip > /cache/recovery/command", NULL, NULL);
-		
-			if(isFileExists("/cache/recovery/command"))
-			{
-				satfi_log("reboot recovery\n");
-				sleep(10);
-				myexec("reboot recovery", NULL, NULL);
-				return 0;
-			}
-			else
-			{
-				satfi_log("/cache/recovery/command not Exists\n");
-			}
-		}
-		else
-		{
-			satfi_log("/cache/recovery/update.zip not Exists\n");
-		}
-	}
-	else
-	{
-		satfi_log("/sdcard/update.zip not Exists\n");
-	}
-	
-	return -1;
 }
 
 int Date_Parse(char *data)
@@ -6544,11 +6569,12 @@ void Data_To_MsID(char *MsID, void *data)
 }
 
 
-void Data_To_ExceptMsID(char *MsID, void *data)
+int Data_To_ExceptMsID(char *MsID, void *data)
 {
 	int n;
 	USER *pUser = gp_users;
 	Header *pHeader = data;
+	int userCnt=0;
 	while(pUser)
 	{
 		if(strncmp(pUser->userid, MsID, USERID_LLEN) != 0)
@@ -6566,10 +6592,14 @@ void Data_To_ExceptMsID(char *MsID, void *data)
 					pUser->socketfd = -1;
 					updateMSList();
 				}
-			}		
+
+				userCnt++;
+			}
 		}
 		pUser = pUser->next;
 	}	
+
+	return userCnt;
 }
 
 //模块升级通知
@@ -8821,7 +8851,8 @@ void *SystemServer(void *p)
 	int oldstat = 0;
 	int newstat = 0;
 
-	int sosledhigh = 0;
+	int sosledhigh = 0;//led是否高电平
+	int CallMsgLedHigh = 0;//led是否高电平
 	
 	while(1)
 	{
@@ -8992,10 +9023,10 @@ void *SystemServer(void *p)
 				ioctl(fd, GPIO_IOCSDATAHIGH, HW_GPIO82);
 			}
 		}
-		else if(base->sat.sat_available != 1)
+		else if(base->sat.data_status != 2)
 		{
 			//激活灯
-			if(base->sat.sat_available == 2)
+			if(base->sat.data_status == 1)
 			{
 				ioctl(fd, GPIO_IOCSDATALOW, HW_GPIO78);
 				sleep(1);
@@ -9077,7 +9108,32 @@ void *SystemServer(void *p)
 				sosledhigh = 0;
 			}
 		}
+		
 
+		//有未接来电灯
+		if(base->sat.hasMissedCall || base->sat.hasUnreadMsg)
+		{
+			if(CallMsgLedHigh)
+			{
+				ioctl(fd, GPIO_IOCSDATALOW, HW_GPIO6);
+				CallMsgLedHigh = 0;
+			}
+			else
+			{
+				ioctl(fd, GPIO_IOCSDATAHIGH, HW_GPIO6);
+				CallMsgLedHigh = 1;
+			}
+		}
+		else
+		{
+			if(CallMsgLedHigh)
+			{
+				ioctl(fd, GPIO_IOCSDATALOW, HW_GPIO6);
+				CallMsgLedHigh = 0;
+			}
+			sleep(1);
+		}
+		
 		if(base->sat.sim_status == 1 && checkroute("ccmni", NULL, 0) == 0)
 		{
 			if(eth_state_change() || ap_state_change() || (lte_status != base->sat.lte_status))
@@ -9101,14 +9157,14 @@ void *SystemServer(void *p)
 			{
 				gpio_out(HW_GPIO79, 1);
 				base->sat.lte_status = 1;
-				base->sat.active = 0;
+				//base->sat.active = 0;
 
-				if(base->sat.sat_state != SAT_STATE_CGACT_W && 
-					(base->sat.sat_available == 1 || base->sat.sat_available == 2))
-					base->sat.sat_state = SAT_STATE_CGACT;
+				//if(base->sat.sat_state != SAT_STATE_CGACT_W && 
+				//	(base->sat.sat_available == 1 || base->sat.sat_available == 2))
+				//	base->sat.sat_state = SAT_STATE_CGACT;
 			}
 		}
-		else 
+		else
 		{
 			if(base->sat.sat_available == 1)
 			{
@@ -9137,11 +9193,9 @@ void *SystemServer(void *p)
 			{
 				gpio_out(HW_GPIO79, 0);
 				base->sat.lte_status = 2;
-				base->sat.active = 1;
+				//base->sat.active = 1;
 			}
 		}
-
-		sleep(1);
 	}
 	
 	return NULL;
@@ -9897,7 +9951,6 @@ static void *CallUpThread(void *p)
 				base->sat.sat_state_phone = SAT_STATE_PHONE_DIALING_CLCC;
 
 				if(base->sat.sat_available == 1) gpio_out(HW_GPIO78, 0);
-				
 				break;
 			case SAT_STATE_PHONE_ATD_W:
 				satfi_log("SAT_STATE_PHONE_ATD_W\n");
@@ -9934,7 +9987,8 @@ static void *CallUpThread(void *p)
 				if(base->sat.StartTime == 0)
 				{
 					base->sat.StartTime = time(0);
-					satfi_log("StartTime=%lld\n", base->sat.StartTime);
+					satfi_log("StartTime=%lld\n", base->sat.StartTime);					
+					gpio_out(HW_GPIO6, 1);
 				}
 				break;
 		}
@@ -9980,24 +10034,7 @@ static void *CallUpThread(void *p)
 
 	if(base->sat.StartTime > 0 && 0 < base->sat.EndTime && base->sat.EndTime > base->sat.StartTime)
 	{
-		unsigned short CallTime = base->sat.EndTime - base->sat.StartTime;
-		base->sat.CallTime = (CallTime%60) ? ((CallTime/60)*60 + 60) : CallTime;
-		base->sat.Money = base->sat.CallTime * base->sat.charge;
-		satfi_log("StartTime=%lld,CallTime=%d,Money=%d\n",base->sat.StartTime, base->sat.CallTime, base->sat.Money);
-		satfi_log("MsID=%.21s,MsPhoneNum=%.11s,DesPhoneNum=%.11s\n",base->sat.MsID, base->sat.MsPhoneNum, base->sat.DesPhoneNum);
 
-		char tmp[128] = {0};
-		Msg_Phone_Money_Req *rsp = (Msg_Phone_Money_Req*)tmp;
-		rsp->header.length = sizeof(Msg_Phone_Money_Req);
-		rsp->header.mclass = APP_PHONE_MONEY_CMD;
-		StrToBcd(rsp->MsID, &(base->sat.MsID[USERID_LLEN - USERID_LEN]), USERID_LEN);
-		StrToBcd(rsp->MsPhoneNum, base->sat.MsPhoneNum, 11);
-		StrToBcd(rsp->DesPhoneNum, base->sat.DesPhoneNum, 11);
-		rsp->StartTime = base->sat.StartTime * 1000;
-		rsp->CallTime = base->sat.CallTime;
-		rsp->Money = base->sat.Money;
-
-		//SaveDataToFile(CALL_RECORDS_FILE ,(char *)rsp, rsp->header.length);
 	}
 	
 	base->sat.sat_state_phone = SAT_STATE_PHONE_IDLE;
@@ -10006,6 +10043,7 @@ static void *CallUpThread(void *p)
 	base->sat.StartTime = 0;
 	
 	if(base->sat.sat_available == 1) gpio_out(HW_GPIO78, 1);
+	gpio_out(HW_GPIO6, 0);
 	satfi_log("CallUpThread Exit\n");
 	return NULL;
 }
@@ -10023,9 +10061,12 @@ void StartCallUp(char *calling_number)
 
 void AnsweringPhone()
 {	
-	satfi_log("AnsweringPhone ATA\n");	
-	base.sat.sat_state_phone = SAT_STATE_PHONE_ATA_W;
-	uart_send(base.sat.sat_phone, "ATA\r\n", 5);
+	satfi_log("AnsweringPhone ATA %d\n", base.sat.sat_state_phone);
+	if(base.sat.sat_state_phone == SAT_STATE_PHONE_RING_COMING)
+	{
+		base.sat.sat_state_phone = SAT_STATE_PHONE_ATA_W;
+		uart_send(base.sat.sat_phone, "ATA\r\n", 5);
+	}
 }
 
 int StrToBcd(unsigned char *bcd, const char *str, int strlen)
@@ -10224,13 +10265,27 @@ void printfhex(unsigned char *buf, int len)
 	printf("\n");
 }
 
+void MissCallAdd(char *phoneNum, char *Decode)
+{
+	char tmp[2048] = {0};
+	MsgGetMessageRsp *rsp = tmp;
+	rsp->header.length = sizeof(MsgGetMessageRsp)+strlen(Decode)+1;
+	rsp->header.mclass = RECV_MESSAGE;
+	//strncpy(rsp1->MsID, req->MsID, 21);
+	rsp->Result = 1;
+	strncpy(rsp->SrcMsID, phoneNum, 21);
+	rsp->Type = 3;
+	rsp->ID = time(0);
+	unsigned long long t = (unsigned long long)rsp->ID*1000;
+	memcpy(rsp->Date, &t, sizeof(rsp->Date));
+	memcpy(rsp->message, Decode, strlen(Decode)+1);
+
+	UnReadMsgCallADD(rsp, rsp->header.length);
+}
+
 void *sat_ring_detect(void *p)
 {
 	BASE *base = (BASE *)p;
-	int ringnocarriercnt = 0;
-	int ringcnt = 0;
-
-	int ringsocket = -1;
 	
 	while(1)
 	{
@@ -10242,109 +10297,137 @@ void *sat_ring_detect(void *p)
 		
 		if(base->sat.ring == 1)
 		{
-			net_lock();
 			base->sat.sat_calling = 1;
 			base->sat.EndTime = 0;
 			base->sat.StartTime = 0;
-			
+			base->sat.socket = 0;
 			base->sat.sat_state_phone = SAT_STATE_PHONE_RING_COMING;
-
-			ringnocarriercnt = 0;
-			ringcnt = 0;
 
 			if(base->sat.sat_available == 1) gpio_out(HW_GPIO78, 0);
 
-			//检测到电话来电，查询来电号码，并找是否有链接的APP，没有APP链接振铃电话机
-			while(base->sat.sat_calling)
-			{
-				if(base->sat.sat_state_phone == SAT_STATE_PHONE_ATH_W)
-				{
-					satfi_log("SAT_STATE_PHONE_ATH_W BREAK\n");
+			//检测到电话来电，查询来电号码
+			while(base->sat.sat_calling) {
+				if(base->sat.sat_state_phone == SAT_STATE_PHONE_COMING_HANGUP) {
+					satfi_log("SAT_STATE_PHONE_COMING_HANGUP BREAK\n");
 					break;
 				}
-				
-				if(strlen(base->sat.called_number) == 0)
-				{
+
+				if(strlen(base->sat.called_number) == 0) {
 					satfi_log("sat_ring_detect AT+CLCC\n");
 					uart_send(base->sat.sat_phone, "AT+CLCC\r\n", 9);//查询来电电话号码
 				}
-				else
-				{
-					ringsocket = base->sat.captain_socket;
-					if(ringsocket <= 0)
-					{
-						int i=0;
-						USER * t = gp_users;
-						while(t)
-						{
-							for(i=0; i<t->famNumConut && i<10; i++)
-							{
-								if(strstr(t->FamiliarityNumber[i], base->sat.called_number))
-								{
-									satfi_log("%s %s %.21s\n", t->FamiliarityNumber[i], base->sat.called_number, t->userid);
-									ringsocket = t->socketfd;
-									break;
-								}
-							}
-
-							if(ringsocket>0)
-							{
-								break;
-							}
-							
-							t=t->next;
+				else {
+					//振铃所有APP
+					USER * t = gp_users;
+					while(t) {
+						if(t->socketfd>0) {
+							AppRingUpRsp(t->socketfd, base->sat.called_number);
+							AppCallUpRspForce(t->socketfd, get_sat_dailstatus());
+							satfi_log("ringsocket=%d %.21s %.21s\n", t->socketfd, t->userid, base->sat.called_number);
 						}
+						t=t->next;
 					}
 
-					if(ringsocket <= 0)
-					{
-						USER * t = gp_users;
-						while(t)
-						{
-							ringsocket = t->socketfd;
-							if(ringsocket>0)
-							{
-								satfi_log("ringsocket=%d %.21s %.21s\n", ringsocket, t->userid, base->sat.called_number);
-								break;
-							}
-							t=t->next;
-						}
-					}
+					sleep(1);
 
-					satfi_log("SAT_STATE_PHONE_RING_COMING ringsocket=%d captain_socket=%d\n", ringsocket, base->sat.captain_socket);
-					AppRingUpRsp(ringsocket,base->sat.called_number);
-					AppCallUpRsp(ringsocket, get_sat_dailstatus());
-
-					int i=0;
-					int len = strlen(base->sat.called_number);
-					for(i=0;i<11 && len>=11;i++)
-					{
-						base->sat.DesPhoneNum[10-i] = base->sat.called_number[len-i-1];
-					}
-
-					USER *pUser = gp_users;
-					while(pUser)
-					{
-						if(pUser->socketfd == ringsocket)
-						{
-							memcpy(base->sat.MsID, pUser->userid, USERID_LLEN);
-							memcpy(base->sat.MsPhoneNum, &(pUser->userid[USERID_LLEN - 11]), 11);
-						}
-						pUser = pUser->next;
-					}
-					satfi_log("ring MsID=%.21s MsPhoneNum=%.11s DesPhoneNum=%.11s\n", base->sat.MsID, base->sat.MsPhoneNum, base->sat.DesPhoneNum);
+					//响铃电话机
+					ioctl(mtgpiofd, GPIO_IOCSDATAHIGH, RC);
+					break;
+				}
+				
+				sleep(1);
+			}
+			
+			while(base->sat.sat_calling) {
+				if(base->sat.sat_state_phone == SAT_STATE_PHONE_ATH_W) {
+					satfi_log("SAT_STATE_PHONE_ATH_W BREAK\n");
 					break;
 				}
 
+				if(base->sat.sat_state_phone == SAT_STATE_PHONE_COMING_HANGUP) {
+					satfi_log("SAT_STATE_PHONE_COMING_HANGUP BREAK\n");
+					break;
+				}
+
+				if(base->sat.sat_state_phone == SAT_STATE_PHONE_HANGUP) {
+					satfi_log("SAT_STATE_PHONE_HANGUP BREAK\n");
+					break;
+				}
+
+				if(base->sat.sat_state_phone == SAT_STATE_PHONE_RING_COMING) {
+					satfi_log("SAT_STATE_PHONE_RING_COMING AT+CLCC\n");
+					uart_send(base->sat.sat_phone, "AT+CLCC\r\n", 9);
+				}
+				
+				if(ioctl(mtgpiofd, GPIO_IOCQDATAIN, SHR) == 0) {
+					base->sat.secondLinePhoneMode = 1;
+					ioctl(mtgpiofd, GPIO_IOCSDATALOW, RC);//取消响铃电话机
+					AnsweringPhone();//二线电话摘机
+					
+					//如果电话机接听，挂断所有APP
+					USER * t = gp_users;
+					while(t) {
+						if(t->socketfd>0) {
+							AppCallUpRspForce(t->socketfd, 6);
+						}
+						t=t->next;
+					}
+
+					break;
+				} else {
+					static int flag=1;
+					if(flag%2) {
+						ioctl(mtgpiofd, GPIO_IOCSDATALOW, RC);
+					} else {
+						ioctl(mtgpiofd, GPIO_IOCSDATAHIGH, RC);
+					}
+					flag++;
+				}
+
+				if(base->sat.socket > 0) {
+					//如果某个app接听
+					ioctl(mtgpiofd, GPIO_IOCSDATALOW, RC);	//取消响铃电话机 放在了 ANSWERINGPHONE_CMD 里面
+					AnsweringPhone();//摘机
+
+					//挂断其他app,不在这里挂断，放在了 ANSWERINGPHONE_CMD 里面了
+					break;
+				}
+				
 				sleep(1);
+			}
+			
+			satfi_log("socket=%d called_number=%s\n", base->sat.socket, base->sat.called_number);
+			satfi_log("secondLinePhoneMode=%d\n", base->sat.secondLinePhoneMode);
+
+			if(base->sat.socket == 0 && base->sat.secondLinePhoneMode == 0)
+			{
+				ioctl(mtgpiofd, GPIO_IOCSDATALOW, RC);//取消响铃电话机
+				
+				USER * t = gp_users;
+				while(t) {
+					if(t->socketfd>0) {
+						AppCallUpRspForce(t->socketfd, 6);
+					}
+					t=t->next;
+				}
+
+				char Decode[512] = {0};
+				sprintf(Decode, "收到未接来电:%s", base->sat.called_number);
+				MissCallAdd("未接来电", Decode);
+				base->sat.hasMissedCall = 1;
+			}
+
+			if(base->sat.socket > 0 && base->sat.secondLinePhoneMode == 1)
+			{
+				//同时接听到，电话机优先
+				AppCallUpRspForce(base->sat.socket, 6);
+				base->sat.socket = 0;
 			}
 			
 			while(base->sat.sat_calling)
 			{
-				if(ringsocket <= 0)
+				if(base->sat.socket <= 0)
 				{
-					base->sat.secondLinePhoneMode = 1;	//没有app链接 振铃电话机
-					ioctl(mtgpiofd, GPIO_IOCSDATAHIGH, RC);//拉高RC管脚，振铃电话机
 					break;
 				}
 				
@@ -10356,71 +10439,39 @@ void *sat_ring_detect(void *p)
 				
 				if(base->sat.sat_state_phone == SAT_STATE_PHONE_COMING_HANGUP)
 				{
-					ringnocarriercnt++;
-					if(ringnocarriercnt == 1)
-					{
-						satfi_log("SAT_STATE_PHONE_COMING_HANGUP captain_socket=%d\n", base->sat.captain_socket);
-						AppCallUpRsp(ringsocket, get_sat_dailstatus());
-						break;
-					}
-					else
-					{
-						base->sat.sat_state_phone = SAT_STATE_PHONE_RING_COMING;
-					}
+					satfi_log("SAT_STATE_PHONE_COMING_HANGUP\n");
+					AppCallUpRsp(base->sat.socket, get_sat_dailstatus());
+					break;
 				}
 
 				if(base->sat.sat_state_phone == SAT_STATE_PHONE_RING_COMING)
 				{
 					uart_send(base->sat.sat_phone, "AT+CLCC\r\n", 9);
-					ringcnt++;
-					if(ringcnt >= 60)
-					{
-						base->sat.sat_state_phone = SAT_STATE_PHONE_COMING_HANGUP;
-						satfi_log("SAT_STATE_PHONE_COMING_HANGUP captain_socket1=%d\n", base->sat.captain_socket);
-						AppCallUpRsp(ringsocket, get_sat_dailstatus());
-						break;
-					}
 				}
 
 				if(base->sat.sat_state_phone == SAT_STATE_PHONE_ONLINE)
 				{
-					//satfi_log("SAT_STATE_PHONE_ONLINE captain_socket=%d\n", base->sat.captain_socket);
-					//uart_send(base->sat.sat_fd, "AT+CLCC\r\n", 9);
-					AppCallUpRsp(ringsocket, get_sat_dailstatus());
+					AppCallUpRsp(base->sat.socket, get_sat_dailstatus());
 					if(base->sat.StartTime == 0)
 					{
 						base->sat.StartTime = time(0);
 						satfi_log("ring StartTime=%lld\n", base->sat.StartTime);
+						gpio_out(HW_GPIO6, 1);
 					}
 				}
 				
 				if(base->sat.sat_state_phone == SAT_STATE_PHONE_HANGUP)
 				{
-					satfi_log("SAT_STATE_PHONE_HANGUP captain_socket=%d\n", base->sat.captain_socket);
-					AppCallUpRsp(ringsocket, get_sat_dailstatus());
+					AppCallUpRsp(base->sat.socket, get_sat_dailstatus());
 					break;
 				}
 	
 				sleep(1);
 			}
 
-			int i=30;
-			int flag=0;//发送一次ATA摘机指令
 			while(base->sat.secondLinePhoneMode)
 			{
-				if(ioctl(mtgpiofd, GPIO_IOCQDATAIN, SHR) == 0)
-				{
-					//satfi_log("flag=%d, sat_state_phone=%d\n", flag, base->sat.sat_state_phone);
-					ioctl(mtgpiofd, GPIO_IOCSDATALOW, RC);
-					if(flag == 0)
-					{
-						AnsweringPhone();//二线电话摘机
-						flag = 1;
-					}
-				}
-				else
-				{
-					//satfi_log("sat_state_phone=%d\n", base->sat.sat_state_phone);
+				if(ioctl(mtgpiofd, GPIO_IOCQDATAIN, SHR) == 1) {
 					if(base->sat.sat_state_phone == SAT_STATE_PHONE_ONLINE)
 					{
 						base->sat.sat_state_phone = SAT_STATE_PHONE_ATH_W;
@@ -10428,29 +10479,12 @@ void *sat_ring_detect(void *p)
 					}
 
 					uart_send(base->sat.sat_phone, "AT+CLCC\r\n", 9);
-
-					i--;
-					if(i < 0) 
-					{
-						break;
-					}
-
-					if(i%2 == 0)
-					{
-						ioctl(mtgpiofd, GPIO_IOCSDATALOW, RC);
-					}
-					else
-					{
-						ioctl(mtgpiofd, GPIO_IOCSDATAHIGH, RC);//响铃
-					}
 				}
 				
 				sleep(1);
 			}
 
-			ioctl(mtgpiofd, GPIO_IOCSDATALOW, RC);
 			base->sat.secondLinePhoneMode = 0;
-			base->sat.EndTime = time(0);
 			
 			int cnt = 10;
 			while(cnt--)
@@ -10475,42 +10509,17 @@ void *sat_ring_detect(void *p)
 				}
 				
 			}
-
-			satfi_log("ring EndTime=%lld\n", base->sat.EndTime);
-
-			if(base->sat.StartTime > 0 && 0 < base->sat.EndTime && base->sat.EndTime > base->sat.StartTime)
-			{
-				unsigned short CallTime = base->sat.EndTime - base->sat.StartTime;
-				base->sat.CallTime = (CallTime%60) ? ((CallTime/60)*60 + 60) : CallTime;
-				base->sat.Money = base->sat.CallTime * base->sat.charge / 5;
-				satfi_log("ring StartTime=%lld,CallTime=%d,Money=%d\n",base->sat.StartTime, base->sat.CallTime, base->sat.Money);
-				satfi_log("ring MsID=%.21s,MsPhoneNum=%.11s,DesPhoneNum=%.11s\n",base->sat.MsID, base->sat.MsPhoneNum, base->sat.DesPhoneNum);
-
-				char tmp[128] = {0};
-				Msg_Phone_Money_Req *rsp = (Msg_Phone_Money_Req*)tmp;
-				rsp->header.length = sizeof(Msg_Phone_Money_Req);
-				rsp->header.mclass = APP_PHONE_MONEY_CMD;
-				StrToBcd(rsp->MsID, &(base->sat.MsID[USERID_LLEN - USERID_LEN]), USERID_LEN);
-				StrToBcd(rsp->MsPhoneNum, base->sat.MsPhoneNum, 11);
-				StrToBcd(rsp->DesPhoneNum, base->sat.DesPhoneNum, 11);
-				rsp->StartTime = base->sat.StartTime * 1000;
-				rsp->CallTime = base->sat.CallTime;
-				rsp->Money = base->sat.Money;
-
-				//CallRecordsADD((char *)rsp, rsp->header.length);
-				//SaveDataToFile(CALL_RECORDS_FILE ,(char *)rsp, rsp->header.length);
-			}
 			
 			satfi_log("SAT_STATE_PHONE_HANGUP %d\n", base->sat.sat_state_phone);
 			bzero(base->sat.called_number, sizeof(base->sat.called_number));
-			base->sat.ring = 0;	
-			ringsocket = -1;
+			base->sat.ring = 0;
+			base->sat.socket = 0;
 			base->sat.sat_calling = 0;
 			base->sat.sat_state_phone = SAT_STATE_PHONE_IDLE;
 
 			if(base->sat.sat_available == 1) gpio_out(HW_GPIO78, 1);
-			
-			net_unlock();
+
+			gpio_out(HW_GPIO6, 0);
 		}
 
 		sleep(1);
@@ -10656,8 +10665,7 @@ void *Second_linePhone_Dial_Detect(void *p)
 			}
 		}
 
-		usleep(200000);
-		//sleep(1);
+		sleep(1);
 	}
 	
 	return NULL;
@@ -10788,7 +10796,7 @@ void hw_init(void)
 {
 	gpio_out(HW_GPIO2, 0);//sos led
 	gpio_out(HW_GPIO5, 0);
-	gpio_out(HW_GPIO6, 0);
+	gpio_out(HW_GPIO6, 0);//未接电话 未读短信
 	gpio_out(HW_GPIO7, 1);//wifi led
 
 	gpio_out(HW_GPIO78, 0);//data led
