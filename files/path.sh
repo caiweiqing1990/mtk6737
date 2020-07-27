@@ -1,6 +1,6 @@
 #!/bin/bash
 
-ANDROID_PATH=/home/book/work/XY3701_N0_BAK/XY3701_N0
+ANDROID_PATH=$(pwd)/../../..
 
 FILES_BAK=./files_bak
 
