@@ -1,6 +1,6 @@
 #!/bin/bash
 
-ANDROID_PATH=$(pwd)/../../..
+ANDROID_PATH=$ANDROID_BUILD_TOP
 
 cp init.mt6735.rc $ANDROID_PATH/device/mediatek/mt6735/init.mt6735.rc
 cp device2.mk $ANDROID_PATH/device/mediatek/mt6735/device.mk
