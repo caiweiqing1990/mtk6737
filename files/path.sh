@@ -70,4 +70,3 @@ cp IMEIUtils.java $ANDROID_PATH/packages/apps/Settings/src/com/mediatek/sim/IMEI
 
 cp codegen.dws $ANDROID_PATH/vendor/mediatek/proprietary/bootable/bootloader/lk/target/len6737t_66_sh_n/dct/dct/codegen.dws
 
-#cp SatFiApp $ANDROID_PATH/packages/apps/ -fr
